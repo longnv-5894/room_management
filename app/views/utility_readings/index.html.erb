@@ -1,0 +1,51 @@
+<%# For /app/views/utility_readings/index.html.erb %>
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_readings.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('utility_readings.new'), new_utility_reading_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @utility_readings.any? %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('utility_readings.room') %></th>
+              <th><%= t('utility_readings.reading_date') %></th>
+              <th><%= t('utility_readings.electricity') %></th>
+              <th><%= t('utility_readings.water') %></th>
+              <th><%= t('utility_readings.electricity_cost') %></th>
+              <th><%= t('utility_readings.water_cost') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @utility_readings.each do |reading| %>
+              <tr>
+                <td><%= link_to reading.room.number, room_path(reading.room) %></td>
+                <td><%= l reading.reading_date, format: :short %></td>
+                <td><%= reading.electricity_reading %></td>
+                <td><%= reading.water_reading %></td>
+                <td><%= number_to_currency(reading.electricity_reading * reading.electricity_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= number_to_currency(reading.water_reading * reading.water_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to t('common.view'), utility_reading_path(reading), class: "btn btn-sm btn-outline" %>
+                    <%= link_to t('common.edit'), edit_utility_reading_path(reading), class: "btn btn-sm btn-outline" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('utility_readings.no_readings', default: 'No utility readings found.') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

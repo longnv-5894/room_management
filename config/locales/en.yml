@@ -1,0 +1,235 @@
+# Files in the config/locales directory are used for internationalization and
+# are automatically loaded by Rails. If you want to use locales other than
+# English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t "hello"
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t("hello") %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more about the API, please read the Rails Internationalization guide
+# at https://guides.rubyonrails.org/i18n.html.
+#
+# Be aware that YAML interprets the following case-insensitive strings as
+# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
+# must be quoted to be interpreted as strings. For example:
+#
+#     en:
+#       "yes": yup
+#       enabled: "ON"
+
+en:
+  language_name: "English"
+  
+  # Date/Time formats
+  date:
+    formats:
+      default: "%Y-%m-%d"
+      short: "%b %d"
+      long: "%B %d, %Y"
+  time:
+    formats:
+      default: "%a, %d %b %Y %H:%M:%S %z"
+      short: "%d %b %H:%M"
+      long: "%B %d, %Y %H:%M"
+      
+  # Common terms
+  common:
+    actions: "Actions"
+    add: "Add"
+    edit: "Edit"
+    delete: "Delete"
+    view: "View"
+    back: "Back"
+    save: "Save"
+    cancel: "Cancel"
+    confirm: "Are you sure?"
+    search: "Search"
+    status: "Status"
+    date: "Date"
+    amount: "Amount"
+    notes: "Notes"
+    details: "Details"
+    none: "None"
+    no_records: "No records found."
+    form_error: "prohibited this from being saved"
+  
+  # Navigation
+  nav:
+    dashboard: "Dashboard"
+    rooms: "Rooms"
+    tenants: "Tenants"
+    assignments: "Assignments"
+    utilities: "Utilities"
+    bills: "Bills"
+    logout: "Logout"
+    login: "Login"
+    signup: "Sign Up"
+    language: "Language"
+  
+  # Authentication
+  auth:
+    login: "Login"
+    logout: "Logout"
+    email: "Email"
+    password: "Password"
+    remember_me: "Remember me"
+    forgot_password: "Forgot password?"
+    login_success: "Successfully logged in!"
+    logout_success: "Successfully logged out!"
+    login_failed: "Invalid email/password combination"
+    login_required: "Please log in to access this page"
+    login_subtitle: "Sign in to your account"
+    no_account: "Don't have an account?"
+  
+  # Dashboard
+  dashboard:
+    title: "Room Management Dashboard"
+    today: "Today"
+    stats:
+      total_rooms: "Total Rooms"
+      tenants: "Tenants"
+      monthly_revenue: "Monthly Revenue"
+      occupied_vacant: "Occupied / Vacant"
+    recent_bills: "Recent Bills"
+    quick_actions: "Quick Actions"
+    actions:
+      add_room: "Add Room"
+      add_tenant: "Add Tenant"
+      assign_room: "Assign Room"
+      new_reading: "New Reading"
+      create_bill: "Create Bill"
+    no_bills: "No recent bills found."
+  
+  # Rooms
+  rooms:
+    title: "Rooms"
+    new: "New Room"
+    edit: "Edit Room"
+    details: "Room Details"
+    number: "Room Number"
+    floor: "Floor"
+    area: "Area"
+    monthly_rent: "Monthly Rent"
+    status: "Status"
+    available: "Available"
+    occupied: "Occupied"
+    create_success: "Room was successfully created."
+    update_success: "Room was successfully updated."
+    delete_success: "Room was successfully deleted."
+    confirm_delete: "Are you sure you want to delete this room?"
+    cannot_delete_with_assignments: "Cannot delete room with assignments."
+    no_rooms: "No rooms found. Click 'Add New Room' to create your first room."
+    
+  # Tenants
+  tenants:
+    title: "Tenants"
+    new: "New Tenant"
+    edit: "Edit Tenant"
+    details: "Tenant Details"
+    name: "Name"
+    phone: "Phone"
+    email: "Email"
+    id_number: "ID Number"
+    emergency_contact: "Emergency Contact"
+    create_success: "Tenant was successfully created."
+    update_success: "Tenant was successfully updated."
+    delete_success: "Tenant was successfully deleted."
+    confirm_delete: "Are you sure you want to delete this tenant?"
+    no_tenants: "No tenants found."
+    current_room: "Current Room"
+    
+  # Room Assignments
+  room_assignments:
+    title: "Room Assignments"
+    new: "New Room Assignment"
+    edit: "Edit Room Assignment"
+    details: "Assignment Details"
+    room: "Room"
+    tenant: "Tenant"
+    start_date: "Start Date"
+    end_date: "End Date"
+    rent_amount: "Rent Amount"
+    deposit_amount: "Deposit Amount"
+    active: "Active"
+    inactive: "Inactive"
+    create_success: "Room assignment was successfully created."
+    update_success: "Room assignment was successfully updated."
+    delete_success: "Room assignment was successfully deleted."
+    confirm_delete: "Are you sure you want to delete this assignment?"
+    cannot_delete_with_bills: "Cannot delete assignment with bills."
+    no_assignments: "No room assignments found."
+    end: "End"
+    confirm_end: "Are you sure you want to end this assignment?"
+    end_success: "Room assignment has been ended successfully."
+    end_error: "Could not end room assignment."
+    status: "Status"
+    select_room: "Select a room"
+    select_tenant: "Select a tenant"
+    create_assignment: "Create Assignment"
+    
+  # Utility Readings
+  utility_readings:
+    title: "Utility Readings"
+    new: "New Utility Reading"
+    edit: "Edit Utility Reading"
+    details: "Reading Details"
+    room: "Room"
+    type: "Type"
+    electricity: "Electricity"
+    water: "Water"
+    previous_reading: "Previous Reading"
+    current_reading: "Current Reading"
+    reading_date: "Reading Date"
+    rate: "Rate"
+    amount: "Amount"
+    usage: "Usage"
+    create_success: "Utility reading was successfully created."
+    update_success: "Utility reading was successfully updated."
+    delete_success: "Utility reading was successfully deleted."
+    confirm_delete: "Are you sure you want to delete this reading?"
+    electricity_cost: "Electricity Cost"
+    water_cost: "Water Cost"
+    
+  # Bills
+  bills:
+    title: "Bills"
+    new: "New Bill"
+    edit: "Edit Bill"
+    details: "Bill Details"
+    bill_information: "Bill Information"
+    room: "Room"
+    tenant: "Tenant"
+    billing_date: "Billing Date"
+    billing_period: "Billing Period"
+    due_date: "Due Date"
+    payment_date: "Payment Date"
+    status: "Status"
+    unpaid: "Unpaid"
+    partial: "Partial"
+    paid: "Paid"
+    overdue: "Overdue"
+    charges_breakdown: "Charges Breakdown"
+    monthly_rent: "Monthly Rent"
+    utility_charges: "Utility Charges"
+    additional_charges: "Additional Charges"
+    total_amount: "Total Amount"
+    mark_as_paid: "Mark Paid"
+    print_bill: "Print Bill"
+    create_success: "Bill was successfully created."
+    update_success: "Bill was successfully updated."
+    delete_success: "Bill was successfully deleted."
+    mark_paid_success: "Bill was successfully marked as paid."
+    confirm_delete: "Are you sure you want to delete this bill?"
+    utility_readings: "Utility Readings"
+    no_readings: "No utility readings recorded for this bill."
+    actions: "Actions"

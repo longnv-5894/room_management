@@ -1,0 +1,189 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('bills.details') %></h1>
+  <div class="header-actions">
+    <% if @bill.status == "unpaid" %>
+      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(@bill), method: :patch, class: "btn btn-success" %>
+    <% end %>
+    <%= link_to t('common.back') + " " + t('bills.title').downcase, bills_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('bills.bill_information') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="bill-detail-grid">
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.room') %>:</div>
+            <div class="detail-value">
+              <%= link_to @bill.room_assignment.room.number, room_path(@bill.room_assignment.room) %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.tenant') %>:</div>
+            <div class="detail-value">
+              <%= link_to @bill.room_assignment.tenant.name, tenant_path(@bill.room_assignment.tenant) %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.billing_date') %>:</div>
+            <div class="detail-value"><%= l @bill.billing_date, format: :long %></div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.billing_period') %>:</div>
+            <div class="detail-value">
+              <%= l @bill.billing_period_start, format: :long %> - 
+              <%= l @bill.billing_period_end, format: :long %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.due_date') %>:</div>
+            <div class="detail-value">
+              <%= l @bill.due_date, format: :long %>
+              <% if @bill.status == "unpaid" && @bill.due_date < Date.today %>
+                <span class="badge badge-danger"><%= t('bills.overdue') %></span>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('bills.status') %>:</div>
+            <div class="detail-value">
+              <span class="status-badge status-<%= @bill.status %>">
+                <%= t("bills.#{@bill.status}") %>
+              </span>
+            </div>
+          </div>
+          
+          <% if @bill.payment_date.present? %>
+            <div class="detail-row">
+              <div class="detail-label"><%= t('bills.payment_date') %>:</div>
+              <div class="detail-value"><%= l @bill.payment_date, format: :long %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('bills.charges_breakdown') %></h2>
+      </div>
+      <div class="card-body">
+        <table class="data-table">
+          <tbody>
+            <tr>
+              <td><strong><%= t('bills.monthly_rent') %></strong></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.rent_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <tr>
+              <td><strong><%= t('bills.utility_charges') %></strong></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.utility_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <% if @bill.additional_charges.present? && @bill.additional_charges > 0 %>
+              <tr>
+                <td><strong><%= t('bills.additional_charges') %></strong></td>
+                <td class="text-right">
+                  <%= number_to_currency(@bill.additional_charges, precision: 0, delimiter: ',', unit: 'VND ') %>
+                </td>
+              </tr>
+            <% end %>
+            <tr class="total-row">
+              <td><strong><%= t('bills.total_amount') %></strong></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <% if @bill.notes.present? %>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2 class="card-title"><%= t('common.notes') %></h2>
+        </div>
+        <div class="card-body">
+          <%= simple_format @bill.notes %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('bills.utility_readings') %></h2>
+      </div>
+      <div class="card-body">
+        <% if @utility_readings.present? && @utility_readings.any? %>
+          <% @utility_readings.each do |reading| %>
+            <div class="utility-reading-card">
+              <h3 class="utility-type"><%= t("utility_readings.#{reading.utility_type}") %></h3>
+              <div class="utility-details">
+                <div class="utility-detail">
+                  <span class="detail-label"><%= t('utility_readings.previous_reading') %>:</span>
+                  <span class="detail-value"><%= reading.previous_reading %></span>
+                </div>
+                <div class="utility-detail">
+                  <span class="detail-label"><%= t('utility_readings.current_reading') %>:</span>
+                  <span class="detail-value"><%= reading.current_reading %></span>
+                </div>
+                <div class="utility-detail">
+                  <span class="detail-label"><%= t('utility_readings.usage') %>:</span>
+                  <span class="detail-value"><%= reading.current_reading - reading.previous_reading %></span>
+                </div>
+                <div class="utility-detail">
+                  <span class="detail-label"><%= t('utility_readings.rate') %>:</span>
+                  <span class="detail-value"><%= number_to_currency(reading.rate, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </div>
+                <div class="utility-detail total">
+                  <span class="detail-label"><%= t('utility_readings.amount') %>:</span>
+                  <span class="detail-value">
+                    <%= number_to_currency((reading.current_reading - reading.previous_reading) * reading.rate, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% else %>
+          <p><%= t('bills.no_readings') %></p>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('common.actions') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="action-buttons">
+          <%= link_to t('bills.print_bill'), "#", class: "btn btn-block btn-outline", onclick: "window.print(); return false;" %>
+          
+          <% if @bill.status == "unpaid" %>
+            <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(@bill), method: :patch, class: "btn btn-block btn-success" %>
+          <% end %>
+          
+          <%= link_to t('common.edit'), edit_bill_path(@bill), class: "btn btn-block btn-outline" %>
+          
+          <%= link_to t('common.delete'), bill_path(@bill), 
+                      method: :delete, 
+                      data: { confirm: t('bills.confirm_delete') }, 
+                      class: "btn btn-block btn-danger" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

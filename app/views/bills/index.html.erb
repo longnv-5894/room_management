@@ -1,0 +1,120 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('bills.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('bills.new'), new_bill_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title"><%= t('bills.filter_bills', default: 'Filter Bills') %></h2>
+  </div>
+  <div class="card-body">
+    <%= form_with(url: bills_path, method: :get, local: true, class: "filter-form") do |form| %>
+      <div class="filter-row">
+        <div class="filter-group">
+          <%= form.label :room, t('bills.room'), class: "filter-label" %>
+          <%= form.select :room_id, 
+                         Room.all.map { |r| [r.number, r.id] }, 
+                         { include_blank: t('bills.all_rooms', default: 'All Rooms') }, 
+                         { class: "filter-select" } %>
+        </div>
+        
+        <div class="filter-group">
+          <%= form.label :tenant, t('bills.tenant'), class: "filter-label" %>
+          <%= form.select :tenant_id, 
+                         Tenant.all.map { |t| [t.name, t.id] }, 
+                         { include_blank: t('bills.all_tenants', default: 'All Tenants') }, 
+                         { class: "filter-select" } %>
+        </div>
+        
+        <div class="filter-group">
+          <%= form.label :status, t('bills.status'), class: "filter-label" %>
+          <%= form.select :status, 
+                         [[t('bills.unpaid'), "unpaid"], [t('bills.paid'), "paid"], [t('bills.overdue'), "overdue"]], 
+                         { include_blank: t('bills.all_statuses', default: 'All Statuses') }, 
+                         { class: "filter-select" } %>
+        </div>
+        
+        <div class="filter-group">
+          <%= form.label :date_from, t('bills.date_from', default: 'Date From'), class: "filter-label" %>
+          <%= form.date_field :date_from, class: "filter-input" %>
+        </div>
+        
+        <div class="filter-group">
+          <%= form.label :date_to, t('bills.date_to', default: 'Date To'), class: "filter-label" %>
+          <%= form.date_field :date_to, class: "filter-input" %>
+        </div>
+      </div>
+      
+      <div class="filter-actions">
+        <%= form.submit t('bills.filter', default: 'Filter'), class: "btn btn-primary" %>
+        <%= link_to t('bills.reset', default: 'Reset'), bills_path, class: "btn btn-outline" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @bills.any? %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('bills.room') %></th>
+              <th><%= t('bills.tenant') %></th>
+              <th><%= t('bills.billing_date') %></th>
+              <th><%= t('bills.billing_period') %></th>
+              <th><%= t('bills.monthly_rent') %></th>
+              <th><%= t('bills.utility_charges') %></th>
+              <th><%= t('bills.total_amount') %></th>
+              <th><%= t('bills.status') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @bills.each do |bill| %>
+              <tr>
+                <td><%= link_to bill.room_assignment.room.number, room_path(bill.room_assignment.room) %></td>
+                <td><%= link_to bill.room_assignment.tenant.name, tenant_path(bill.room_assignment.tenant) %></td>
+                <td><%= l bill.billing_date, format: :short %></td>
+                <td>
+                  <%= l bill.billing_period_start, format: :short %> - 
+                  <%= l bill.billing_period_end, format: :short %>
+                </td>
+                <td>
+                  <span class="currency-amount"><%= number_to_currency(bill.rent_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </td>
+                <td>
+                  <span class="currency-amount"><%= number_to_currency(bill.utility_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </td>
+                <td>
+                  <span class="currency-amount"><%= number_to_currency(bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </td>
+                <td>
+                  <span class="status-badge status-<%= bill.status %>">
+                    <%= t("bills.#{bill.status}") %>
+                  </span>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to t('common.view'), bill_path(bill), class: "btn btn-sm btn-outline" %>
+                    
+                    <% if bill.status == "unpaid" %>
+                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(bill), method: :patch, class: "btn btn-sm btn-success" %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('bills.no_bills', default: 'No bills found. Click "Create New Bill" to generate a bill for a tenant.') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || t('dashboard.title') %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    
+    <style>
+      .language-switcher {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .language-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 6px;
+        min-width: 150px;
+        z-index: 1000;
+        display: none;
+      }
+      
+      .language-switcher:hover .language-dropdown {
+        display: block;
+      }
+      
+      .language-item {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+      }
+      
+      .language-item:hover {
+        background-color: rgba(108, 92, 231, 0.1);
+      }
+      
+      .language-item.active {
+        font-weight: bold;
+        background-color: rgba(108, 92, 231, 0.2);
+        color: #6c5ce7;
+      }
+    </style>
+  </head>
+
+  <body>
+    <% if session[:user_id] %>
+      <nav class="navbar">
+        <div class="container navbar-content">
+          <%= link_to t('dashboard.title'), dashboard_path, class: "navbar-brand" %>
+          <ul class="navbar-nav">
+            <li><%= link_to t('nav.dashboard'), dashboard_path, class: "nav-link #{current_page?(dashboard_path) ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.rooms'), rooms_path, class: "nav-link #{controller_name == 'rooms' ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.tenants'), tenants_path, class: "nav-link #{controller_name == 'tenants' ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.assignments'), room_assignments_path, class: "nav-link #{controller_name == 'room_assignments' ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.utilities'), utility_readings_path, class: "nav-link #{controller_name == 'utility_readings' ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.bills'), bills_path, class: "nav-link #{controller_name == 'bills' ? 'active' : ''}" %></li>
+            <li class="language-switcher">
+              <a href="#" class="nav-link">
+                <%= t('nav.language') %> <span>▼</span>
+              </a>
+              <div class="language-dropdown">
+                <%= link_to "English", switch_language_path(locale: 'en'), class: "language-item #{I18n.locale == :en ? 'active' : ''}" %>
+                <%= link_to "Tiếng Việt", switch_language_path(locale: 'vi'), class: "language-item #{I18n.locale == :vi ? 'active' : ''}" %>
+              </div>
+            </li>
+            <li><%= link_to t('nav.logout'), logout_path, data: { turbo_method: :delete }, class: "nav-link" %></li>
+          </ul>
+        </div>
+      </nav>
+    <% end %>
+
+    <div class="container">
+      <% flash.each do |message_type, message| %>
+        <div class="flash flash-<%= message_type %>">
+          <%= message %>
+        </div>
+      <% end %>
+      
+      <%= yield %>
+    </div>
+  </body>
+</html>

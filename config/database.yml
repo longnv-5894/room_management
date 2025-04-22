@@ -1,0 +1,30 @@
+# PostgreSQL. Versions 9.3 and up are supported.
+#   gem install pg
+#
+#   Ensure the pg gem is defined in your Gemfile
+#   gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: postgres
+  host: localhost
+  password: postgres
+
+development:
+  <<: *default
+  database: room_management_development
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rails test:prepare".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: room_management_test
+
+production:
+  <<: *default
+  database: room_management_production
+  username: room_management
+  password: <%= ENV['ROOM_MANAGEMENT_DATABASE_PASSWORD'] %>

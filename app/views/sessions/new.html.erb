@@ -1,0 +1,57 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13 12H3"></path>
+      </svg>
+    </div>
+    <h2 class="auth-title"><%= t('auth.login') %></h2>
+    <p class="auth-subtitle"><%= t('auth.login_subtitle', default: 'Sign in to your account') %></p>
+  </div>
+
+  <%= form_with(url: login_path, scope: :session, local: true) do |f| %>
+    <div class="form-group">
+      <%= f.label :email, t('auth.email') %>
+      <%= f.text_field :email, class: 'form-control' %>
+      <span class="form-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </span>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :password, t('auth.password') %>
+      <%= f.password_field :password, class: 'form-control' %>
+      <span class="form-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </span>
+    </div>
+
+    <div class="auth-footer">
+      <div class="auth-checkbox">
+        <input type="checkbox" id="remember_me" name="remember_me">
+        <label for="remember_me"><%= t('auth.remember_me') %></label>
+      </div>
+      <a href="#" class="auth-link"><%= t('auth.forgot_password') %></a>
+    </div>
+
+    <div class="form-group" style="margin-top: 20px;">
+      <%= f.button type: "submit", class: "btn btn-primary" do %>
+        <%= t('auth.login') %>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+          <path d="M5 12h14"></path>
+          <path d="m12 5 7 7-7 7"></path>
+        </svg>
+      <% end %>
+    </div>
+  <% end %>
+  
+  <div class="social-auth">
+    <p class="social-text"><%= t('auth.no_account', default: "Don't have an account?") %> <%= link_to t('nav.signup'), signup_path, class: "auth-link" %></p>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('room_assignments.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('room_assignments.new'), new_room_assignment_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @room_assignments.any? %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('room_assignments.room') %></th>
+              <th><%= t('room_assignments.tenant') %></th>
+              <th><%= t('room_assignments.start_date') %></th>
+              <th><%= t('room_assignments.end_date') %></th>
+              <th><%= t('room_assignments.status') %></th>
+              <th><%= t('room_assignments.deposit_amount') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @room_assignments.each do |assignment| %>
+              <tr>
+                <td><%= link_to assignment.room.number, room_path(assignment.room) %></td>
+                <td><%= link_to assignment.tenant.name, tenant_path(assignment.tenant) %></td>
+                <td><%= l assignment.start_date, format: :long %></td>
+                <td>
+                  <% if assignment.end_date.present? %>
+                    <%= l assignment.end_date, format: :long %>
+                  <% else %>
+                    <span class="text-muted"><%= t('room_assignments.active') %></span>
+                  <% end %>
+                </td>
+                <td>
+                  <span class="status-badge status-<%= assignment.active? ? 'active' : 'inactive' %>">
+                    <%= t("room_assignments.#{assignment.active? ? 'active' : 'inactive'}") %>
+                  </span>
+                </td>
+                <td>
+                  <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to t('common.view'), room_assignment_path(assignment), class: "btn btn-sm btn-outline" %>
+                    <% if assignment.active? %>
+                      <%= link_to t('room_assignments.end'), end_room_assignment_path(assignment), 
+                          method: :patch, 
+                          data: { confirm: t('room_assignments.confirm_end') }, 
+                          class: "btn btn-sm btn-danger" %>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('room_assignments.no_assignments') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

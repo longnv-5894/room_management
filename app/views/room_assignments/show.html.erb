@@ -1,0 +1,215 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('room_assignments.details') %></h1>
+  <div class="header-actions">
+    <% if @room_assignment.active? %>
+      <%= link_to t('room_assignments.end'), end_room_assignment_path(@room_assignment), method: :patch, data: { confirm: t('room_assignments.confirm_end') }, class: "btn btn-danger" %>
+    <% end %>
+    <%= link_to t('common.back') + " " + t('room_assignments.title').downcase, room_assignments_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('room_assignments.details') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.room') %>:</div>
+            <div class="detail-value">
+              <%= link_to @room_assignment.room.number, room_path(@room_assignment.room) %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.tenant') %>:</div>
+            <div class="detail-value">
+              <%= link_to @room_assignment.tenant.name, tenant_path(@room_assignment.tenant) %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.start_date') %>:</div>
+            <div class="detail-value"><%= l @room_assignment.start_date, format: :long %></div>
+          </div>
+          
+          <% if @room_assignment.end_date.present? %>
+            <div class="detail-row">
+              <div class="detail-label"><%= t('room_assignments.end_date') %>:</div>
+              <div class="detail-value"><%= l @room_assignment.end_date, format: :long %></div>
+            </div>
+          <% end %>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.status') %>:</div>
+            <div class="detail-value">
+              <span class="status-badge status-<%= @room_assignment.active? ? 'active' : 'inactive' %>">
+                <%= t("room_assignments.#{@room_assignment.active? ? 'active' : 'inactive'}") %>
+              </span>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.deposit_amount') %>:</div>
+            <div class="detail-value">
+              <%= number_to_currency(@room_assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </div>
+          </div>
+          
+          <% if @room_assignment.notes.present? %>
+            <div class="detail-item full-width">
+              <div class="detail-label">Notes</div>
+              <div class="detail-value"><%= @room_assignment.notes %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <% if @bills.any? %>
+      <div class="card mt-4">
+        <div class="card-header">
+          <h2 class="card-title"><%= t('bills.title') %></h2>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><%= t('bills.billing_date') %></th>
+                <th><%= t('bills.billing_period') %></th>
+                <th><%= t('bills.due_date') %></th>
+                <th><%= t('bills.total_amount') %></th>
+                <th><%= t('bills.status') %></th>
+                <th><%= t('common.actions') %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @bills.each do |bill| %>
+                <tr>
+                  <td><%= l bill.billing_date, format: :short %></td>
+                  <td>
+                    <%= l bill.billing_period_start, format: :short %> - 
+                    <%= l bill.billing_period_end, format: :short %>
+                  </td>
+                  <td><%= l bill.due_date, format: :short %></td>
+                  <td><%= number_to_currency(bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                  <td>
+                    <span class="status-badge status-<%= bill.status %>">
+                      <%= t("bills.#{bill.status}") %>
+                    </span>
+                  </td>
+                  <td>
+                    <%= link_to t('common.view'), bill_path(bill), class: "btn btn-sm btn-outline" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('common.actions') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="action-buttons">
+          <%= link_to t('common.edit'), edit_room_assignment_path(@room_assignment), class: "btn btn-block btn-outline" %>
+          
+          <% if @room_assignment.active? %>
+            <%= link_to t('room_assignments.end'), end_room_assignment_path(@room_assignment), 
+                method: :patch, 
+                data: { confirm: t('room_assignments.confirm_end') }, 
+                class: "btn btn-block btn-danger" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2 class="card-title">Room Details</h2>
+      </div>
+      <div class="card-body">
+        <div class="room-info">
+          <h3 class="room-number">Room <%= @room_assignment.room.number %></h3>
+          
+          <div class="detail-item">
+            <div class="detail-label">Floor</div>
+            <div class="detail-value"><%= @room_assignment.room.floor %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Area</div>
+            <div class="detail-value"><%= @room_assignment.room.area %> m²</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Monthly Rent</div>
+            <div class="detail-value">
+              <%= number_to_currency(@room_assignment.room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </div>
+          </div>
+          
+          <div class="card-actions">
+            <%= link_to "View Room", room_path(@room_assignment.room), class: "btn btn-sm btn-outline" %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2 class="card-title">Tenant Details</h2>
+      </div>
+      <div class="card-body">
+        <div class="tenant-info">
+          <h3 class="tenant-name"><%= @room_assignment.tenant.name %></h3>
+          
+          <div class="detail-item">
+            <div class="detail-label">Phone</div>
+            <div class="detail-value"><%= @room_assignment.tenant.phone %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Email</div>
+            <div class="detail-value"><%= @room_assignment.tenant.email %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">ID Number</div>
+            <div class="detail-value"><%= @room_assignment.tenant.id_number %></div>
+          </div>
+          
+          <div class="card-actions">
+            <%= link_to "View Tenant", tenant_path(@room_assignment.tenant), class: "btn btn-sm btn-outline" %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <% if @room_assignment.active? %>
+      <div class="card mt-4">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div class="card-body">
+          <div class="action-buttons">
+            <%= link_to new_utility_reading_path(room_id: @room_assignment.room.id), class: "btn btn-outline" do %>
+              Add Utility Reading
+            <% end %>
+            
+            <%= link_to new_bill_path(room_assignment_id: @room_assignment.id), class: "btn btn-outline" do %>
+              Generate Bill
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

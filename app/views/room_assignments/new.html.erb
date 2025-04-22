@@ -1,0 +1,54 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('room_assignments.new') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.cancel'), room_assignments_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="form-container">
+  <%= form_with(model: @room_assignment, local: true) do |form| %>
+    <% if @room_assignment.errors.any? %>
+      <div class="alert alert-danger">
+        <h2><%= pluralize(@room_assignment.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
+        <ul>
+          <% @room_assignment.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="form-group">
+      <%= form.label :room_id, t('room_assignments.room'), class: "form-label" %>
+      <%= form.collection_select :room_id, @available_rooms, :id, :number, 
+                                { prompt: t('room_assignments.select_room', default: 'Select a room') }, 
+                                { class: "form-select" } %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :tenant_id, t('room_assignments.tenant'), class: "form-label" %>
+      <%= form.collection_select :tenant_id, @available_tenants, :id, :name, 
+                                { prompt: t('room_assignments.select_tenant', default: 'Select a tenant') }, 
+                                { class: "form-select" } %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :start_date, t('room_assignments.start_date'), class: "form-label" %>
+      <%= form.date_field :start_date, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :deposit_amount, t('room_assignments.deposit_amount') + " (VND)", class: "form-label" %>
+      <%= form.number_field :deposit_amount, class: "form-control", min: 0 %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :notes, t('common.notes'), class: "form-label" %>
+      <%= form.text_area :notes, class: "form-control", rows: 3 %>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit t('room_assignments.create_assignment', default: 'Create Assignment'), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

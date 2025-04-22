@@ -1,0 +1,162 @@
+<div class="page-header">
+  <h1 class="header-title">Room: <%= @room.number %></h1>
+  <div class="header-actions">
+    <%= link_to "Edit Room", edit_room_path(@room), class: "btn btn-outline" %>
+    <%= link_to "Back to Rooms", rooms_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Room Details</h2>
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Room Number</div>
+            <div class="detail-value"><%= @room.number %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Floor</div>
+            <div class="detail-value"><%= @room.floor %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Area</div>
+            <div class="detail-value"><%= @room.area %> m²</div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Monthly Rent</div>
+            <div class="detail-value"><%= number_to_currency(@room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+              <span class="status-badge status-<%= @room.status %>">
+                <%= @room.status.capitalize %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% if @latest_reading %>
+      <div class="card mt-4">
+        <div class="card-header">
+          <h2 class="card-title">Latest Utility Readings</h2>
+        </div>
+        <div class="card-body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <div class="detail-label">Reading Date</div>
+              <div class="detail-value"><%= @latest_reading.reading_date.strftime("%B %d, %Y") %></div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">Electricity Reading</div>
+              <div class="detail-value"><%= @latest_reading.electricity_reading %> kWh</div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">Water Reading</div>
+              <div class="detail-value"><%= @latest_reading.water_reading %> m³</div>
+            </div>
+          </div>
+          
+          <div class="card-actions">
+            <%= link_to "All Readings", utility_readings_path(room_id: @room.id), class: "btn btn-sm btn-outline" %>
+            <%= link_to "Add New Reading", new_utility_reading_path(room_id: @room.id), class: "btn btn-sm btn-outline" %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Current Tenant</h2>
+      </div>
+      <div class="card-body">
+        <% if @current_tenant %>
+          <div class="tenant-info">
+            <h3 class="tenant-name"><%= @current_tenant.name %></h3>
+            
+            <div class="detail-item">
+              <div class="detail-label">Phone</div>
+              <div class="detail-value"><%= @current_tenant.phone %></div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">Email</div>
+              <div class="detail-value"><%= @current_tenant.email %></div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">Move-in Date</div>
+              <div class="detail-value"><%= @current_tenant.move_in_date.strftime("%B %d, %Y") %></div>
+            </div>
+            
+            <div class="card-actions">
+              <%= link_to "View Tenant", tenant_path(@current_tenant), class: "btn btn-sm btn-outline" %>
+            </div>
+          </div>
+        <% else %>
+          <div class="empty-state">
+            <p>No tenant currently assigned to this room.</p>
+            <%= link_to "Assign Tenant", new_room_assignment_path(room_id: @room.id), class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <% if @current_tenant %>
+      <div class="card mt-4">
+        <div class="card-header">
+          <h2 class="card-title">Assignment Details</h2>
+        </div>
+        <div class="card-body">
+          <% assignment = @room.current_assignment %>
+          <% if assignment %>
+            <div class="detail-item">
+              <div class="detail-label">Start Date</div>
+              <div class="detail-value"><%= assignment.start_date.strftime("%B %d, %Y") %></div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">End Date</div>
+              <div class="detail-value">
+                <%= assignment.end_date ? assignment.end_date.strftime("%B %d, %Y") : "Not specified" %>
+              </div>
+            </div>
+            
+            <div class="detail-item">
+              <div class="detail-label">Deposit</div>
+              <div class="detail-value">
+                <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </div>
+            </div>
+            
+            <div class="card-actions">
+              <%= link_to "View Assignment", room_assignment_path(assignment), class: "btn btn-sm btn-outline" %>
+              <%= link_to "End Assignment", room_assignment_path(assignment), 
+                  method: :delete, 
+                  data: { confirm: "Are you sure you want to end this assignment?" }, 
+                  class: "btn btn-sm btn-danger" %>
+            </div>
+          <% else %>
+            <div class="empty-state">
+              <p>No active assignment found.</p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,60 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('rooms.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('rooms.new'), new_room_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @rooms.any? %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('rooms.number') %></th>
+              <th><%= t('rooms.floor') %></th>
+              <th><%= t('rooms.area') %> (m²)</th>
+              <th><%= t('rooms.monthly_rent') %></th>
+              <th><%= t('rooms.status') %></th>
+              <th><%= t('tenants.title') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @rooms.each do |room| %>
+              <tr>
+                <td><%= room.number %></td>
+                <td><%= room.floor %></td>
+                <td><%= room.area %></td>
+                <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td>
+                  <span class="status-badge status-<%= room.status %>">
+                    <%= t("rooms.#{room.status}") %>
+                  </span>
+                </td>
+                <td>
+                  <% if room.current_tenant %>
+                    <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                  <% else %>
+                    <span class="text-muted"><%= t('common.none', default: 'None') %></span>
+                  <% end %>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to t('common.view'), room_path(room), class: "btn btn-sm btn-outline" %>
+                    <%= link_to t('common.edit'), edit_room_path(room), class: "btn btn-sm btn-outline" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('rooms.no_rooms', default: 'No rooms found. Click "Add New Room" to create your first room.') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

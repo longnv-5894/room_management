@@ -1,0 +1,156 @@
+<div class="page-header">
+  <h1 class="header-title">Generate New Bill</h1>
+  <div class="header-actions">
+    <%= link_to "Cancel", bills_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="form-container">
+  <%= form_with(model: @bill, local: true) do |form| %>
+    <% if @bill.errors.any? %>
+      <div class="alert alert-danger">
+        <h2><%= pluralize(@bill.errors.count, "error") %> prohibited this bill from being saved:</h2>
+        <ul>
+          <% @bill.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="form-group">
+      <%= form.label :room_assignment_id, "Room & Tenant", class: "form-label" %>
+      <% if params[:room_assignment_id].present? %>
+        <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
+        <%= form.hidden_field :room_assignment_id, value: assignment.id %>
+        <div class="form-static-display">
+          Room <%= assignment.room.number %> - <%= assignment.tenant.name %>
+        </div>
+      <% else %>
+        <%= form.collection_select :room_assignment_id, @active_assignments, :id, :display_name, 
+                                  { prompt: "Select a room assignment" }, 
+                                  { class: "form-select" } %>
+      <% end %>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <%= form.label :billing_date, "Billing Date", class: "form-label" %>
+        <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
+      </div>
+      
+      <div class="form-group col-md-4">
+        <%= form.label :billing_period_start, "Period Start", class: "form-label" %>
+        <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
+      </div>
+      
+      <div class="form-group col-md-4">
+        <%= form.label :billing_period_end, "Period End", class: "form-label" %>
+        <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <%= form.label :rent_amount, "Rent Amount (VND)", class: "form-label" %>
+        <% if @room_assignment %>
+          <%= form.number_field :rent_amount, value: @room_assignment.room.monthly_rent, class: "form-control", min: 0 %>
+        <% else %>
+          <%= form.number_field :rent_amount, class: "form-control", min: 0 %>
+        <% end %>
+      </div>
+      
+      <div class="form-group col-md-6">
+        <%= form.label :utility_amount, "Utility Amount (VND)", class: "form-label" %>
+        <%= form.number_field :utility_amount, class: "form-control", min: 0 %>
+        <small class="form-text text-muted">Total utility charges based on readings</small>
+      </div>
+    </div>
+    
+    <div class="card mt-4 mb-4">
+      <div class="card-header">
+        <h2 class="card-title">Utility Readings</h2>
+      </div>
+      <div class="card-body">
+        <% if @utility_readings.present? && @utility_readings.any? %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Utility Type</th>
+                <th>Previous Reading</th>
+                <th>Current Reading</th>
+                <th>Usage</th>
+                <th>Rate (VND)</th>
+                <th>Amount (VND)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @utility_readings.each do |reading| %>
+                <tr>
+                  <td><%= reading.utility_type.capitalize %></td>
+                  <td><%= reading.previous_reading %></td>
+                  <td><%= reading.current_reading %></td>
+                  <td><%= reading.current_reading - reading.previous_reading %></td>
+                  <td><%= number_with_delimiter(reading.rate) %></td>
+                  <td><%= number_with_delimiter((reading.current_reading - reading.previous_reading) * reading.rate) %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          
+          <div class="form-actions mt-3">
+            <% utility_total = @utility_readings.sum { |r| (r.current_reading - r.previous_reading) * r.rate } %>
+            <button type="button" class="btn btn-outline" id="apply-utility-total" data-amount="<%= utility_total %>">
+              Apply Utility Total: <%= number_to_currency(utility_total, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </button>
+          </div>
+        <% else %>
+          <div class="empty-state">
+            <p>No utility readings found for the selected period.</p>
+            <% if @room_assignment %>
+              <%= link_to "Add Utility Reading", new_utility_reading_path(room_id: @room_assignment.room.id), class: "btn btn-outline" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :additional_charges, "Additional Charges (VND)", class: "form-label" %>
+      <%= form.number_field :additional_charges, value: 0, class: "form-control", min: 0 %>
+      <small class="form-text text-muted">Any extra charges not included in rent or utilities</small>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :notes, "Notes", class: "form-label" %>
+      <%= form.text_area :notes, class: "form-control", rows: 3 %>
+      <small class="form-text text-muted">Optional notes about this bill</small>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :due_date, "Due Date", class: "form-label" %>
+      <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
+    </div>
+
+    <div class="form-group">
+      <%= form.label :status, class: "form-label" %>
+      <%= form.select :status, [["Pending", "pending"], ["Paid", "paid"]], { selected: "pending" }, { class: "form-select" } %>
+    </div>
+
+    <div class="form-actions">
+      <%= form.submit "Generate Bill", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const applyUtilityButton = document.getElementById('apply-utility-total');
+  if (applyUtilityButton) {
+    applyUtilityButton.addEventListener('click', function() {
+      const amount = parseInt(this.dataset.amount);
+      document.getElementById('bill_utility_amount').value = amount;
+    });
+  }
+});
+</script>

@@ -1,0 +1,54 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('tenants.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('tenants.new'), new_tenant_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <% if @tenants.any? %>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('tenants.name') %></th>
+              <th><%= t('tenants.phone') %></th>
+              <th><%= t('tenants.email') %></th>
+              <th><%= t('tenants.id_number') %></th>
+              <th><%= t('tenants.current_room') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @tenants.each do |tenant| %>
+              <tr>
+                <td><%= tenant.name %></td>
+                <td><%= tenant.phone %></td>
+                <td><%= tenant.email %></td>
+                <td><%= tenant.id_number %></td>
+                <td>
+                  <% if tenant.current_room %>
+                    <%= link_to tenant.current_room.number, room_path(tenant.current_room) %>
+                  <% else %>
+                    <span class="text-muted"><%= t('common.none') %></span>
+                  <% end %>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to t('common.view'), tenant_path(tenant), class: "btn btn-sm btn-outline" %>
+                    <%= link_to t('common.edit'), edit_tenant_path(tenant), class: "btn btn-sm btn-outline" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <p><%= t('tenants.no_tenants', default: 'No tenants found.') %></p>
+      </div>
+    <% end %>
+  </div>
+</div>

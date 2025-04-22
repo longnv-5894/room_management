@@ -1,0 +1,170 @@
+<div class="dashboard">
+  <h1 class="dashboard-title"><%= t('dashboard.title') %></h1>
+  <p class="dashboard-date"><%= t('dashboard.today') %>: <%= Date.today.strftime("%B %d, %Y") %></p>
+
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value"><%= @rooms.count %></span>
+        <span class="stat-label"><%= t('dashboard.stats.total_rooms') %></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value"><%= @tenants_count %></span>
+        <span class="stat-label"><%= t('dashboard.stats.tenants') %></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+          <path d="M1 10h22"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">VND</span>
+        <span class="stat-value"><%= number_with_delimiter(@monthly_revenue, delimiter: ',') %></span>
+        <span class="stat-label"><%= t('dashboard.stats.monthly_revenue') %></span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 21H1v-2a10 10 0 0 1 20 0v2z"></path>
+          <path d="M11 3v18"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value"><%= @occupied_rooms %> / <%= @vacant_rooms %></span>
+        <span class="stat-label"><%= t('dashboard.stats.occupied_vacant') %></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-sections">
+    <div class="dashboard-section">
+      <h2 class="section-title"><%= t('dashboard.recent_bills') %></h2>
+      <div class="section-content">
+        <% if @recent_bills.any? %>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th><%= t('bills.room') %></th>
+                  <th><%= t('bills.tenant') %></th>
+                  <th><%= t('bills.billing_date') %></th>
+                  <th><%= t('bills.total_amount') %></th>
+                  <th><%= t('bills.status') %></th>
+                  <th class="text-center"><%= t('common.actions') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @recent_bills.each do |bill| %>
+                  <tr>
+                    <td><strong><%= bill.room_assignment.room.number %></strong></td>
+                    <td><%= bill.room_assignment.tenant.name %></td>
+                    <td><%= l bill.billing_date, format: :short %></td>
+                    <td><span class="currency-amount">VND <%= number_with_delimiter(bill.total_amount, delimiter: ',') %></span></td>
+                    <td><span class="status-badge status-<%= bill.status %>"><%= t("bills.#{bill.status}") %></span></td>
+                    <td class="text-center">
+                      <%= link_to t('common.view'), bill_path(bill), class: 'btn btn-sm btn-primary' %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          <div class="view-all">
+            <%= link_to t('bills.title'), bills_path, class: 'btn btn-outline' %>
+          </div>
+        <% else %>
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+              <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <p><%= t('dashboard.no_bills') %></p>
+            <%= link_to t('bills.new'), new_bill_path, class: 'btn btn-primary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <h2 class="section-title"><%= t('dashboard.quick_actions') %></h2>
+      <div class="section-content">
+        <div class="action-buttons">
+          <%= link_to new_room_path, class: 'action-button' do %>
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+            </div>
+            <span><%= t('dashboard.actions.add_room') %></span>
+          <% end %>
+
+          <%= link_to new_tenant_path, class: 'action-button' do %>
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+                <line x1="12" y1="11" x2="12" y2="17"></line>
+                <line x1="9" y1="14" x2="15" y2="14"></line>
+              </svg>
+            </div>
+            <span><%= t('dashboard.actions.add_tenant') %></span>
+          <% end %>
+
+          <%= link_to new_room_assignment_path, class: 'action-button' do %>
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <polyline points="17 11 19 13 23 9"></polyline>
+              </svg>
+            </div>
+            <span><%= t('dashboard.actions.assign_room') %></span>
+          <% end %>
+
+          <%= link_to new_utility_reading_path, class: 'action-button' do %>
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            </div>
+            <span><%= t('dashboard.actions.new_reading') %></span>
+          <% end %>
+
+          <%= link_to new_bill_path, class: 'action-button' do %>
+            <div class="action-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <span><%= t('dashboard.actions.create_bill') %></span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
