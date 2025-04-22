@@ -51,6 +51,7 @@ en:
     view: "View"
     back: "Back"
     save: "Save"
+    update: "Update"
     cancel: "Cancel"
     confirm: "Are you sure?"
     search: "Search"
@@ -123,12 +124,15 @@ en:
     status: "Status"
     available: "Available"
     occupied: "Occupied"
+    maintenance: "Maintenance"
+    create: "Create Room"
     create_success: "Room was successfully created."
     update_success: "Room was successfully updated."
     delete_success: "Room was successfully deleted."
     confirm_delete: "Are you sure you want to delete this room?"
     cannot_delete_with_assignments: "Cannot delete room with assignments."
     no_rooms: "No rooms found. Click 'Add New Room' to create your first room."
+    no_tenant: "This room has no tenant assigned."
     
   # Tenants
   tenants:
@@ -147,9 +151,20 @@ en:
     confirm_delete: "Are you sure you want to delete this tenant?"
     no_tenants: "No tenants found."
     current_room: "Current Room"
+    current_tenant: "Current Tenant"
     move_in_date: "Move-in Date"
     create: "Create Tenant"
     update: "Update Tenant"
+    recent_bills: "Recent Bills"
+    assignment_history: "Assignment History"
+    current: "Current"
+    no_assignments: "No room assignments found for this tenant."
+    assign_to_room: "Assign to Room"
+    not_assigned: "This tenant is not currently assigned to any room."
+    no_bills: "No bills found for this tenant."
+    view_all_bills: "View All Bills"
+    create_new_bill: "Create New Bill"
+    create_bill: "Create Bill"
     
   # Room Assignments
   room_assignments:
@@ -179,11 +194,13 @@ en:
     select_room: "Select a room"
     select_tenant: "Select a tenant"
     create_assignment: "Create Assignment"
+    no_active: "No active assignment for this room."
     
   # Utility Readings
   utility_readings:
     title: "Utility Readings"
     new: "New Utility Reading"
+    latest_readings: "Latest Utility Readings"
     edit_title: "Edit Utility Reading"
     view_title: "Utility Reading Details"
     edit: "Edit Utility Reading"

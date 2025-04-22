@@ -99,12 +99,15 @@ vi:
     status: "Trạng thái"
     available: "Sẵn sàng"
     occupied: "Đã thuê"
+    maintenance: "Bảo trì"
+    create: "Tạo phòng"
     create_success: "Đã tạo phòng thành công."
     update_success: "Đã cập nhật phòng thành công."
     delete_success: "Đã xóa phòng thành công."
     confirm_delete: "Bạn có chắc muốn xóa phòng này không?"
     cannot_delete_with_assignments: "Không thể xóa phòng đã được phân phối."
     no_rooms: "Không tìm thấy phòng nào. Nhấp vào 'Thêm phòng mới' để tạo phòng đầu tiên của bạn."
+    no_tenant: "Phòng này chưa có người thuê."
     
   # Tenants
   tenants:
@@ -123,9 +126,20 @@ vi:
     confirm_delete: "Bạn có chắc muốn xóa người thuê này không?"
     no_tenants: "Không tìm thấy người thuê nào."
     current_room: "Phòng hiện tại"
+    current_tenant: "Người thuê hiện tại"
     move_in_date: "Ngày dọn vào"
     create: "Tạo người thuê"
     update: "Cập nhật người thuê"
+    recent_bills: "Hóa đơn gần đây"
+    assignment_history: "Lịch sử phân phối phòng"
+    current: "Hiện tại"
+    no_assignments: "Không tìm thấy phân phối phòng nào cho người thuê này."
+    assign_to_room: "Phân phối vào phòng"
+    not_assigned: "Người thuê này chưa được phân phối vào phòng nào."
+    no_bills: "Không tìm thấy hóa đơn nào cho người thuê này."
+    view_all_bills: "Xem tất cả hóa đơn"
+    create_new_bill: "Tạo hóa đơn mới"
+    create_bill: "Tạo hóa đơn"
     
   # Room Assignments
   room_assignments:
@@ -155,11 +169,13 @@ vi:
     select_room: "Chọn phòng"
     select_tenant: "Chọn người thuê"
     create_assignment: "Tạo phân phối"
+    no_active: "Không có phân phối đang hoạt động cho phòng này."
     
   # Utility Readings
   utility_readings:
     title: "Chỉ số tiện ích"
     new: "Thêm chỉ số tiện ích mới"
+    latest_readings: "Chỉ số tiện ích mới nhất"
     edit_title: "Sửa chỉ số tiện ích"
     view_title: "Chi tiết chỉ số tiện ích"
     edit: "Sửa chỉ số tiện ích"
