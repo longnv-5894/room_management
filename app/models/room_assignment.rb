@@ -9,6 +9,11 @@ class RoomAssignment < ApplicationRecord
   
   before_save :update_room_status
   
+  # Used for displaying in select dropdowns
+  def display_name
+    "Room #{room.number} - #{tenant.name}"
+  end
+  
   private
   
   def end_date_after_start_date

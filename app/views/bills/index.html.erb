@@ -11,40 +11,38 @@
   </div>
   <div class="card-body">
     <%= form_with(url: bills_path, method: :get, local: true, class: "filter-form") do |form| %>
-      <div class="filter-row">
-        <div class="filter-group">
-          <%= form.label :room, t('bills.room'), class: "filter-label" %>
-          <%= form.select :room_id, 
-                         Room.all.map { |r| [r.number, r.id] }, 
-                         { include_blank: t('bills.all_rooms', default: 'All Rooms') }, 
-                         { class: "filter-select" } %>
-        </div>
-        
-        <div class="filter-group">
-          <%= form.label :tenant, t('bills.tenant'), class: "filter-label" %>
-          <%= form.select :tenant_id, 
-                         Tenant.all.map { |t| [t.name, t.id] }, 
-                         { include_blank: t('bills.all_tenants', default: 'All Tenants') }, 
-                         { class: "filter-select" } %>
-        </div>
-        
-        <div class="filter-group">
-          <%= form.label :status, t('bills.status'), class: "filter-label" %>
-          <%= form.select :status, 
-                         [[t('bills.unpaid'), "unpaid"], [t('bills.paid'), "paid"], [t('bills.overdue'), "overdue"]], 
-                         { include_blank: t('bills.all_statuses', default: 'All Statuses') }, 
-                         { class: "filter-select" } %>
-        </div>
-        
-        <div class="filter-group">
-          <%= form.label :date_from, t('bills.date_from', default: 'Date From'), class: "filter-label" %>
-          <%= form.date_field :date_from, class: "filter-input" %>
-        </div>
-        
-        <div class="filter-group">
-          <%= form.label :date_to, t('bills.date_to', default: 'Date To'), class: "filter-label" %>
-          <%= form.date_field :date_to, class: "filter-input" %>
-        </div>
+      <div class="filter-group">
+        <%= form.label :room, t('bills.room'), class: "filter-label" %>
+        <%= form.select :room_id, 
+                       Room.all.map { |r| [r.number, r.id] }, 
+                       { include_blank: t('bills.all_rooms', default: 'All Rooms') }, 
+                       { class: "filter-select" } %>
+      </div>
+      
+      <div class="filter-group">
+        <%= form.label :tenant, t('bills.tenant'), class: "filter-label" %>
+        <%= form.select :tenant_id, 
+                       Tenant.all.map { |t| [t.name, t.id] }, 
+                       { include_blank: t('bills.all_tenants', default: 'All Tenants') }, 
+                       { class: "filter-select" } %>
+      </div>
+      
+      <div class="filter-group">
+        <%= form.label :status, t('bills.status'), class: "filter-label" %>
+        <%= form.select :status, 
+                       [[t('bills.unpaid'), "unpaid"], [t('bills.paid'), "paid"], [t('bills.overdue'), "overdue"]], 
+                       { include_blank: t('bills.all_statuses', default: 'All Statuses') }, 
+                       { class: "filter-select" } %>
+      </div>
+      
+      <div class="filter-group">
+        <%= form.label :date_from, t('bills.date_from', default: 'Date From'), class: "filter-label" %>
+        <%= form.date_field :date_from, class: "filter-input" %>
+      </div>
+      
+      <div class="filter-group">
+        <%= form.label :date_to, t('bills.date_to', default: 'Date To'), class: "filter-label" %>
+        <%= form.date_field :date_to, class: "filter-input" %>
       </div>
       
       <div class="filter-actions">

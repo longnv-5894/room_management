@@ -14,7 +14,7 @@ class BillsController < ApplicationController
 
   def new
     @bill = Bill.new
-    @room_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
+    @active_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
   end
 
   def create
@@ -24,7 +24,7 @@ class BillsController < ApplicationController
       flash[:success] = t('bills.create_success')
       redirect_to @bill
     else
-      @room_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
+      @active_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
       render :new, status: :unprocessable_entity
     end
   end
