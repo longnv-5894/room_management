@@ -1,2 +1,150 @@
-<h1>UtilityReadings#show</h1>
-<p>Find me in app/views/utility_readings/show.html.erb</p>
+<%# Utility Reading Details View %>
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_readings.view_title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.edit'), edit_utility_reading_path(@utility_reading), class: "btn btn-outline" %>
+    <%= link_to t('common.back'), utility_readings_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><%= t('utility_readings.details_for', room: @utility_reading.room.number) %></h2>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.room') %></div>
+          <div class="detail-value">
+            <%= link_to @utility_reading.room.number, room_path(@utility_reading.room) %>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.reading_date') %></div>
+          <div class="detail-value"><%= l @utility_reading.reading_date, format: :long %></div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.previous_reading_date') %></div>
+          <div class="detail-value">
+            <% if @previous_reading %>
+              <%= l @previous_reading.reading_date, format: :long %>
+            <% else %>
+              <%= t('utility_readings.no_previous') %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.electricity_unit_price') %></div>
+          <div class="detail-value">
+            <%= number_to_currency(@utility_reading.electricity_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.water_unit_price') %></div>
+          <div class="detail-value">
+            <%= number_to_currency(@utility_reading.water_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+      <div class="col-md-12">
+        <h3><%= t('utility_readings.reading_details') %></h3>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.current_electricity') %></div>
+          <div class="detail-value"><%= @utility_reading.electricity_reading %></div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.previous_electricity') %></div>
+          <div class="detail-value">
+            <%= @previous_reading ? @previous_reading.electricity_reading : 0 %>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.electricity_usage') %></div>
+          <div class="detail-value"><%= @electricity_usage %></div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.electricity_cost') %></div>
+          <div class="detail-value">
+            <%= number_to_currency(@electricity_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.current_water') %></div>
+          <div class="detail-value"><%= @utility_reading.water_reading %></div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.previous_water') %></div>
+          <div class="detail-value">
+            <%= @previous_reading ? @previous_reading.water_reading : 0 %>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.water_usage') %></div>
+          <div class="detail-value"><%= @water_usage %></div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.water_cost') %></div>
+          <div class="detail-value">
+            <%= number_to_currency(@water_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <hr>
+    
+    <div class="row">
+      <div class="col-md-12">
+        <div class="detail-item">
+          <div class="detail-label"><%= t('utility_readings.total_cost') %></div>
+          <div class="detail-value">
+            <%= number_to_currency(@electricity_cost + @water_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card-footer">
+    <div class="form-actions">
+      <%= link_to utility_readings_path, class: "btn btn-outline" do %>
+        <%= t('common.back') %>
+      <% end %>
+      
+      <%= link_to edit_utility_reading_path(@utility_reading), class: "btn btn-primary" do %>
+        <%= t('common.edit') %>
+      <% end %>
+      
+      <%= button_to utility_reading_path(@utility_reading), 
+                    method: :delete, 
+                    data: { turbo_confirm: t('common.confirm_delete') },
+                    class: "btn btn-danger" do %>
+        <%= t('common.delete') %>
+      <% end %>
+    </div>
+  </div>
+</div>

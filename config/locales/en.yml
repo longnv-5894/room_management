@@ -147,6 +147,9 @@ en:
     confirm_delete: "Are you sure you want to delete this tenant?"
     no_tenants: "No tenants found."
     current_room: "Current Room"
+    move_in_date: "Move-in Date"
+    create: "Create Tenant"
+    update: "Update Tenant"
     
   # Room Assignments
   room_assignments:
@@ -181,6 +184,8 @@ en:
   utility_readings:
     title: "Utility Readings"
     new: "New Utility Reading"
+    edit_title: "Edit Utility Reading"
+    view_title: "Utility Reading Details"
     edit: "Edit Utility Reading"
     details: "Reading Details"
     room: "Room"
@@ -188,6 +193,8 @@ en:
     electricity: "Electricity"
     water: "Water"
     previous_reading: "Previous Reading"
+    previous_reading_date: "Previous Reading Date"
+    previous_reading_info: "Previous Reading Information"
     current_reading: "Current Reading"
     reading_date: "Reading Date"
     rate: "Rate"
@@ -199,6 +206,22 @@ en:
     confirm_delete: "Are you sure you want to delete this reading?"
     electricity_cost: "Electricity Cost"
     water_cost: "Water Cost"
+    electricity_reading: "Electricity Reading"
+    water_reading: "Water Reading"
+    electricity_usage: "Electricity Usage"
+    water_usage: "Water Usage"
+    electricity_unit_price: "Electricity Unit Price"
+    water_unit_price: "Water Unit Price"
+    details_for: "Utility Readings for Room %{room}"
+    edit_reading_for: "Edit Utility Reading for Room %{room}"
+    reading_details: "Reading Details"
+    current_electricity: "Current Electricity Reading"
+    current_water: "Current Water Reading"
+    previous_electricity: "Previous Electricity Reading"
+    previous_water: "Previous Water Reading"
+    total_cost: "Total Cost"
+    no_previous: "No previous reading"
+    no_readings: "No utility readings found."
     
   # Bills
   bills:

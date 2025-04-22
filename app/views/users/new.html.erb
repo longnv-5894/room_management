@@ -7,12 +7,12 @@
         <line x1="8" y1="12" x2="16" y2="12"></line>
       </svg>
     </div>
-    <h2 class="auth-title">Create account!</h2>
+    <h2 class="auth-title"><%= t('users.new.create_account') %></h2>
   </div>
 
   <%= form_with(model: @user, url: signup_path, local: true) do |f| %>
     <div class="form-group">
-      <%= f.label :email, "Name" %>
+      <%= f.label :email, t('users.new.name') %>
       <%= f.text_field :email, class: 'form-control' %>
       <span class="form-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="form-group">
-      <%= f.label :password %>
+      <%= f.label :password, t('users.new.password') %>
       <%= f.password_field :password, class: 'form-control' %>
       <span class="form-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -45,8 +45,8 @@
     </div>
 
     <div class="form-group" style="margin-top: 25px;">
-      <%= f.button type: "submit", class: "btn btn-primary" do %>
-        Create
+      <%= f.button type: "submit", class: "btn btn-primary", style: "width: 100%;" do %>
+        <%= t('users.new.create') %>
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
           <path d="M5 12h14"></path>
           <path d="m12 5 7 7-7 7"></path>
@@ -56,8 +56,8 @@
   <% end %>
 
   <div class="social-auth">
-    <p class="social-text">Already have an account? <%= link_to "Sign in", login_path, class: "auth-link" %></p>
-    <p class="social-text">Or create account using social media!</p>
+    <p class="social-text"><%= t('users.new.have_account') %> <%= link_to t('users.new.login'), login_path, class: "auth-link" %></p>
+    <p class="social-text"><%= t('users.new.or_create_with_social') %></p>
     <div class="social-icons">
       <a href="#" class="social-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

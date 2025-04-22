@@ -1,7 +1,7 @@
 <div class="page-header">
-  <h1 class="header-title">New Tenant</h1>
+  <h1 class="header-title"><%= t('tenants.new') %></h1>
   <div class="header-actions">
-    <%= link_to "Cancel", tenants_path, class: "btn btn-outline" %>
+    <%= link_to t('common.cancel'), tenants_path, class: "btn btn-outline" %>
   </div>
 </div>
 
@@ -9,7 +9,7 @@
   <%= form_with(model: @tenant, local: true) do |form| %>
     <% if @tenant.errors.any? %>
       <div class="alert alert-danger">
-        <h2><%= pluralize(@tenant.errors.count, "error") %> prohibited this tenant from being saved:</h2>
+        <h2><%= pluralize(@tenant.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
         <ul>
           <% @tenant.errors.full_messages.each do |message| %>
             <li><%= message %></li>
@@ -19,32 +19,32 @@
     <% end %>
 
     <div class="form-group">
-      <%= form.label :name, class: "form-label" %>
+      <%= form.label :name, t('tenants.name'), class: "form-label" %>
       <%= form.text_field :name, class: "form-control" %>
     </div>
 
     <div class="form-group">
-      <%= form.label :phone, class: "form-label" %>
+      <%= form.label :phone, t('tenants.phone'), class: "form-label" %>
       <%= form.telephone_field :phone, class: "form-control" %>
     </div>
 
     <div class="form-group">
-      <%= form.label :email, class: "form-label" %>
+      <%= form.label :email, t('tenants.email'), class: "form-label" %>
       <%= form.email_field :email, class: "form-control" %>
     </div>
 
     <div class="form-group">
-      <%= form.label :id_number, "ID Number", class: "form-label" %>
+      <%= form.label :id_number, t('tenants.id_number'), class: "form-label" %>
       <%= form.text_field :id_number, class: "form-control" %>
     </div>
 
     <div class="form-group">
-      <%= form.label :move_in_date, "Move-in Date", class: "form-label" %>
+      <%= form.label :move_in_date, t('tenants.move_in_date'), class: "form-label" %>
       <%= form.date_field :move_in_date, class: "form-control" %>
     </div>
 
     <div class="form-actions">
-      <%= form.submit "Create Tenant", class: "btn btn-primary" %>
+      <%= form.submit t('tenants.create'), class: "btn btn-primary" %>
     </div>
   <% end %>
 </div>

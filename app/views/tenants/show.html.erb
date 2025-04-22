@@ -1,8 +1,8 @@
 <div class="page-header">
-  <h1 class="header-title">Tenant: <%= @tenant.name %></h1>
+  <h1 class="header-title"><%= t('tenants.details') %>: <%= @tenant.name %></h1>
   <div class="header-actions">
-    <%= link_to "Edit Tenant", edit_tenant_path(@tenant), class: "btn btn-outline" %>
-    <%= link_to "Back to Tenants", tenants_path, class: "btn btn-outline" %>
+    <%= link_to t('common.edit'), edit_tenant_path(@tenant), class: "btn btn-outline" %>
+    <%= link_to t('common.back'), tenants_path, class: "btn btn-outline" %>
   </div>
 </div>
 
@@ -10,32 +10,32 @@
   <div class="col-md-8">
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Tenant Details</h2>
+        <h2 class="card-title"><%= t('tenants.details') %></h2>
       </div>
       <div class="card-body">
         <div class="detail-grid">
           <div class="detail-item">
-            <div class="detail-label">Name</div>
+            <div class="detail-label"><%= t('tenants.name') %></div>
             <div class="detail-value"><%= @tenant.name %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Phone</div>
+            <div class="detail-label"><%= t('tenants.phone') %></div>
             <div class="detail-value"><%= @tenant.phone %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Email</div>
+            <div class="detail-label"><%= t('tenants.email') %></div>
             <div class="detail-value"><%= @tenant.email %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">ID Number</div>
+            <div class="detail-label"><%= t('tenants.id_number') %></div>
             <div class="detail-value"><%= @tenant.id_number %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Move-in Date</div>
+            <div class="detail-label"><%= t('tenants.move_in_date') %></div>
             <div class="detail-value"><%= @tenant.move_in_date.strftime("%B %d, %Y") %></div>
           </div>
         </div>
@@ -44,18 +44,18 @@
 
     <div class="card mt-4">
       <div class="card-header">
-        <h2 class="card-title">Room Assignment History</h2>
+        <h2 class="card-title"><%= t('tenants.assignment_history') %></h2>
       </div>
       <div class="card-body">
         <% if @room_assignments.any? %>
           <table class="data-table">
             <thead>
               <tr>
-                <th>Room</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th><%= t('room_assignments.room') %></th>
+                <th><%= t('room_assignments.start_date') %></th>
+                <th><%= t('room_assignments.end_date') %></th>
+                <th><%= t('room_assignments.status') %></th>
+                <th><%= t('common.actions') %></th>
               </tr>
             </thead>
             <tbody>
@@ -64,15 +64,15 @@
                   <td><%= link_to assignment.room.number, room_path(assignment.room) %></td>
                   <td><%= assignment.start_date.strftime("%b %d, %Y") %></td>
                   <td>
-                    <%= assignment.end_date ? assignment.end_date.strftime("%b %d, %Y") : "Current" %>
+                    <%= assignment.end_date ? assignment.end_date.strftime("%b %d, %Y") : t('tenants.current') %>
                   </td>
                   <td>
                     <span class="status-badge status-<%= assignment.active? ? 'active' : 'inactive' %>">
-                      <%= assignment.active? ? "Active" : "Inactive" %>
+                      <%= assignment.active? ? t('room_assignments.active') : t('room_assignments.inactive') %>
                     </span>
                   </td>
                   <td>
-                    <%= link_to "View", room_assignment_path(assignment), class: "btn btn-sm btn-outline" %>
+                    <%= link_to t('common.view'), room_assignment_path(assignment), class: "btn btn-sm btn-outline" %>
                   </td>
                 </tr>
               <% end %>
@@ -80,12 +80,12 @@
           </table>
         <% else %>
           <div class="empty-state">
-            <p>No room assignments found for this tenant.</p>
+            <p><%= t('tenants.no_assignments') %></p>
           </div>
         <% end %>
         
         <div class="card-actions mt-3">
-          <%= link_to "Assign to Room", new_room_assignment_path(tenant_id: @tenant.id), class: "btn btn-primary" %>
+          <%= link_to t('tenants.assign_to_room'), new_room_assignment_path(tenant_id: @tenant.id), class: "btn btn-primary" %>
         </div>
       </div>
     </div>
@@ -94,38 +94,38 @@
   <div class="col-md-4">
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Current Room</h2>
+        <h2 class="card-title"><%= t('tenants.current_room') %></h2>
       </div>
       <div class="card-body">
         <% if @current_room %>
           <div class="room-info">
-            <h3 class="room-number">Room <%= @current_room.number %></h3>
+            <h3 class="room-number"><%= t('rooms.title') %> <%= @current_room.number %></h3>
             
             <div class="detail-item">
-              <div class="detail-label">Floor</div>
+              <div class="detail-label"><%= t('rooms.floor') %></div>
               <div class="detail-value"><%= @current_room.floor %></div>
             </div>
             
             <div class="detail-item">
-              <div class="detail-label">Area</div>
+              <div class="detail-label"><%= t('rooms.area') %></div>
               <div class="detail-value"><%= @current_room.area %> m²</div>
             </div>
             
             <div class="detail-item">
-              <div class="detail-label">Monthly Rent</div>
+              <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
               <div class="detail-value">
                 <%= number_to_currency(@current_room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
               </div>
             </div>
             
             <div class="card-actions">
-              <%= link_to "View Room", room_path(@current_room), class: "btn btn-sm btn-outline" %>
+              <%= link_to t('common.view') + " " + t('rooms.title'), room_path(@current_room), class: "btn btn-sm btn-outline" %>
             </div>
           </div>
         <% else %>
           <div class="empty-state">
-            <p>This tenant is not currently assigned to any room.</p>
-            <%= link_to "Assign to Room", new_room_assignment_path(tenant_id: @tenant.id), class: "btn btn-primary" %>
+            <p><%= t('tenants.not_assigned') %></p>
+            <%= link_to t('tenants.assign_to_room'), new_room_assignment_path(tenant_id: @tenant.id), class: "btn btn-primary" %>
           </div>
         <% end %>
       </div>
@@ -134,7 +134,7 @@
     <% if @current_room %>
       <div class="card mt-4">
         <div class="card-header">
-          <h2 class="card-title">Recent Bills</h2>
+          <h2 class="card-title"><%= t('tenants.recent_bills') %></h2>
         </div>
         <div class="card-body">
           <% active_assignment = @tenant.room_assignments.find_by(active: true) %>
@@ -143,9 +143,9 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
+                  <th><%= t('common.date') %></th>
+                  <th><%= t('bills.total_amount') %></th>
+                  <th><%= t('bills.status') %></th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +157,7 @@
                     </td>
                     <td>
                       <span class="status-badge status-<%= bill.status %>">
-                        <%= bill.status.capitalize %>
+                        <%= t("bills.#{bill.status}") %>
                       </span>
                     </td>
                   </tr>
@@ -166,14 +166,14 @@
             </table>
             
             <div class="card-actions mt-3">
-              <%= link_to "View All Bills", bills_path(tenant_id: @tenant.id), class: "btn btn-sm btn-outline" %>
-              <%= link_to "Create New Bill", new_bill_path(tenant_id: @tenant.id), class: "btn btn-sm btn-primary" %>
+              <%= link_to t('tenants.view_all_bills'), bills_path(tenant_id: @tenant.id), class: "btn btn-sm btn-outline" %>
+              <%= link_to t('tenants.create_new_bill'), new_bill_path(tenant_id: @tenant.id), class: "btn btn-sm btn-primary" %>
             </div>
           <% else %>
             <div class="empty-state">
-              <p>No recent bills found for this tenant.</p>
+              <p><%= t('tenants.no_bills') %></p>
               <% if active_assignment %>
-                <%= link_to "Create Bill", new_bill_path(room_assignment_id: active_assignment.id), class: "btn btn-primary" %>
+                <%= link_to t('tenants.create_bill'), new_bill_path(room_assignment_id: active_assignment.id), class: "btn btn-primary" %>
               <% end %>
             </div>
           <% end %>

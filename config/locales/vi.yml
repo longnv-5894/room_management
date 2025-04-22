@@ -26,6 +26,7 @@ vi:
     view: "Xem"
     back: "Quay lại"
     save: "Lưu"
+    update: "Cập nhật"
     cancel: "Hủy"
     confirm: "Bạn có chắc không?"
     search: "Tìm kiếm"
@@ -122,6 +123,9 @@ vi:
     confirm_delete: "Bạn có chắc muốn xóa người thuê này không?"
     no_tenants: "Không tìm thấy người thuê nào."
     current_room: "Phòng hiện tại"
+    move_in_date: "Ngày dọn vào"
+    create: "Tạo người thuê"
+    update: "Cập nhật người thuê"
     
   # Room Assignments
   room_assignments:
@@ -156,6 +160,8 @@ vi:
   utility_readings:
     title: "Chỉ số tiện ích"
     new: "Thêm chỉ số tiện ích mới"
+    edit_title: "Sửa chỉ số tiện ích"
+    view_title: "Chi tiết chỉ số tiện ích"
     edit: "Sửa chỉ số tiện ích"
     details: "Chi tiết chỉ số"
     room: "Phòng"
@@ -163,6 +169,8 @@ vi:
     electricity: "Điện"
     water: "Nước"
     previous_reading: "Chỉ số cũ"
+    previous_reading_date: "Ngày ghi chỉ số cũ"
+    previous_reading_info: "Thông tin chỉ số cũ"
     current_reading: "Chỉ số mới"
     reading_date: "Ngày ghi chỉ số"
     rate: "Đơn giá"
@@ -174,6 +182,22 @@ vi:
     confirm_delete: "Bạn có chắc muốn xóa chỉ số tiện ích này không?"
     electricity_cost: "Chi phí Điện"
     water_cost: "Chi phí Nước"
+    electricity_reading: "Chỉ số Điện"
+    water_reading: "Chỉ số Nước"
+    electricity_usage: "Lượng Điện sử dụng"
+    water_usage: "Lượng Nước sử dụng"
+    electricity_unit_price: "Đơn giá Điện"
+    water_unit_price: "Đơn giá Nước"
+    details_for: "Chỉ số tiện ích cho Phòng %{room}"
+    edit_reading_for: "Sửa chỉ số tiện ích cho Phòng %{room}"
+    reading_details: "Chi tiết chỉ số"
+    current_electricity: "Chỉ số Điện hiện tại"
+    current_water: "Chỉ số Nước hiện tại"
+    previous_electricity: "Chỉ số Điện trước đó"
+    previous_water: "Chỉ số Nước trước đó"
+    total_cost: "Tổng chi phí"
+    no_previous: "Không có chỉ số trước đó"
+    no_readings: "Không tìm thấy chỉ số tiện ích nào."
     
   # Bills
   bills:

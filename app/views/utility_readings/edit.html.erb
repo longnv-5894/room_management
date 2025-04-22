@@ -1,2 +1,92 @@
-<h1>UtilityReadings#edit</h1>
-<p>Find me in app/views/utility_readings/edit.html.erb</p>
+<%# Utility Reading Edit View %>
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_readings.edit_title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.back'), utility_reading_path(@utility_reading), class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><%= t('utility_readings.edit_reading_for', room: @utility_reading.room.number) %></h2>
+  </div>
+  
+  <div class="card-body">
+    <%= form_with(model: @utility_reading, class: "form") do |form| %>
+      <% if @utility_reading.errors.any? %>
+        <div class="alert alert-danger">
+          <h2><%= pluralize(@utility_reading.errors.count, "error") %> <%= t('common.form_error') %></h2>
+          <ul>
+            <% @utility_reading.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :room_id, t('utility_readings.room') %>
+            <%= form.collection_select :room_id, @rooms, :id, :number, {}, { class: "form-select" } %>
+          </div>
+          
+          <div class="form-group">
+            <%= form.label :reading_date, t('utility_readings.reading_date') %>
+            <%= form.date_field :reading_date, class: "form-control" %>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :electricity_unit_price, t('utility_readings.electricity_unit_price') %>
+            <div class="input-group">
+              <span class="input-group-text">VND</span>
+              <%= form.number_field :electricity_unit_price, class: "form-control", min: 0, step: 100 %>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <%= form.label :water_unit_price, t('utility_readings.water_unit_price') %>
+            <div class="input-group">
+              <span class="input-group-text">VND</span>
+              <%= form.number_field :water_unit_price, class: "form-control", min: 0, step: 100 %>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <hr>
+      
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :electricity_reading, t('utility_readings.electricity_reading') %>
+            <%= form.number_field :electricity_reading, class: "form-control", min: 0, step: 1 %>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :water_reading, t('utility_readings.water_reading') %>
+            <%= form.number_field :water_reading, class: "form-control", min: 0, step: 1 %>
+          </div>
+        </div>
+      </div>
+      
+      <% if @utility_reading.previous_reading %>
+        <div class="alert alert-info mt-4">
+          <strong><%= t('utility_readings.previous_reading_info') %>:</strong> 
+          <%= l @utility_reading.previous_reading.reading_date, format: :long %><br>
+          <strong><%= t('utility_readings.electricity') %>:</strong> <%= @utility_reading.previous_reading.electricity_reading %>,
+          <strong><%= t('utility_readings.water') %>:</strong> <%= @utility_reading.previous_reading.water_reading %>
+        </div>
+      <% end %>
+      
+      <div class="form-actions">
+        <%= form.submit t('common.save'), class: "btn btn-primary" %>
+        <%= link_to t('common.cancel'), utility_reading_path(@utility_reading), class: "btn btn-outline" %>
+      </div>
+    <% end %>
+  </div>
+</div>

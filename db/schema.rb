@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_22_043835) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_22_094216) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_22_043835) do
     t.boolean "active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "notes"
     t.index ["room_id", "tenant_id", "active"], name: "unique_active_room_assignments", unique: true, where: "(active = true)"
     t.index ["room_id"], name: "index_room_assignments_on_room_id"
     t.index ["tenant_id"], name: "index_room_assignments_on_tenant_id"
