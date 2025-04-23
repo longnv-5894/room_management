@@ -1,0 +1,13 @@
+<div class="page-header">
+  <% if @tenant %>
+    <h1 class="header-title"><%= t('vehicles.new_for_tenant', tenant: @tenant.name) %></h1>
+  <% else %>
+    <h1 class="header-title"><%= t('vehicles.new') %></h1>
+  <% end %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= render 'form' %>
+  </div>
+</div>

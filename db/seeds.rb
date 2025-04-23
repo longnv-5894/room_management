@@ -3,11 +3,22 @@
 
 # Clear existing data
 puts "Clearing existing data..."
+Vehicle.destroy_all
+OperatingExpense.destroy_all
 Bill.destroy_all
 UtilityReading.destroy_all
 RoomAssignment.destroy_all
 Room.destroy_all
 Tenant.destroy_all
+User.destroy_all
+
+# Create admin user
+puts "Creating admin user..."
+User.create!(
+  email: 'admin@example.com',
+  password: 'password123',
+  password_confirmation: 'password123'
+)
 
 # Create rooms
 puts "Creating rooms..."
@@ -156,6 +167,110 @@ occupied_rooms.each do |room|
         notes: "Electricity: #{electricity_usage} kWh, Water: #{water_usage} m³"
       )
     end
+  end
+end
+
+# Create vehicles
+puts "Creating vehicles..."
+vehicle_types = ['car', 'motorcycle', 'bicycle', 'scooter', 'other']
+brands = {
+  'car' => ['Toyota', 'Honda', 'Ford', 'Mazda', 'Kia', 'Hyundai'],
+  'motorcycle' => ['Honda', 'Yamaha', 'Suzuki', 'SYM', 'Piaggio', 'Kawasaki'],
+  'bicycle' => ['Giant', 'Trek', 'Asama', 'Thong Nhat', 'Jett'],
+  'scooter' => ['Vespa', 'Honda', 'Yamaha', 'Gogoro'],
+  'other' => ['Misc']
+}
+colors = ['Black', 'White', 'Red', 'Blue', 'Silver', 'Grey', 'Green', 'Yellow']
+
+# Give approximately 60% of tenants vehicles
+tenant_sample = created_tenants.sample((created_tenants.length * 0.6).to_i)
+
+tenant_sample.each do |tenant|
+  # Some tenants will have multiple vehicles
+  vehicle_count = rand(1..2)
+  
+  vehicle_count.times do
+    vehicle_type = vehicle_types.sample
+    brand = brands[vehicle_type].sample
+    
+    model_year = (2015..2025).to_a.sample
+    models = {
+      'car' => ['Vios', 'City', 'Ranger', 'CX-5', 'Seltos', 'Accent'],
+      'motorcycle' => ['Wave', 'Exciter', 'Raider', 'Angel', 'Liberty', 'Ninja'],
+      'bicycle' => ['Mountain', 'Road', 'City', 'ATX', 'FX'],
+      'scooter' => ['Sprint', 'Lead', 'NVX', 'Viva'],
+      'other' => ['Custom']
+    }
+    
+    model = models[vehicle_type].sample
+    
+    # Create license plate based on vehicle type
+    license_plate = if vehicle_type == 'car'
+                      "#{(29..99).to_a.sample}A-#{rand(100..999)}.#{rand(10..99)}"
+                    elsif vehicle_type == 'motorcycle'
+                      "#{(29..99).to_a.sample}B-#{rand(100..999)}.#{rand(10..99)}"
+                    elsif vehicle_type == 'scooter'
+                      "#{(29..99).to_a.sample}K-#{rand(100..999)}.#{rand(10..99)}"
+                    else
+                      # Bicycles and others get a placeholder ID number
+                      "ID-#{rand(1000..9999)}"
+                    end
+    
+    # Add optional notes to some vehicles
+    notes_options = [
+      "Insurance expires on #{rand(1..12)}/#{rand(2025..2026)}",
+      "Registration renewal needed",
+      "Parking space ##{rand(1..20)}",
+      nil, nil, nil  # Higher chance of no notes
+    ]
+    
+    Vehicle.create!(
+      tenant: tenant,
+      license_plate: license_plate,
+      vehicle_type: vehicle_type,
+      brand: brand,
+      model: "#{model} #{model_year}",
+      color: colors.sample,
+      notes: notes_options.sample
+    )
+  end
+end
+
+# Create operating expenses
+puts "Creating operating expenses..."
+expense_categories = [
+  'utilities', 'maintenance', 'repairs', 'cleaning', 'security', 
+  'taxes', 'staff_salary', 'electric', 'water', 'internet', 'miscellaneous'
+]
+
+expense_descriptions = {
+  'utilities' => ['Common area electricity', 'Hallway lighting', 'Elevator power consumption'],
+  'maintenance' => ['Regular building maintenance', 'Preventive maintenance check', 'Equipment servicing'],
+  'repairs' => ['Roof leak repair', 'Plumbing fix', 'Electrical wiring repair', 'Wall repainting', 'Door hinge replacement'],
+  'cleaning' => ['Monthly cleaning service', 'Waste disposal', 'Cleaning supplies purchase'],
+  'security' => ['Security guard salary', 'CCTV maintenance', 'Security equipment upgrade'],
+  'taxes' => ['Property tax payment', 'Annual property tax', 'Business permit renewal'],
+  'staff_salary' => ['Building manager salary', 'Maintenance staff wages', 'Administrative staff salary'],
+  'electric' => ['Common area electricity bill', 'Pump system electric consumption'],
+  'water' => ['Common area water bill', 'Garden watering system'],
+  'internet' => ['Building wifi service', 'Management office internet connection'],
+  'miscellaneous' => ['Office supplies', 'Misc administrative expenses', 'Unexpected expenses']
+}
+
+# Create expenses for February, March, and April 2025
+[Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
+  # Create 10-15 expenses per month
+  expense_count = rand(10..15)
+  
+  expense_count.times do
+    category = expense_categories.sample
+    
+    OperatingExpense.create!(
+      category: category,
+      description: expense_descriptions[category].sample,
+      amount: rand(200000..5000000),  # 200,000 to 5,000,000 VND
+      expense_date: month_start + rand(0..28)  # Random day in the month
+    )
   end
 end
 

@@ -1,0 +1,10 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_prices.edit') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.back'), utility_prices_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="form-container">
+  <%= render 'utility_prices/shared/form', utility_price: @utility_price %>
+</div>

@@ -15,6 +15,22 @@ class BillsController < ApplicationController
   def new
     @bill = Bill.new
     @active_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
+    
+    # If room_assignment_id is provided, pre-load the utility readings
+    if params[:room_assignment_id].present?
+      @room_assignment = RoomAssignment.includes(:room, :tenant).find(params[:room_assignment_id])
+      @room = @room_assignment.room
+      @latest_readings = UtilityReading.where(room_id: @room.id).order(reading_date: :desc).limit(2)
+      
+      # Initialize bill with room assignment and default values
+      @bill.room_assignment_id = @room_assignment.id
+      @bill.room_fee = @room.monthly_rent
+      
+      # Set default service fee from the latest reading if available
+      if @latest_readings.present? && @latest_readings.first.respond_to?(:service_charge)
+        @bill.service_fee = @latest_readings.first.service_charge
+      end
+    end
   end
 
   def create
@@ -63,7 +79,7 @@ class BillsController < ApplicationController
 
   def bill_params
     params.require(:bill).permit(:room_assignment_id, :billing_date, :due_date, 
-                                 :room_fee, :electricity_fee, :water_fee, 
+                                 :room_fee, :electricity_fee, :water_fee, :service_fee,
                                  :other_fees, :notes, :status)
   end
 

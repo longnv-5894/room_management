@@ -3,7 +3,64 @@ class UtilityReadingsController < ApplicationController
   before_action :set_utility_reading, only: [:show, :edit, :update, :destroy]
 
   def index
-    @utility_readings = UtilityReading.includes(:room).order(reading_date: :desc)
+    if params[:room_id].present?
+      @utility_readings = UtilityReading.where(room_id: params[:room_id])
+                                       .order(reading_date: :desc)
+                                       .limit(2)
+    else
+      @utility_readings = UtilityReading.includes(:room).order(reading_date: :desc)
+    end
+    
+    respond_to do |format|
+      format.html # renders the default index.html.erb template
+      format.json do
+        if params[:room_id].present?
+          latest_readings = @utility_readings.map do |reading|
+            {
+              id: reading.id,
+              reading_date: reading.reading_date,
+              room_id: reading.room_id,
+              room_number: reading.room.number,
+              utility_type: reading.previous_reading ? 'electricity' : 'water',
+              previous_reading: reading.previous_reading&.electricity_reading || 0,
+              current_reading: reading.electricity_reading,
+              rate: reading.electricity_unit_price,
+              water_previous_reading: reading.previous_reading&.water_reading || 0,
+              water_current_reading: reading.water_reading,
+              water_rate: reading.water_unit_price,
+              service_charge: reading.service_charge
+            }
+          end
+          
+          # If we have a reading, organize the data for the form
+          if latest_readings.present?
+            latest = latest_readings.first
+            render json: [
+              {
+                id: latest[:id],
+                utility_type: 'electricity',
+                reading_date: latest[:reading_date],
+                previous_reading: latest[:previous_reading],
+                current_reading: latest[:current_reading],
+                rate: latest[:rate]
+              },
+              {
+                id: latest[:id],
+                utility_type: 'water',
+                reading_date: latest[:reading_date],
+                previous_reading: latest[:water_previous_reading],
+                current_reading: latest[:water_current_reading],
+                rate: latest[:water_rate]
+              }
+            ]
+          else
+            render json: []
+          end
+        else
+          render json: @utility_readings
+        end
+      end
+    end
   end
 
   def show
@@ -12,6 +69,12 @@ class UtilityReadingsController < ApplicationController
     @water_usage = @utility_reading.water_usage
     @electricity_cost = @utility_reading.electricity_cost
     @water_cost = @utility_reading.water_cost
+    @service_charge_cost = @utility_reading.service_charge_cost
+    @total_cost = @utility_reading.total_cost
+    
+    # Find the current tenant of the room for the sidebar
+    active_assignment = @utility_reading.room.room_assignments.find_by(active: true)
+    @room_tenant = active_assignment&.tenant
   end
 
   def new
@@ -59,7 +122,7 @@ class UtilityReadingsController < ApplicationController
 
   def utility_reading_params
     params.require(:utility_reading).permit(:room_id, :reading_date, :electricity_reading, 
-                                           :water_reading, :electricity_unit_price, :water_unit_price)
+                                           :water_reading, :service_charge)
   end
 
   def require_login

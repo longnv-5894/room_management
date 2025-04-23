@@ -180,5 +180,58 @@
         </div>
       </div>
     <% end %>
+    
+    <!-- Vehicles Section -->
+    <div class="card mt-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="card-title"><%= t('vehicles.title') %></h2>
+        <div class="header-actions">
+          <%= link_to t('vehicles.new'), new_tenant_vehicle_path(@tenant), class: "btn btn-sm btn-primary" %>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if @tenant.vehicles.any? %>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th><%= t('vehicles.license_plate') %></th>
+                <th><%= t('vehicles.vehicle_type') %></th>
+                <th><%= t('common.actions') %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @tenant.vehicles.each do |vehicle| %>
+                <tr>
+                  <td><strong><%= vehicle.license_plate %></strong></td>
+                  <td>
+                    <span class="vehicle-type-badge <%= vehicle.vehicle_type %>">
+                      <%= t("vehicles.types.#{vehicle.vehicle_type}", default: vehicle.vehicle_type) %>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-links">
+                      <%= link_to t('common.edit'), edit_vehicle_path(vehicle), class: "btn btn-xs btn-outline" %>
+                      <%= button_to t('common.delete'), vehicle_path(vehicle), 
+                          method: :delete,
+                          form: { data: { turbo_confirm: t('vehicles.confirm_delete') }, class: "d-inline" },
+                          class: "btn btn-xs btn-outline-danger" %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+          
+          <div class="card-actions mt-3">
+            <%= link_to t('common.view') + " " + t('vehicles.title').downcase, tenant_vehicles_path(@tenant), class: "btn btn-sm btn-outline" %>
+          </div>
+        <% else %>
+          <div class="empty-state">
+            <p><%= t('vehicles.no_vehicles_for_tenant') %></p>
+            <%= link_to t('vehicles.add_first'), new_tenant_vehicle_path(@tenant), class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
   </div>
 </div>

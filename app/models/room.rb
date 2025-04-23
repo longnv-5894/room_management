@@ -19,4 +19,8 @@ class Room < ApplicationRecord
   def occupied?
     status == 'occupied'
   end
+  
+  def bills
+    Bill.joins(:room_assignment).where(room_assignments: { room_id: id }).order(billing_date: :desc)
+  end
 end

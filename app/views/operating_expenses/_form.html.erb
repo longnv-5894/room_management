@@ -1,0 +1,45 @@
+<%= form_with(model: operating_expense, class: "expense-form") do |form| %>
+  <% if operating_expense.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(operating_expense.errors.count, "error") %> <%= t('common.form_error') %>:</h4>
+      <ul>
+        <% operating_expense.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= form.label :category, t('operating_expenses.category') %>
+    <%= form.select :category, 
+                   options_for_select(OperatingExpense.categories_for_select, operating_expense.category),
+                   { include_blank: t('operating_expenses.select_category') },
+                   class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :description, t('operating_expenses.description') %>
+    <%= form.text_field :description, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :amount, t('operating_expenses.amount') %>
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text">VND</span>
+      </div>
+      <%= form.number_field :amount, class: "form-control", min: 0, step: 1000 %>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :expense_date, t('operating_expenses.expense_date') %>
+    <%= form.date_field :expense_date, class: "form-control" %>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit t('common.save'), class: "btn btn-primary" %>
+    <%= link_to t('common.cancel'), operating_expenses_path, class: "btn btn-outline" %>
+  </div>
+<% end %>

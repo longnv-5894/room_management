@@ -9,6 +9,7 @@ class TenantsController < ApplicationController
   def show
     @current_room = @tenant.current_room
     @room_assignments = @tenant.room_assignments.includes(:room).order(start_date: :desc)
+    @vehicles = @tenant.vehicles
   end
 
   def new

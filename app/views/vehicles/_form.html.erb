@@ -1,0 +1,88 @@
+<div class="page-header">
+  <% if @tenant %>
+    <h1 class="header-title"><%= @vehicle.new_record? ? t('vehicles.new_for_tenant', tenant: @tenant.name) : t('vehicles.edit_title') %></h1>
+  <% else %>
+    <h1 class="header-title"><%= @vehicle.new_record? ? t('vehicles.new') : t('vehicles.edit_title') %></h1>
+  <% end %>
+  <div class="header-actions">
+    <% if @tenant %>
+      <%= link_to t('common.back'), tenant_vehicles_path(@tenant), class: "btn btn-outline" %>
+    <% else %>
+      <%= link_to t('common.back'), vehicles_path, class: "btn btn-outline" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <%= form_with(model: [@tenant, @vehicle]) do |form| %>
+      <% if @vehicle.errors.any? %>
+        <div class="alert alert-danger">
+          <h2><%= pluralize(@vehicle.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
+          <ul>
+            <% @vehicle.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row">
+        <% unless @tenant %>
+          <div class="col-md-6 form-group">
+            <%= form.label :tenant_id, t('vehicles.tenant'), class: "form-label" %>
+            <%= form.collection_select :tenant_id, Tenant.all, :id, :name, { prompt: t('vehicles.select_tenant') }, { class: "form-select" } %>
+          </div>
+        <% end %>
+
+        <div class="col-md-6 form-group">
+          <%= form.label :license_plate, t('vehicles.license_plate'), class: "form-label" %>
+          <%= form.text_field :license_plate, class: "form-control" %>
+        </div>
+
+        <div class="col-md-6 form-group">
+          <%= form.label :vehicle_type, t('vehicles.vehicle_type'), class: "form-label" %>
+          <%= form.select :vehicle_type, 
+              options_for_select([
+                [t('vehicles.types.car'), 'car'],
+                [t('vehicles.types.motorcycle'), 'motorcycle'],
+                [t('vehicles.types.bicycle'), 'bicycle'],
+                [t('vehicles.types.scooter'), 'scooter'],
+                [t('vehicles.types.other'), 'other']
+              ], @vehicle.vehicle_type),
+              { prompt: t('vehicles.select_type') },
+              { class: "form-select" } %>
+        </div>
+
+        <div class="col-md-6 form-group">
+          <%= form.label :brand, t('vehicles.brand'), class: "form-label" %>
+          <%= form.text_field :brand, class: "form-control" %>
+        </div>
+
+        <div class="col-md-6 form-group">
+          <%= form.label :model, t('vehicles.model'), class: "form-label" %>
+          <%= form.text_field :model, class: "form-control" %>
+        </div>
+
+        <div class="col-md-6 form-group">
+          <%= form.label :color, t('vehicles.color'), class: "form-label" %>
+          <%= form.text_field :color, class: "form-control" %>
+        </div>
+
+        <div class="col-md-12 form-group">
+          <%= form.label :notes, t('vehicles.notes'), class: "form-label" %>
+          <%= form.text_area :notes, class: "form-control", rows: 3 %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= form.submit @vehicle.new_record? ? t('common.save') : t('common.update'), class: "btn btn-primary" %>
+        <% if @tenant %>
+          <%= link_to t('common.cancel'), tenant_vehicles_path(@tenant), class: "btn btn-outline" %>
+        <% else %>
+          <%= link_to t('common.cancel'), vehicles_path, class: "btn btn-outline" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

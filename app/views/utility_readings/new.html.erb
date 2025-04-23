@@ -1,2 +1,272 @@
-<h1>UtilityReadings#new</h1>
-<p>Find me in app/views/utility_readings/new.html.erb</p>
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_readings.new') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.back'), utility_readings_path, class: "btn btn-outline" %>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <%= form_with(model: @utility_reading, local: true) do |form| %>
+      <% if @utility_reading.errors.any? %>
+        <div class="alert alert-danger">
+          <h2><%= pluralize(@utility_reading.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
+          <ul>
+            <% @utility_reading.errors.each do |error| %>
+              <li><%= error.full_message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% current_prices = UtilityPrice.current %>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :room_id, t('utility_readings.room'), class: "form-label" %>
+            <%= form.collection_select :room_id, @rooms, :id, :number, 
+                { prompt: t('room_assignments.select_room') }, 
+                { class: "form-select", id: "room-select" } %>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :reading_date, t('utility_readings.reading_date'), class: "form-label" %>
+            <%= form.date_field :reading_date, class: "form-control", value: Date.current %>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Previous readings section -->
+      <div id="previous-readings-container" class="mb-4" style="display: none;">
+        <!-- ...existing code... -->
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><%= t('utility_readings.electricity') %></h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <%= form.label :electricity_reading, t('utility_readings.current_electricity'), class: "form-label" %>
+                <%= form.number_field :electricity_reading, class: "form-control", min: 0, step: 0.01 %>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label"><%= t('utility_readings.electricity_unit_price') %></label>
+                <div class="input-group">
+                  <input type="text" class="form-control" value="<%= number_with_delimiter(current_prices.electricity_unit_price) %>" readonly>
+                  <span class="input-group-text">₫/kWh</span>
+                </div>
+                <small class="form-text text-muted">
+                  <%= t('utility_prices.current_price_note') %>
+                  <%= link_to t('utility_prices.manage_prices'), utility_prices_path %>
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><%= t('utility_readings.water') %></h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <%= form.label :water_reading, t('utility_readings.current_water'), class: "form-label" %>
+                <%= form.number_field :water_reading, class: "form-control", min: 0, step: 0.01 %>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label"><%= t('utility_readings.water_unit_price') %></label>
+                <div class="input-group">
+                  <input type="text" class="form-control" value="<%= number_with_delimiter(current_prices.water_unit_price) %>" readonly>
+                  <span class="input-group-text">₫/m³</span>
+                </div>
+                <small class="form-text text-muted">
+                  <%= t('utility_prices.current_price_note') %>
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><%= t('utility_readings.service_charge') %></h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label"><%= t('utility_readings.service_charge_per_tenant') %></label>
+                <div class="input-group">
+                  <input type="text" id="service-charge-per-tenant" class="form-control" value="<%= number_with_delimiter(current_prices.service_charge) %>" readonly>
+                  <span class="input-group-text">₫</span>
+                </div>
+                <small class="form-text text-muted">
+                  <%= t('utility_readings.service_charge_hint', amount: number_to_currency(current_prices.service_charge, unit: "₫", delimiter: ".", precision: 0)) %>
+                </small>
+              </div>
+              
+              <div class="form-group mb-3 mt-4">
+                <label class="form-label"><%= t('utility_readings.tenant_count') %></label>
+                <div class="input-group">
+                  <input type="number" id="tenant-count" class="form-control" value="1" min="1" step="1">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <small class="form-text text-muted">
+                  <%= t('utility_readings.tenant_count_hint') %>
+                </small>
+              </div>
+              
+              <div class="form-group mb-3 mt-4">
+                <label class="form-label"><%= t('utility_readings.total_service_charge') %></label>
+                <div class="input-group">
+                  <%= form.number_field :service_charge, id: "total-service-charge", class: "form-control", min: 0, step: 1 %>
+                  <span class="input-group-text">₫</span>
+                </div>
+                <small class="form-text text-muted">
+                  <%= t('utility_readings.total_service_charge_hint') %>
+                </small>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <%= t('utility_readings.service_charge_explanation') %>
+              </div>
+              
+              <div class="alert alert-primary mt-3">
+                <div class="d-flex align-items-start">
+                  <i class="fas fa-calculator me-2 mt-1"></i>
+                  <div>
+                    <strong><%= t('utility_readings.service_charge_calculation') %></strong>
+                    <p class="mb-0 mt-2"><%= t('utility_readings.service_charge_formula') %></p>
+                    <p class="mb-0 mt-2">
+                      <span id="formula-amount"><%= number_with_delimiter(current_prices.service_charge) %></span> ₫ × 
+                      <span id="formula-tenant-count">1</span> = 
+                      <strong><span id="formula-total"><%= number_with_delimiter(current_prices.service_charge) %></span> ₫</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= form.submit t('common.save'), class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .card-title {
+    font-weight: 600;
+  }
+  
+  .detail-item {
+    margin-bottom: 15px;
+  }
+  
+  .detail-label {
+    color: #70757a;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+  }
+  
+  .detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const roomSelect = document.getElementById('room-select');
+    const tenantCountInput = document.getElementById('tenant-count');
+    const serviceChargePerTenant = document.getElementById('service-charge-per-tenant');
+    const totalServiceCharge = document.getElementById('total-service-charge');
+    const formulaAmount = document.getElementById('formula-amount');
+    const formulaTenantCount = document.getElementById('formula-tenant-count');
+    const formulaTotal = document.getElementById('formula-total');
+    
+    // Initialize the service charge calculation
+    calculateServiceCharge();
+    
+    // When tenant count changes, update the total service charge
+    tenantCountInput.addEventListener('change', function() {
+      calculateServiceCharge();
+    });
+    
+    // When room is selected, fetch tenant count
+    roomSelect.addEventListener('change', function() {
+      const roomId = this.value;
+      if (roomId) {
+        // Fetch the tenant count for this room
+        fetch(`/rooms/${roomId}.json`)
+          .then(response => response.json())
+          .then(data => {
+            // If the room has active room assignments, update the tenant count
+            if (data.room_assignments && data.room_assignments.length > 0) {
+              // Count active assignments
+              const activeAssignments = data.room_assignments.filter(assignment => 
+                assignment.active === true
+              );
+              
+              if (activeAssignments.length > 0) {
+                tenantCountInput.value = activeAssignments.length;
+                calculateServiceCharge();
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching room data:', error);
+          });
+      }
+    });
+    
+    // Fetch tenant count if a room is preselected
+    if (roomSelect.value) {
+      const event = new Event('change');
+      roomSelect.dispatchEvent(event);
+    }
+    
+    // Calculate the service charge based on tenant count
+    function calculateServiceCharge() {
+      const perTenantCharge = parseFloat(serviceChargePerTenant.value.replace(/,/g, '')) || 0;
+      const tenantCount = parseInt(tenantCountInput.value) || 1;
+      
+      // Calculate total
+      const total = perTenantCharge * tenantCount;
+      
+      // Update the total field
+      totalServiceCharge.value = Math.round(total);
+      
+      // Update the formula display
+      formulaTenantCount.textContent = tenantCount;
+      formulaTotal.textContent = total.toLocaleString();
+    }
+    
+    // Initialize previous readings section functionality
+    const previousReadingsContainer = document.getElementById('previous-readings-container');
+    // ...existing previous readings code...
+  });
+</script>

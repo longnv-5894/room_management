@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_22_094216) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_23_082035) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,8 +27,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_22_094216) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "service_fee", precision: 12, scale: 2, default: "0.0"
     t.index ["room_assignment_id", "billing_date"], name: "index_bills_on_room_assignment_id_and_billing_date", unique: true
     t.index ["room_assignment_id"], name: "index_bills_on_room_assignment_id"
+  end
+
+  create_table "operating_expenses", force: :cascade do |t|
+    t.string "category"
+    t.string "description"
+    t.decimal "amount"
+    t.date "expense_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "room_assignments", force: :cascade do |t|
@@ -78,21 +88,44 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_22_094216) do
     t.index ["email"], name: "index_users_on_email"
   end
 
+  create_table "utility_prices", force: :cascade do |t|
+    t.decimal "electricity_unit_price", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "water_unit_price", precision: 10, scale: 2, default: "0.0", null: false
+    t.decimal "service_charge", precision: 10, scale: 2, default: "0.0", null: false
+    t.date "effective_date", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["effective_date"], name: "index_utility_prices_on_effective_date"
+  end
+
   create_table "utility_readings", force: :cascade do |t|
     t.bigint "room_id", null: false
     t.date "reading_date", null: false
     t.decimal "electricity_reading", precision: 10, scale: 2, default: "0.0"
     t.decimal "water_reading", precision: 10, scale: 2, default: "0.0"
-    t.decimal "electricity_unit_price", precision: 8, scale: 2, default: "0.0"
-    t.decimal "water_unit_price", precision: 8, scale: 2, default: "0.0"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["room_id", "reading_date"], name: "index_utility_readings_on_room_id_and_reading_date"
     t.index ["room_id"], name: "index_utility_readings_on_room_id"
   end
 
+  create_table "vehicles", force: :cascade do |t|
+    t.string "license_plate"
+    t.string "vehicle_type"
+    t.string "brand"
+    t.string "model"
+    t.string "color"
+    t.bigint "tenant_id", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id"], name: "index_vehicles_on_tenant_id"
+  end
+
   add_foreign_key "bills", "room_assignments"
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
   add_foreign_key "utility_readings", "rooms"
+  add_foreign_key "vehicles", "tenants"
 end

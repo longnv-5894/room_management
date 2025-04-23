@@ -8,6 +8,28 @@ class RoomAssignmentsController < ApplicationController
 
   def show
     @bills = @room_assignment.bills.order(billing_date: :desc)
+    
+    respond_to do |format|
+      format.html # renders the default show.html.erb template
+      format.json do
+        render json: {
+          id: @room_assignment.id,
+          active: @room_assignment.active,
+          start_date: @room_assignment.start_date,
+          room: {
+            id: @room_assignment.room.id,
+            number: @room_assignment.room.number,
+            monthly_rent: @room_assignment.room.monthly_rent,
+            status: @room_assignment.room.status
+          },
+          tenant: {
+            id: @room_assignment.tenant.id,
+            name: @room_assignment.tenant.name,
+            phone: @room_assignment.tenant.phone
+          }
+        }
+      end
+    end
   end
 
   def new

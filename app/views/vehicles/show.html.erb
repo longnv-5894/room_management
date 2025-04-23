@@ -1,0 +1,87 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('vehicles.details') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.edit'), edit_vehicle_path(@vehicle), class: "btn btn-outline" %>
+    <% if @tenant %>
+      <%= link_to t('common.back'), tenant_vehicles_path(@tenant), class: "btn btn-outline" %>
+    <% else %>
+      <%= link_to t('common.back'), vehicles_path, class: "btn btn-outline" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12 mb-3">
+        <h3><%= @vehicle.license_plate %></h3>
+        <span class="vehicle-type-badge <%= @vehicle.vehicle_type %>">
+          <%= t("vehicles.types.#{@vehicle.vehicle_type}", default: @vehicle.vehicle_type) %>
+        </span>
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label class="text-muted"><%= t('vehicles.tenant') %>:</label>
+        <div><%= link_to @tenant.name, tenant_path(@tenant) %></div>
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label class="text-muted"><%= t('vehicles.brand') %>:</label>
+        <div><%= @vehicle.brand %></div>
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label class="text-muted"><%= t('vehicles.model') %>:</label>
+        <div><%= @vehicle.model %></div>
+      </div>
+      
+      <div class="col-md-6 mb-3">
+        <label class="text-muted"><%= t('vehicles.color') %>:</label>
+        <div><%= @vehicle.color %></div>
+      </div>
+      
+      <% if @vehicle.notes.present? %>
+        <div class="col-md-12 mb-3">
+          <label class="text-muted"><%= t('vehicles.notes') %>:</label>
+          <div><%= simple_format(@vehicle.notes) %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .vehicle-type-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+  }
+  
+  .vehicle-type-badge.car {
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+  
+  .vehicle-type-badge.motorcycle {
+    background-color: #fce4ec;
+    color: #e91e63;
+  }
+  
+  .vehicle-type-badge.bicycle {
+    background-color: #e8f5e9;
+    color: #4caf50;
+  }
+  
+  .vehicle-type-badge.scooter {
+    background-color: #fff3e0;
+    color: #ff9800;
+  }
+  
+  .vehicle-type-badge.other {
+    background-color: #f5f5f5;
+    color: #9e9e9e;
+  }
+</style>

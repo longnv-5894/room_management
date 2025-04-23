@@ -1,156 +1,668 @@
 <div class="page-header">
-  <h1 class="header-title">Generate New Bill</h1>
+  <h1 class="header-title"><%= t('bills.new') %></h1>
   <div class="header-actions">
-    <%= link_to "Cancel", bills_path, class: "btn btn-outline" %>
+    <%= link_to bills_path, class: "btn btn-outline" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.cancel') %>
+    <% end %>
   </div>
 </div>
 
 <div class="form-container">
-  <%= form_with(model: @bill, local: true) do |form| %>
-    <% if @bill.errors.any? %>
-      <div class="alert alert-danger">
-        <h2><%= pluralize(@bill.errors.count, "error") %> prohibited this bill from being saved:</h2>
-        <ul>
-          <% @bill.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <h2 class="card-title"><%= t('bills.new') %></h2>
+      <p class="card-subtitle text-muted"><%= t('bills.bill_information') %></p>
+    </div>
     
-    <div class="form-group">
-      <%= form.label :room_assignment_id, "Room & Tenant", class: "form-label" %>
-      <% if params[:room_assignment_id].present? %>
-        <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
-        <%= form.hidden_field :room_assignment_id, value: assignment.id %>
-        <div class="form-static-display">
-          Room <%= assignment.room.number %> - <%= assignment.tenant.name %>
+    <div class="card-body">
+      <%= form_with(model: @bill, local: true, id: "bill-form") do |form| %>
+        <% if @bill.errors.any? %>
+          <div class="alert alert-danger">
+            <h2 class="h5"><%= pluralize(@bill.errors.count, t('common.form_error')) %>:</h2>
+            <ul class="mb-0">
+              <% @bill.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+        
+        <div class="form-group mb-4">
+          <%= form.label :room_assignment_id, t('room_assignments.title'), class: "form-label fw-bold" %>
+          <% if params[:room_assignment_id].present? %>
+            <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
+            <%= form.hidden_field :room_assignment_id, value: assignment.id %>
+            <div class="form-static-display p-3 bg-light rounded">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-door-open me-2 text-primary"></i>
+                <strong><%= t('rooms.number') %>:</strong> <%= assignment.room.number %> - <%= assignment.tenant.name %>
+              </div>
+            </div>
+          <% else %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-home"></i>
+              </span>
+              <%= form.collection_select :room_assignment_id, @active_assignments, :id, :display_name, 
+                                       { prompt: t('room_assignments.select_room') }, 
+                                       { class: "form-select form-select-lg", id: "room_assignment_selector" } %>
+            </div>
+            <small class="form-text text-muted"><%= t('room_assignments.select_room') %></small>
+          <% end %>
         </div>
-      <% else %>
-        <%= form.collection_select :room_assignment_id, @active_assignments, :id, :display_name, 
-                                  { prompt: "Select a room assignment" }, 
-                                  { class: "form-select" } %>
+
+        <!-- Utility Readings section - Will appear after room is selected -->
+        <div class="utility-readings-section mb-4">
+          <!-- Loading indicator -->
+          <div class="loading-indicator text-center py-4" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden"><%= t('common.loading') %></span>
+            </div>
+            <p class="mt-2 text-muted"><%= t('utility_readings.loading_readings') %></p>
+          </div>
+          
+          <!-- No readings message -->
+          <div id="no-readings-message" class="d-none">
+            <div class="alert alert-info">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fs-4"></i>
+                <div>
+                  <h5 class="mb-1"><%= t('utility_readings.no_readings_title') %></h5>
+                  <p class="mb-0"><%= t('utility_readings.no_readings_description') %></p>
+                </div>
+              </div>
+            </div>
+            <div id="add-reading-container" class="text-center py-3"></div>
+          </div>
+          
+          <!-- Readings table -->
+          <div class="readings-table-container card border shadow-sm d-none">
+            <div class="card-header bg-light">
+              <h5 class="card-title mb-0"><%= t('utility_readings.latest_readings') %></h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover utilities-table" id="readings-table">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="utility-type-col"><%= t('utility_readings.utility_type') %></th>
+                      <th class="reading-col"><%= t('utility_readings.previous_reading') %></th>
+                      <th class="reading-col"><%= t('utility_readings.current_reading') %></th>
+                      <th class="reading-col"><%= t('utility_readings.usage') %></th>
+                      <th class="reading-col"><%= t('utility_readings.rate') %></th>
+                      <th class="text-end amount-col"><%= t('utility_readings.amount') %></th>
+                    </tr>
+                  </thead>
+                  <tbody id="readings-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="apply-utilities-container" class="card-footer bg-white d-none">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><%= t('utility_readings.total_amount') %>:</strong>
+                  <span class="fs-5 fw-bold text-primary" id="utility-total-amount">0</span> VND
+                </div>
+                <button type="button" class="btn btn-primary" id="apply-utility-total">
+                  <i class="fas fa-check-circle me-1"></i> <%= t('utility_readings.apply_to_bill') %>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :billing_date, t('bills.billing_date'), class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar"></i>
+                </span>
+                <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :billing_period_start, t('bills.billing_period_start'), class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar-alt"></i>
+                </span>
+                <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :billing_period_end, t('common.to'), class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar-alt"></i>
+                </span>
+                <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="form-group">
+              <%= form.label :room_fee, t('bills.monthly_rent') + " (VND)", class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-money-bill-wave"></i>
+                </span>
+                <%= form.number_field :room_fee, class: "form-control", min: 0, id: "room_fee" %>
+                <span class="input-group-text">VND</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="form-group">
+              <%= form.label :utility_amount, t('bills.utility_charges') + " (VND)", class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-bolt"></i>
+                </span>
+                <%= form.number_field :utility_amount, class: "form-control", min: 0, id: "utility_amount", readonly: true %>
+                <span class="input-group-text">VND</span>
+                <button type="button" class="btn btn-outline-secondary" id="edit-utilities-btn">
+                  <i class="fas fa-edit"></i> <%= t('common.edit') %>
+                </button>
+              </div>
+              <small class="form-text text-muted"><%= t('utility_readings.total_cost') %></small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :electricity_fee, t('utility_readings.electricity_cost') + " (VND)", class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-bolt text-warning"></i>
+                </span>
+                <%= form.number_field :electricity_fee, class: "form-control", min: 0, id: "electricity_fee" %>
+                <span class="input-group-text">VND</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :water_fee, t('utility_readings.water_cost') + " (VND)", class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-tint text-info"></i>
+                </span>
+                <%= form.number_field :water_fee, class: "form-control", min: 0, id: "water_fee" %>
+                <span class="input-group-text">VND</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <div class="form-group">
+              <%= form.label :service_fee, t('utility_readings.service_charge') + " (VND)", class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-hand-holding-usd text-success"></i>
+                </span>
+                <%= form.number_field :service_fee, class: "form-control", min: 0, id: "service_fee" %>
+                <span class="input-group-text">VND</span>
+              </div>
+              <small class="form-text text-muted"><%= t('utility_readings.service_charge_explanation') %></small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group mb-4">
+          <%= form.label :other_fees, t('bills.additional_charges') + " (VND)", class: "form-label fw-bold" %>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-plus-circle"></i>
+            </span>
+            <%= form.number_field :other_fees, value: 0, class: "form-control", min: 0 %>
+            <span class="input-group-text">VND</span>
+          </div>
+          <small class="form-text text-muted"><%= t('bills.additional_charges_hint') %></small>
+        </div>
+
+        <div class="form-group mb-4">
+          <%= form.label :notes, t('common.notes'), class: "form-label fw-bold" %>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-sticky-note"></i>
+            </span>
+            <%= form.text_area :notes, class: "form-control", rows: 3 %>
+          </div>
+          <small class="form-text text-muted"><%= t('bills.notes_hint') %></small>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="form-group">
+              <%= form.label :due_date, t('bills.due_date'), class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-calendar-check"></i>
+                </span>
+                <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="form-group">
+              <%= form.label :status, t('common.status'), class: "form-label fw-bold" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-tag"></i>
+                </span>
+                <%= form.select :status, [
+                  [t('bills.unpaid'), "unpaid"], 
+                  [t('bills.partial'), "partial"], 
+                  [t('bills.paid'), "paid"]], 
+                  { selected: "unpaid" }, 
+                  { class: "form-select" } 
+                %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions text-end">
+          <%= link_to bills_path, class: "btn btn-light me-2" do %>
+            <%= t('common.cancel') %>
+          <% end %>
+          <%= form.submit t('bills.generate'), class: "btn btn-primary px-4" %>
+        </div>
       <% end %>
     </div>
-
-    <div class="form-row">
-      <div class="form-group col-md-4">
-        <%= form.label :billing_date, "Billing Date", class: "form-label" %>
-        <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
-      </div>
-      
-      <div class="form-group col-md-4">
-        <%= form.label :billing_period_start, "Period Start", class: "form-label" %>
-        <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
-      </div>
-      
-      <div class="form-group col-md-4">
-        <%= form.label :billing_period_end, "Period End", class: "form-label" %>
-        <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group col-md-6">
-        <%= form.label :rent_amount, "Rent Amount (VND)", class: "form-label" %>
-        <% if @room_assignment %>
-          <%= form.number_field :rent_amount, value: @room_assignment.room.monthly_rent, class: "form-control", min: 0 %>
-        <% else %>
-          <%= form.number_field :rent_amount, class: "form-control", min: 0 %>
-        <% end %>
-      </div>
-      
-      <div class="form-group col-md-6">
-        <%= form.label :utility_amount, "Utility Amount (VND)", class: "form-label" %>
-        <%= form.number_field :utility_amount, class: "form-control", min: 0 %>
-        <small class="form-text text-muted">Total utility charges based on readings</small>
-      </div>
-    </div>
-    
-    <div class="card mt-4 mb-4">
-      <div class="card-header">
-        <h2 class="card-title">Utility Readings</h2>
-      </div>
-      <div class="card-body">
-        <% if @utility_readings.present? && @utility_readings.any? %>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Utility Type</th>
-                <th>Previous Reading</th>
-                <th>Current Reading</th>
-                <th>Usage</th>
-                <th>Rate (VND)</th>
-                <th>Amount (VND)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @utility_readings.each do |reading| %>
-                <tr>
-                  <td><%= reading.utility_type.capitalize %></td>
-                  <td><%= reading.previous_reading %></td>
-                  <td><%= reading.current_reading %></td>
-                  <td><%= reading.current_reading - reading.previous_reading %></td>
-                  <td><%= number_with_delimiter(reading.rate) %></td>
-                  <td><%= number_with_delimiter((reading.current_reading - reading.previous_reading) * reading.rate) %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-          
-          <div class="form-actions mt-3">
-            <% utility_total = @utility_readings.sum { |r| (r.current_reading - r.previous_reading) * r.rate } %>
-            <button type="button" class="btn btn-outline" id="apply-utility-total" data-amount="<%= utility_total %>">
-              Apply Utility Total: <%= number_to_currency(utility_total, precision: 0, delimiter: ',', unit: 'VND ') %>
-            </button>
-          </div>
-        <% else %>
-          <div class="empty-state">
-            <p>No utility readings found for the selected period.</p>
-            <% if @room_assignment %>
-              <%= link_to "Add Utility Reading", new_utility_reading_path(room_id: @room_assignment.room.id), class: "btn btn-outline" %>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :additional_charges, "Additional Charges (VND)", class: "form-label" %>
-      <%= form.number_field :additional_charges, value: 0, class: "form-control", min: 0 %>
-      <small class="form-text text-muted">Any extra charges not included in rent or utilities</small>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :notes, "Notes", class: "form-label" %>
-      <%= form.text_area :notes, class: "form-control", rows: 3 %>
-      <small class="form-text text-muted">Optional notes about this bill</small>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :due_date, "Due Date", class: "form-label" %>
-      <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :status, class: "form-label" %>
-      <%= form.select :status, [["Pending", "pending"], ["Paid", "paid"]], { selected: "pending" }, { class: "form-select" } %>
-    </div>
-
-    <div class="form-actions">
-      <%= form.submit "Generate Bill", class: "btn btn-primary" %>
-    </div>
-  <% end %>
+  </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  const roomAssignmentSelector = document.getElementById('room_assignment_selector');
+  const roomFeeInput = document.getElementById('room_fee');
+  const utilityAmountInput = document.getElementById('utility_amount');
+  const readingsTable = document.getElementById('readings-table');
+  const readingsTableBody = document.getElementById('readings-table-body');
+  const noReadingsMessage = document.getElementById('no-readings-message');
+  const applyUtilitiesContainer = document.getElementById('apply-utilities-container');
+  const addReadingContainer = document.getElementById('add-reading-container');
+  const utilityTotalAmount = document.getElementById('utility-total-amount');
+  const loadingIndicator = document.querySelector('.loading-indicator');
   const applyUtilityButton = document.getElementById('apply-utility-total');
+  const readingsTableContainer = document.querySelector('.readings-table-container');
+  
+  let currentRoomId = null;
+  
+  // Initialize utility amount to 0
+  utilityAmountInput.value = 0;
+  
+  // Initially hide loading indicator if no room is selected yet
+  if (roomAssignmentSelector && !roomAssignmentSelector.value) {
+    loadingIndicator.style.display = 'none';
+  }
+  
+  // Function to check if response is valid JSON
+  async function getJSON(response) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Server did not return JSON. Check that you have proper API endpoints set up.');
+    }
+    
+    return response.json();
+  }
+  
+  // Function to safely format numbers
+  function safeToLocaleString(value) {
+    // Check if value is defined and is a number
+    if (value !== undefined && value !== null && !isNaN(value)) {
+      return value.toLocaleString();
+    }
+    return '0'; // Return a safe default
+  }
+  
+  // Add event listener to room assignment selector
+  if (roomAssignmentSelector) {
+    roomAssignmentSelector.addEventListener('change', function() {
+      const selectedValue = this.value;
+      if (selectedValue) {
+        // Show loading indicator
+        loadingIndicator.style.display = 'block';
+        readingsTableContainer.classList.add('d-none');
+        noReadingsMessage.classList.add('d-none');
+        applyUtilitiesContainer.classList.add('d-none');
+        
+        // Fetch room information
+        fetch(`/room_assignments/${selectedValue}.json`)
+          .then(response => getJSON(response))
+          .then(data => {
+            roomFeeInput.value = data.room.monthly_rent;
+            currentRoomId = data.room.id;
+            
+            // Now fetch utility readings for this room
+            return fetch(`/utility_readings.json?room_id=${data.room.id}`);
+          })
+          .then(response => getJSON(response))
+          .then(readings => {
+            // Hide loading indicator
+            loadingIndicator.style.display = 'none';
+            
+            if (readings.length > 0) {
+              // Populate readings table
+              populateReadingsTable(readings);
+              readingsTableContainer.classList.remove('d-none');
+              applyUtilitiesContainer.classList.remove('d-none');
+              
+              // Auto-apply utility total
+              const amount = utilityTotalAmount.textContent.replace(/,/g, '');
+              utilityAmountInput.value = amount;
+            } else {
+              // Show no readings message with clear instructions
+              noReadingsMessage.classList.remove('d-none');
+              addReadingContainer.innerHTML = `
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  <%= t('bills.no_readings') %>
+                </div>
+                <a href="/utility_readings/new?room_id=${currentRoomId}" class="btn btn-outline-primary">
+                  <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
+                </a>`;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            loadingIndicator.style.display = 'none';
+            noReadingsMessage.classList.remove('d-none');
+            addReadingContainer.innerHTML = `
+              <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Error loading readings:</strong> ${error.message}
+              </div>
+              <a href="/utility_readings/new?room_id=${currentRoomId}" class="btn btn-outline-primary mt-3">
+                <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
+              </a>
+            `;
+          });
+      } else {
+        // Reset form if no room is selected
+        roomFeeInput.value = '';
+        utilityAmountInput.value = 0;
+        readingsTableContainer.classList.add('d-none');
+        noReadingsMessage.classList.add('d-none');
+        applyUtilitiesContainer.classList.add('d-none');
+        loadingIndicator.style.display = 'none';
+      }
+    });
+    
+    // Trigger the change event if a value is already selected
+    if (roomAssignmentSelector.value) {
+      const event = new Event('change');
+      roomAssignmentSelector.dispatchEvent(event);
+    }
+  }
+  
+  // Handle apply utility total button
   if (applyUtilityButton) {
     applyUtilityButton.addEventListener('click', function() {
-      const amount = parseInt(this.dataset.amount);
-      document.getElementById('bill_utility_amount').value = amount;
+      const amount = utilityTotalAmount.textContent.replace(/,/g, '');
+      utilityAmountInput.value = amount;
+      
+      // Store individual fee values
+      const electricityFeeInput = document.getElementById('electricity_fee');
+      const waterFeeInput = document.getElementById('water_fee');
+      const serviceFeeInput = document.getElementById('service_fee');
+      
+      // Make sure all individual fields are properly calculated in the total
+      if (electricityFeeInput && waterFeeInput && serviceFeeInput) {
+        const electricityValue = parseFloat(electricityFeeInput.value) || 0;
+        const waterValue = parseFloat(waterFeeInput.value) || 0;
+        const serviceValue = parseFloat(serviceFeeInput.value) || 0;
+        
+        const calculatedTotal = electricityValue + waterValue + serviceValue;
+        utilityAmountInput.value = calculatedTotal;
+      }
     });
+  }
+  
+  // Enable manual editing of utility fields
+  const editUtilitiesBtn = document.getElementById('edit-utilities-btn');
+  if (editUtilitiesBtn) {
+    editUtilitiesBtn.addEventListener('click', function() {
+      utilityAmountInput.readOnly = false;
+      utilityAmountInput.focus();
+    });
+  }
+  
+  // Function to populate the readings table
+  function populateReadingsTable(readings) {
+    readingsTableBody.innerHTML = '';
+    let totalUtilityAmount = 0;
+    let serviceCharge = 0;
+    let electricityCost = 0;
+    let waterCost = 0;
+    
+    // Initialize individual fee fields
+    document.getElementById('electricity_fee').value = 0;
+    document.getElementById('water_fee').value = 0;
+    document.getElementById('service_fee').value = 0;
+    
+    // Check if there's a service charge in the readings
+    if (readings.length > 0 && readings[0].service_charge) {
+      serviceCharge = parseFloat(readings[0].service_charge) || 0;
+      document.getElementById('service_fee').value = serviceCharge;
+    }
+    
+    readings.forEach(reading => {
+      const previousReading = parseFloat(reading.previous_reading) || 0;
+      const currentReading = parseFloat(reading.electricity_reading || reading.water_reading || reading.current_reading || 0);
+      const usage = currentReading - previousReading;
+      let rate = 0;
+      let utilityType = '';
+      
+      if ('electricity_reading' in reading || reading.utility_type === 'electricity') {
+        rate = parseFloat(reading.electricity_unit_price || reading.rate) || 0;
+        utilityType = 'electricity';
+      } else if ('water_reading' in reading || reading.utility_type === 'water') {
+        rate = parseFloat(reading.water_unit_price || reading.rate) || 0;
+        utilityType = 'water';
+      }
+      
+      const amount = usage * rate;
+      totalUtilityAmount += amount;
+      
+      // Track individual utility costs
+      if (utilityType === 'electricity') {
+        electricityCost += amount;
+        document.getElementById('electricity_fee').value = Math.round(amount);
+      } else if (utilityType === 'water') {
+        waterCost += amount;
+        document.getElementById('water_fee').value = Math.round(amount);
+      }
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-${utilityType === 'electricity' ? 'bolt text-warning' : 'tint text-info'} me-2"></i>
+            ${utilityType === 'electricity' ? '<%= t("utility_readings.electricity") %>' : '<%= t("utility_readings.water") %>'}
+          </div>
+        </td>
+        <td>${previousReading}</td>
+        <td>${currentReading}</td>
+        <td>${usage}</td>
+        <td>${safeToLocaleString(rate)}</td>
+        <td class="text-end"><strong>${safeToLocaleString(Math.round(amount))}</strong></td>
+      `;
+      
+      readingsTableBody.appendChild(row);
+    });
+    
+    // Add a service charge row if there is a service charge
+    if (serviceCharge > 0) {
+      const serviceRow = document.createElement('tr');
+      serviceRow.innerHTML = `
+        <td>
+          <div class="d-flex align-items-center">
+            <i class="fas fa-hand-holding-usd text-success me-2"></i>
+            <%= t("utility_readings.service_charge") %>
+          </div>
+        </td>
+        <td colspan="4" class="text-end"><%= t("utility_readings.service_charge_per_tenant") %>:</td>
+        <td class="text-end"><strong>${safeToLocaleString(serviceCharge)}</strong></td>
+      `;
+      readingsTableBody.appendChild(serviceRow);
+      
+      // Add service charge to total utility amount
+      totalUtilityAmount += serviceCharge;
+    }
+    
+    // Round the total amount
+    totalUtilityAmount = Math.round(totalUtilityAmount);
+    utilityTotalAmount.textContent = safeToLocaleString(totalUtilityAmount);
+    
+    // Add a total row
+    const totalRow = document.createElement('tr');
+    totalRow.classList.add('table-active', 'fw-bold');
+    totalRow.innerHTML = `
+      <td colspan="5" class="text-end"><%= t('common.total') %></td>
+      <td class="text-end">${safeToLocaleString(totalUtilityAmount)}</td>
+    `;
+    readingsTableBody.appendChild(totalRow);
+    
+    // Add a link to view all utility readings for this room
+    const viewAllRow = document.createElement('tr');
+    viewAllRow.classList.add('table-light');
+    viewAllRow.innerHTML = `
+      <td colspan="6" class="text-center">
+        <a href="/utility_readings?room_id=${currentRoomId}" class="btn btn-sm btn-link">
+          <i class="fas fa-list me-1"></i> <%= t('utility_readings.view_all') %>
+        </a>
+      </td>
+    `;
+    readingsTableBody.appendChild(viewAllRow);
   }
 });
 </script>
+
+<style>
+  .form-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .card-title {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+  
+  .card-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .form-label {
+    margin-bottom: 0.5rem;
+  }
+  
+  .input-group-text {
+    background-color: #f8f9fa;
+  }
+  
+  .form-text {
+    margin-top: 0.5rem;
+  }
+  
+  .btn-primary {
+    background-color: #6c5ce7;
+    border-color: #6c5ce7;
+  }
+  
+  .btn-primary:hover {
+    background-color: #5d4fd6;
+    border-color: #5d4fd6;
+  }
+  
+  .form-static-display {
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table th {
+    font-weight: 600;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+  }
+  
+  /* Utility Reading Table Styles */
+  .utilities-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  .utilities-table th,
+  .utilities-table td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+  }
+  
+  .utilities-table .utility-type-col {
+    width: 20%;
+  }
+  
+  .utilities-table .reading-col {
+    width: 15%;
+    text-align: center;
+  }
+  
+  .utilities-table .amount-col {
+    width: 20%;
+  }
+  
+  .utilities-table td:not(:first-child):not(.text-end) {
+    text-align: center;
+  }
+  
+  #utility-total-amount {
+    font-size: 1.1rem;
+    margin-right: 5px;
+  }
+</style>

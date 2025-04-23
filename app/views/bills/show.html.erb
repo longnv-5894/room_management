@@ -86,6 +86,24 @@
               </td>
             </tr>
             <tr>
+              <td class="ps-4"><%= t('utility_readings.electricity') %></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.electricity_fee, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <tr>
+              <td class="ps-4"><%= t('utility_readings.water') %></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.water_fee, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <tr>
+              <td class="ps-4"><%= t('utility_readings.service_charge') %></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.service_fee, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <tr class="border-top">
               <td><strong><%= t('bills.utility_charges') %></strong></td>
               <td class="text-right">
                 <%= number_to_currency(@bill.utility_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
@@ -128,38 +146,90 @@
         <h2 class="card-title"><%= t('bills.utility_readings') %></h2>
       </div>
       <div class="card-body">
+        <% latest_reading = @bill.latest_utility_reading %>
         <% if @utility_readings.present? && @utility_readings.any? %>
-          <% @utility_readings.each do |reading| %>
-            <div class="utility-reading-card">
-              <h3 class="utility-type"><%= t("utility_readings.#{reading.utility_type}") %></h3>
-              <div class="utility-details">
-                <div class="utility-detail">
-                  <span class="detail-label"><%= t('utility_readings.previous_reading') %>:</span>
-                  <span class="detail-value"><%= reading.previous_reading %></span>
-                </div>
-                <div class="utility-detail">
-                  <span class="detail-label"><%= t('utility_readings.current_reading') %>:</span>
-                  <span class="detail-value"><%= reading.current_reading %></span>
-                </div>
-                <div class="utility-detail">
-                  <span class="detail-label"><%= t('utility_readings.usage') %>:</span>
-                  <span class="detail-value"><%= reading.current_reading - reading.previous_reading %></span>
-                </div>
-                <div class="utility-detail">
-                  <span class="detail-label"><%= t('utility_readings.rate') %>:</span>
-                  <span class="detail-value"><%= number_to_currency(reading.rate, precision: 0, delimiter: ',', unit: 'VND ') %></span>
-                </div>
-                <div class="utility-detail total">
-                  <span class="detail-label"><%= t('utility_readings.amount') %>:</span>
-                  <span class="detail-value">
-                    <%= number_to_currency((reading.current_reading - reading.previous_reading) * reading.rate, precision: 0, delimiter: ',', unit: 'VND ') %>
+          <div class="utility-readings-list">
+            <% @utility_readings.each do |reading| %>
+              <div class="utility-reading-card mb-3 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="utility-type h5 mb-0">
+                    <%= l(reading.reading_date, format: :short) %>
+                  </h3>
+                  <span class="badge bg-info">
+                    <%= link_to utility_reading_path(reading), class: "text-white" do %>
+                      <i class="fas fa-external-link-alt"></i> <%= t('common.view') %>
+                    <% end %>
                   </span>
                 </div>
+                
+                <div class="utility-readings-grid">
+                  <div class="utility-section mb-2">
+                    <div class="d-flex align-items-center mb-1">
+                      <i class="fas fa-bolt text-warning me-2"></i>
+                      <strong><%= t('utility_readings.electricity') %></strong>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom py-1">
+                      <span><%= t('utility_readings.current_reading') %>:</span>
+                      <span><%= reading.electricity_reading %> kWh</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom py-1">
+                      <span><%= t('utility_readings.usage') %>:</span>
+                      <span><%= reading.electricity_usage %> kWh</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                      <span><%= t('utility_readings.electricity_cost') %>:</span>
+                      <span><%= number_to_currency(reading.electricity_cost, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                    </div>
+                  </div>
+                  
+                  <div class="utility-section">
+                    <div class="d-flex align-items-center mb-1">
+                      <i class="fas fa-tint text-info me-2"></i>
+                      <strong><%= t('utility_readings.water') %></strong>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom py-1">
+                      <span><%= t('utility_readings.current_reading') %>:</span>
+                      <span><%= reading.water_reading %> m³</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom py-1">
+                      <span><%= t('utility_readings.usage') %>:</span>
+                      <span><%= reading.water_usage %> m³</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                      <span><%= t('utility_readings.water_cost') %>:</span>
+                      <span><%= number_to_currency(reading.water_cost, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mt-2 pt-2 border-top">
+                  <div class="d-flex justify-content-between">
+                    <strong><%= t('utility_readings.total_cost') %>:</strong>
+                    <strong><%= number_to_currency(reading.total_cost, precision: 0, delimiter: ',', unit: 'VND ') %></strong>
+                  </div>
+                </div>
               </div>
-            </div>
-          <% end %>
+            <% end %>
+            
+            <% if @utility_readings.length > 1 %>
+              <div class="text-center mt-2">
+                <%= link_to utility_readings_path(room_id: @room.id), class: "btn btn-sm btn-outline-primary" do %>
+                  <i class="fas fa-list me-1"></i> <%= t('utility_readings.view_all_for_room') %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         <% else %>
-          <p><%= t('bills.no_readings') %></p>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <%= t('bills.no_readings') %>
+            
+            <div class="mt-3">
+              <%= link_to new_utility_reading_path(room_id: @room.id), class: "btn btn-sm btn-outline-primary" do %>
+                <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
+              <% end %>
+            </div>
+          </div>
         <% end %>
       </div>
     </div>
@@ -169,19 +239,14 @@
         <h2 class="card-title"><%= t('common.actions') %></h2>
       </div>
       <div class="card-body">
-        <div class="action-buttons">
-          <%= link_to t('bills.print_bill'), "#", class: "btn btn-block btn-outline", onclick: "window.print(); return false;" %>
-          
-          <% if @bill.status == "unpaid" %>
-            <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(@bill), method: :patch, class: "btn btn-block btn-success" %>
-          <% end %>
-          
-          <%= link_to t('common.edit'), edit_bill_path(@bill), class: "btn btn-block btn-outline" %>
-          
-          <%= link_to t('common.delete'), bill_path(@bill), 
-                      method: :delete, 
-                      data: { confirm: t('bills.confirm_delete') }, 
-                      class: "btn btn-block btn-danger" %>
+        <div class="action-buttons d-flex flex-column">
+          <button class="btn btn-outline mb-3" onclick="window.print(); return false;">
+            <%= t('bills.print_bill') %>
+          </button>        
+          <%= button_to t('common.delete'), bill_path(@bill), 
+                      method: :delete,
+                      data: { turbo_confirm: t('bills.confirm_delete') }, 
+                      class: "btn btn-danger" %>
         </div>
       </div>
     </div>

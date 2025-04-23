@@ -1,0 +1,64 @@
+<%= form_with(model: utility_price, local: true) do |form| %>
+  <% if utility_price.errors.any? %>
+    <div class="alert alert-danger">
+      <h2><%= pluralize(utility_price.errors.count, t('common.form_error')) %>:</h2>
+      <ul>
+        <% utility_price.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-row">
+    <div class="form-group col-md-4">
+      <%= form.label :electricity_unit_price, t('utility_readings.electricity_unit_price'), class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :electricity_unit_price, class: "form-control", min: 0, step: "any" %>
+        <div class="input-group-append">
+          <span class="input-group-text">VND</span>
+        </div>
+      </div>
+      <small class="form-text text-muted"><%= t('utility_prices.electricity_hint') %></small>
+    </div>
+    
+    <div class="form-group col-md-4">
+      <%= form.label :water_unit_price, t('utility_readings.water_unit_price'), class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :water_unit_price, class: "form-control", min: 0, step: "any" %>
+        <div class="input-group-append">
+          <span class="input-group-text">VND</span>
+        </div>
+      </div>
+      <small class="form-text text-muted"><%= t('utility_prices.water_hint') %></small>
+    </div>
+    
+    <div class="form-group col-md-4">
+      <%= form.label :service_charge, t('utility_readings.service_charge'), class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :service_charge, class: "form-control", min: 0, step: "any" %>
+        <div class="input-group-append">
+          <span class="input-group-text">VND</span>
+        </div>
+      </div>
+      <small class="form-text text-muted"><%= t('utility_prices.service_charge_hint') %></small>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :effective_date, t('utility_prices.effective_date'), class: "form-label" %>
+    <%= form.date_field :effective_date, value: utility_price.effective_date || Date.today, class: "form-control" %>
+    <small class="form-text text-muted"><%= t('utility_prices.effective_date_hint') %></small>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :notes, t('common.notes'), class: "form-label" %>
+    <%= form.text_area :notes, class: "form-control", rows: 3 %>
+    <small class="form-text text-muted"><%= t('utility_prices.notes_hint') %></small>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit class: "btn btn-primary" %>
+    <%= link_to t('common.cancel'), utility_prices_path, class: "btn btn-outline" %>
+  </div>
+<% end %>

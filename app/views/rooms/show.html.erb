@@ -1,162 +1,563 @@
 <div class="page-header">
   <h1 class="header-title"><%= t('rooms.details') %>: <%= @room.number %></h1>
   <div class="header-actions">
-    <%= link_to t('common.edit'), edit_room_path(@room), class: "btn btn-outline" %>
-    <%= link_to t('common.back'), rooms_path, class: "btn btn-outline" %>
+    <%= link_to edit_room_path(@room), class: "btn btn-outline" do %>
+      <i class="fas fa-edit"></i> <%= t('common.edit') %>
+    <% end %>
+    <%= link_to rooms_path, class: "btn btn-outline" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
   </div>
 </div>
 
-<div class="row">
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('rooms.details') %></h2>
-      </div>
-      <div class="card-body">
-        <div class="detail-grid">
-          <div class="detail-item">
-            <div class="detail-label"><%= t('rooms.number') %></div>
-            <div class="detail-value"><%= @room.number %></div>
+<div class="room-details-container">
+  <div class="row">
+    <div class="col-md-8">
+      <!-- Room Info Card -->
+      <div class="card main-info-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 class="card-title mb-0"><%= t('rooms.details') %></h2>
+          <span class="status-badge status-<%= @room.status %>">
+            <%= t("rooms.#{@room.status}") %>
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="info-block">
+                <div class="info-icon">
+                  <i class="fas fa-door-open"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label"><%= t('rooms.number') %></div>
+                  <div class="info-value"><%= @room.number %></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="info-block">
+                <div class="info-icon">
+                  <i class="fas fa-building"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label"><%= t('rooms.floor') %></div>
+                  <div class="info-value"><%= @room.floor %></div>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div class="detail-item">
-            <div class="detail-label"><%= t('rooms.floor') %></div>
-            <div class="detail-value"><%= @room.floor %></div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('rooms.area') %></div>
-            <div class="detail-value"><%= @room.area %> m²</div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
-            <div class="detail-value"><%= number_to_currency(@room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('common.status') %></div>
-            <div class="detail-value">
-              <span class="status-badge status-<%= @room.status %>">
-                <%= t("rooms.#{@room.status}") %>
-              </span>
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="info-block">
+                <div class="info-icon">
+                  <i class="fas fa-ruler-combined"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label"><%= t('rooms.area') %></div>
+                  <div class="info-value"><%= @room.area %> m²</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="info-block">
+                <div class="info-icon">
+                  <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="info-content">
+                  <div class="info-label"><%= t('rooms.monthly_rent') %></div>
+                  <div class="info-value highlight-price">
+                    <%= number_to_currency(@room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <% if @latest_reading %>
-      <div class="card mt-4">
-        <div class="card-header">
-          <h2 class="card-title"><%= t('utility_readings.latest_readings') %></h2>
-        </div>
-        <div class="card-body">
-          <div class="detail-grid">
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.reading_date') %></div>
-              <div class="detail-value"><%= l(@latest_reading.reading_date, format: :long) %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.electricity_reading') %></div>
-              <div class="detail-value"><%= @latest_reading.electricity_reading %> kWh</div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.water_reading') %></div>
-              <div class="detail-value"><%= @latest_reading.water_reading %> m³</div>
-            </div>
+      <!-- Utility Readings Card -->
+      <% if @latest_reading %>
+        <div class="card readings-card mb-4">
+          <div class="card-header">
+            <h2 class="card-title"><%= t('utility_readings.latest_readings') %></h2>
           </div>
-          
-          <div class="card-actions">
-            <%= link_to t('utility_readings.title'), utility_readings_path(room_id: @room.id), class: "btn btn-sm btn-outline" %>
-            <%= link_to t('utility_readings.new'), new_utility_reading_path(room_id: @room.id), class: "btn btn-sm btn-outline" %>
-          </div>
-        </div>
-      </div>
-    <% end %>
-  </div>
-  
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('tenants.current_tenant') %></h2>
-      </div>
-      <div class="card-body">
-        <% if @current_tenant %>
-          <div class="tenant-info">
-            <h3 class="tenant-name"><%= @current_tenant.name %></h3>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('tenants.phone') %></div>
-              <div class="detail-value"><%= @current_tenant.phone %></div>
+          <div class="card-body">
+            <div class="readings-date text-muted mb-3">
+              <i class="far fa-calendar-alt"></i> <%= l(@latest_reading.reading_date, format: :long) %>
             </div>
             
-            <div class="detail-item">
-              <div class="detail-label"><%= t('tenants.email') %></div>
-              <div class="detail-value"><%= @current_tenant.email %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('tenants.move_in_date') %></div>
-              <div class="detail-value"><%= l(@current_tenant.move_in_date, format: :long) %></div>
-            </div>
-            
-            <div class="card-actions">
-              <%= link_to t('common.view'), tenant_path(@current_tenant), class: "btn btn-sm btn-outline" %>
-            </div>
-          </div>
-        <% else %>
-          <div class="empty-state">
-            <p><%= t('rooms.no_tenant') %></p>
-            <%= link_to t('room_assignments.new'), new_room_assignment_path(room_id: @room.id), class: "btn btn-primary" %>
-          </div>
-        <% end %>
-      </div>
-    </div>
-    
-    <% if @current_tenant %>
-      <div class="card mt-4">
-        <div class="card-header">
-          <h2 class="card-title"><%= t('room_assignments.details') %></h2>
-        </div>
-        <div class="card-body">
-          <% assignment = @room.current_assignment %>
-          <% if assignment %>
-            <div class="detail-item">
-              <div class="detail-label"><%= t('room_assignments.start_date') %></div>
-              <div class="detail-value"><%= l(assignment.start_date, format: :long) %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('room_assignments.end_date') %></div>
-              <div class="detail-value">
-                <%= assignment.end_date ? l(assignment.end_date, format: :long) : t('common.none') %>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="utility-block electricity-block">
+                  <div class="utility-icon">
+                    <i class="fas fa-bolt"></i>
+                  </div>
+                  <div class="utility-content">
+                    <div class="utility-label"><%= t('utility_readings.electricity_reading') %></div>
+                    <div class="utility-value"><%= @latest_reading.electricity_reading %> kWh</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="utility-block water-block">
+                  <div class="utility-icon">
+                    <i class="fas fa-tint"></i>
+                  </div>
+                  <div class="utility-content">
+                    <div class="utility-label"><%= t('utility_readings.water_reading') %></div>
+                    <div class="utility-value"><%= @latest_reading.water_reading %> m³</div>
+                  </div>
+                </div>
               </div>
             </div>
             
-            <div class="detail-item">
-              <div class="detail-label"><%= t('room_assignments.deposit_amount') %></div>
-              <div class="detail-value">
-                <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
-              </div>
+            <div class="card-actions mt-4">
+              <%= link_to utility_readings_path(room_id: @room.id), class: "btn btn-sm btn-outline" do %>
+                <i class="fas fa-list"></i> <%= t('utility_readings.title') %>
+              <% end %>
+              <%= link_to new_utility_reading_path(room_id: @room.id), class: "btn btn-sm btn-primary" do %>
+                <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
+              <% end %>
             </div>
-            
-            <div class="card-actions">
-              <%= link_to t('common.view'), room_assignment_path(assignment), class: "btn btn-sm btn-outline" %>
-              <%= link_to t('room_assignments.end'), room_assignment_path(assignment), 
-                  method: :delete, 
-                  data: { confirm: t('room_assignments.confirm_end') }, 
-                  class: "btn btn-sm btn-danger" %>
+          </div>
+        </div>
+      <% end %>
+      
+      <!-- Recent Bills Card -->
+      <div class="card bills-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h2 class="card-title"><%= t('bills.title') %></h2>
+          <%= link_to new_bill_path(room_assignment_id: @room.current_assignment&.id), class: "btn btn-sm btn-outline-primary" do %>
+            <i class="fas fa-plus"></i> <%= t('bills.new') %>
+          <% end if @room.current_assignment %>
+        </div>
+        <div class="card-body p-0">
+          <% if @room.bills.present? %>
+            <div class="table-responsive">
+              <table class="table table-hover bill-table">
+                <thead class="table-light">
+                  <tr>
+                    <th><%= t('bills.billing_date') %></th>
+                    <th><%= t('bills.total_amount') %></th>
+                    <th><%= t('bills.status') %></th>
+                    <th><%= t('bills.due_date') %></th>
+                    <th class="text-end"><%= t('common.actions') %></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @room.bills.order(billing_date: :desc).limit(5).each do |bill| %>
+                    <tr>
+                      <td><%= l(bill.billing_date, format: :default) %></td>
+                      <td><%= number_to_currency(bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                      <td>
+                        <span class="badge bg-<%= bill_status_color(bill.status) %>">
+                          <%= t("bills.#{bill.status}") %>
+                        </span>
+                      </td>
+                      <td><%= l(bill.due_date, format: :default) %></td>
+                      <td class="text-end">
+                        <%= link_to bill_path(bill), class: "btn btn-sm btn-icon" do %>
+                          <i class="fas fa-eye"></i>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
             </div>
           <% else %>
-            <div class="empty-state">
-              <p><%= t('room_assignments.no_active') %></p>
+            <div class="empty-state p-4">
+              <div class="text-center">
+                <i class="fas fa-file-invoice-dollar empty-icon"></i>
+                <p><%= t('bills.no_bills') %></p>
+              </div>
             </div>
           <% end %>
         </div>
       </div>
-    <% end %>
+    </div>
+    
+    <div class="col-md-4">
+      <!-- Tenant Card -->
+      <div class="card tenant-card mb-4">
+        <div class="card-header">
+          <h2 class="card-title"><%= t('tenants.current_tenant') %></h2>
+        </div>
+        <div class="card-body">
+          <% if @current_tenant %>
+            <div class="tenant-info">
+              <div class="avatar-container mb-3">
+                <div class="avatar-placeholder">
+                  <%= @current_tenant.name.first.upcase %>
+                </div>
+              </div>
+              
+              <h3 class="tenant-name text-center mb-4"><%= @current_tenant.name %></h3>
+              
+              <div class="tenant-contact-info">
+                <div class="contact-item">
+                  <div class="contact-icon">
+                    <i class="fas fa-phone"></i>
+                  </div>
+                  <div class="contact-value"><%= @current_tenant.phone %></div>
+                </div>
+                
+                <div class="contact-item">
+                  <div class="contact-icon">
+                    <i class="fas fa-envelope"></i>
+                  </div>
+                  <div class="contact-value"><%= @current_tenant.email %></div>
+                </div>
+                
+                <div class="contact-item">
+                  <div class="contact-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <div class="contact-value"><%= l(@current_tenant.move_in_date, format: :long) %></div>
+                </div>
+              </div>
+              
+              <div class="card-actions mt-4 text-center">
+                <%= link_to tenant_path(@current_tenant), class: "btn btn-primary w-100" do %>
+                  <i class="fas fa-user"></i> <%= t('common.view') %>
+                <% end %>
+              </div>
+            </div>
+          <% else %>
+            <div class="empty-state tenant-empty-state">
+              <i class="fas fa-user-slash empty-icon"></i>
+              <p><%= t('rooms.no_tenant') %></p>
+              <%= link_to new_room_assignment_path(room_id: @room.id), class: "btn btn-primary" do %>
+                <i class="fas fa-user-plus"></i> <%= t('room_assignments.new') %>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+      
+      <!-- Room Assignment Details -->
+      <% if @current_tenant %>
+        <div class="card assignment-card">
+          <div class="card-header">
+            <h2 class="card-title"><%= t('room_assignments.details') %></h2>
+          </div>
+          <div class="card-body">
+            <% assignment = @room.current_assignment %>
+            <% if assignment %>
+              <div class="assignment-details">
+                <div class="assignment-item">
+                  <div class="assignment-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                  </div>
+                  <div class="assignment-content">
+                    <div class="assignment-label"><%= t('room_assignments.start_date') %></div>
+                    <div class="assignment-value"><%= l(assignment.start_date, format: :long) %></div>
+                  </div>
+                </div>
+                
+                <div class="assignment-item">
+                  <div class="assignment-icon">
+                    <% if assignment.end_date %>
+                      <i class="fas fa-sign-out-alt"></i>
+                    <% else %>
+                      <i class="fas fa-clock"></i>
+                    <% end %>
+                  </div>
+                  <div class="assignment-content">
+                    <div class="assignment-label"><%= t('room_assignments.end_date') %></div>
+                    <div class="assignment-value">
+                      <%= assignment.end_date ? l(assignment.end_date, format: :long) : t('common.none') %>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="assignment-item">
+                  <div class="assignment-icon">
+                    <i class="fas fa-shield-alt"></i>
+                  </div>
+                  <div class="assignment-content">
+                    <div class="assignment-label"><%= t('room_assignments.deposit_amount') %></div>
+                    <div class="assignment-value">
+                      <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-actions mt-4">
+                <div class="btn-group w-100">
+                  <%= link_to room_assignment_path(assignment), class: "btn btn-outline-primary" do %>
+                    <i class="fas fa-eye"></i> <%= t('common.view') %>
+                  <% end %>
+                  <%= link_to room_assignment_path(assignment), 
+                      method: :delete, 
+                      data: { confirm: t('room_assignments.confirm_end') }, 
+                      class: "btn btn-outline-danger" do %>
+                    <i class="fas fa-door-open"></i> <%= t('room_assignments.end') %>
+                  <% end %>
+                </div>
+              </div>
+            <% else %>
+              <div class="empty-state">
+                <p><%= t('room_assignments.no_active') %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>
+
+<style>
+  .main-info-card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+  
+  .info-block {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    transition: all 0.3s ease;
+  }
+  
+  .info-block:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+  }
+  
+  .info-icon {
+    width: 48px;
+    height: 48px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #6c757d;
+    margin-right: 15px;
+  }
+  
+  .info-content {
+    flex: 1;
+  }
+  
+  .info-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .info-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #212529;
+  }
+  
+  .highlight-price {
+    color: #28a745;
+    font-size: 1.4rem;
+  }
+  
+  .status-badge {
+    padding: 0.5em 1em;
+    border-radius: 50px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .status-available {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .status-occupied {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .status-maintenance {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .utility-block {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .electricity-block {
+    background-color: rgba(255, 193, 7, 0.1);
+  }
+  
+  .water-block {
+    background-color: rgba(23, 162, 184, 0.1);
+  }
+  
+  .utility-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 15px;
+  }
+  
+  .electricity-block .utility-icon {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ff9800;
+  }
+  
+  .water-block .utility-icon {
+    background-color: rgba(23, 162, 184, 0.2);
+    color: #17a2b8;
+  }
+  
+  .utility-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  .utility-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .electricity-block .utility-value {
+    color: #ff9800;
+  }
+  
+  .water-block .utility-value {
+    color: #17a2b8;
+  }
+  
+  .tenant-card,
+  .assignment-card,
+  .readings-card,
+  .bills-card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+  
+  .avatar-container {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    background-color: #6c5ce7;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 600;
+  }
+  
+  .tenant-name {
+    color: #212529;
+    font-weight: 600;
+  }
+  
+  .tenant-contact-info {
+    margin-top: 20px;
+  }
+  
+  .contact-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .contact-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: #6c5ce7;
+  }
+  
+  .contact-value {
+    flex: 1;
+    font-weight: 500;
+  }
+  
+  .assignment-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .assignment-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: #6c5ce7;
+  }
+  
+  .assignment-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+  
+  .assignment-value {
+    font-weight: 600;
+    color: #212529;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 30px 15px;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 15px;
+  }
+  
+  .bill-table {
+    margin-bottom: 0;
+  }
+  
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+</style>

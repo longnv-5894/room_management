@@ -41,16 +41,40 @@ class Bill < ApplicationRecord
   end
   
   def utility_amount
-    electricity_fee + water_fee
+    electricity_fee + water_fee + (respond_to?(:service_fee) ? service_fee : 0)
   end
   
   def additional_charges
     other_fees
   end
   
+  # Find utility readings relevant to this bill's period
+  def relevant_utility_readings
+    return [] unless room
+    
+    # Find readings within or close to the billing period
+    start_date = billing_period_start - 5.days
+    end_date = billing_period_end + 5.days
+    
+    UtilityReading.where(room_id: room.id)
+                  .where('reading_date BETWEEN ? AND ?', start_date, end_date)
+                  .order(reading_date: :desc)
+  end
+  
+  # Get the latest utility reading for the room at billing time
+  def latest_utility_reading
+    return nil unless room
+    
+    UtilityReading.where(room_id: room.id)
+                  .where('reading_date <= ?', billing_date)
+                  .order(reading_date: :desc)
+                  .first
+  end
+  
   private
   
   def calculate_total
-    self.total_amount = room_fee + electricity_fee + water_fee + other_fees
+    service_fee_value = respond_to?(:service_fee) ? service_fee : 0
+    self.total_amount = room_fee + electricity_fee + water_fee + service_fee_value + other_fees
   end
 end

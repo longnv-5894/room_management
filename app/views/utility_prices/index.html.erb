@@ -1,0 +1,260 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_prices.title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('utility_prices.new'), new_utility_price_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="current-prices-container mb-4">
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="card-title mb-0"><%= t('utility_prices.current') %></h2>
+      <span class="badge bg-success"><%= t('utility_prices.effective_from') %>: <%= l(@current_price.effective_date, format: :default) %></span>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="price-card electricity-card">
+            <div class="icon-container">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <div class="price-card-content">
+              <div class="price-card-title"><%= t('utility_readings.electricity') %></div>
+              <div class="price-card-amount"><%= number_to_currency(@current_price.electricity_unit_price, unit: "", delimiter: ",", precision: 0) %></div>
+              <div class="price-card-unit">VND/<%= t('utility_readings.kwh') %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="price-card water-card">
+            <div class="icon-container">
+              <i class="fas fa-tint"></i>
+            </div>
+            <div class="price-card-content">
+              <div class="price-card-title"><%= t('utility_readings.water') %></div>
+              <div class="price-card-amount"><%= number_to_currency(@current_price.water_unit_price, unit: "", delimiter: ",", precision: 0) %></div>
+              <div class="price-card-unit">VND/<%= t('utility_readings.cubic_meter') %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4">
+          <div class="price-card service-card">
+            <div class="icon-container">
+              <i class="fas fa-concierge-bell"></i>
+            </div>
+            <div class="price-card-content">
+              <div class="price-card-title"><%= t('utility_readings.service_charge') %></div>
+              <div class="price-card-amount"><%= number_to_currency(@current_price.service_charge, unit: "", delimiter: ",", precision: 0) %></div>
+              <div class="price-card-unit">VND/<%= t('utility_readings.tenant.one') %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% if @utility_prices.present? %>
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><%= t('utility_prices.history') %></h2>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover data-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th><%= t('utility_prices.effective_date') %></th>
+              <th><%= t('utility_readings.electricity_unit_price') %></th>
+              <th><%= t('utility_readings.water_unit_price') %></th>
+              <th><%= t('utility_readings.service_charge') %></th>
+              <th><%= t('common.notes') %></th>
+              <th class="actions-column"><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @utility_prices.each do |price| %>
+              <tr class="<%= 'table-active' if price == @current_price %>">
+                <td>
+                  <% if price == @current_price %>
+                    <span class="badge bg-success me-1"><%= t('utility_prices.current_label') %></span>
+                  <% end %>
+                  <%= l(price.effective_date, format: :default) %>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-bolt text-warning me-2"></i>
+                    <%= number_to_currency(price.electricity_unit_price, unit: "", delimiter: ",", precision: 0) %> VND
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-tint text-info me-2"></i>
+                    <%= number_to_currency(price.water_unit_price, unit: "", delimiter: ",", precision: 0) %> VND
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-concierge-bell text-success me-2"></i>
+                    <%= number_to_currency(price.service_charge, unit: "", delimiter: ",", precision: 0) %> VND
+                  </div>
+                </td>
+                <td><%= price.notes.present? ? price.notes : '-' %></td>
+                <td class="actions-cell">
+                  <div class="btn-group">
+                    <%= link_to edit_utility_price_path(price), class: "btn btn-sm btn-outline-primary", title: t('common.edit') do %>
+                      <i class="fas fa-edit"></i>
+                    <% end %>
+                    <%= link_to utility_price_path(price), 
+                          data: { turbo_method: :delete, turbo_confirm: t('utility_prices.confirm_delete') },
+                          class: "btn btn-sm btn-outline-danger", title: t('common.delete') do %>
+                      <i class="fas fa-trash"></i>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i class="fas fa-calculator"></i>
+    </div>
+    <h3><%= t('utility_prices.no_records_title') %></h3>
+    <p><%= t('utility_prices.no_records') %></p>
+    <%= link_to new_utility_price_path, class: "btn btn-primary" do %>
+      <i class="fas fa-plus"></i> <%= t('utility_prices.add_first') %>
+    <% end %>
+  </div>
+<% end %>
+
+<style>
+  .price-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    height: 100%;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: white;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .price-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  }
+  
+  .electricity-card {
+    border-left: 5px solid #FFC107;
+  }
+  
+  .water-card {
+    border-left: 5px solid #17A2B8;
+  }
+  
+  .service-card {
+    border-left: 5px solid #28A745;
+  }
+  
+  .icon-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin-right: 1.5rem;
+  }
+  
+  .electricity-card .icon-container {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #FFC107;
+  }
+  
+  .water-card .icon-container {
+    background-color: rgba(23, 162, 184, 0.2);
+    color: #17A2B8;
+  }
+  
+  .service-card .icon-container {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: #28A745;
+  }
+  
+  .icon-container i {
+    font-size: 1.8rem;
+  }
+  
+  .price-card-content {
+    flex: 1;
+  }
+  
+  .price-card-title {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 8px;
+  }
+  
+  .price-card-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: #212529;
+  }
+  
+  .price-card-unit {
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .empty-state-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+  }
+  
+  .empty-state h3 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+  
+  .table-responsive {
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+  
+  .actions-cell {
+    white-space: nowrap;
+    text-align: center;
+  }
+  
+  .badge {
+    padding: 0.4em 0.6em;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+</style>

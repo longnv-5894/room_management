@@ -1,0 +1,270 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('revenues.title') %> - <%= l(@date, format: :month_year) %></h1>
+  <div class="header-actions">
+    <div class="month-navigation">
+      <% prev_date = @date.prev_month %>
+      <% next_date = @date.next_month %>
+      
+      <%= link_to revenues_path(year: prev_date.year, month: prev_date.month), class: "btn btn-sm btn-outline" do %>
+        <i class="fas fa-chevron-left"></i> <%= l(prev_date, format: :month_year) %>
+      <% end %>
+      
+      <%= link_to revenues_path, class: "btn btn-sm btn-outline mx-1" do %>
+        <%= t('common.current_month') %>
+      <% end %>
+      
+      <% if next_date <= Date.today.end_of_month %>
+        <%= link_to revenues_path(year: next_date.year, month: next_date.month), class: "btn btn-sm btn-outline" do %>
+          <%= l(next_date, format: :month_year) %> <i class="fas fa-chevron-right"></i>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Summary Cards -->
+  <div class="col-12">
+    <div class="dashboard-stats">
+      <!-- Revenue Card -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value"><%= number_to_currency(@monthly_revenue, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+          <span class="stat-label"><%= t('revenues.monthly_revenue') %></span>
+        </div>
+      </div>
+      
+      <!-- Expenses Card -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-file-invoice"></i>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value"><%= number_to_currency(@monthly_expenses, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+          <span class="stat-label"><%= t('revenues.monthly_expenses') %></span>
+        </div>
+      </div>
+      
+      <!-- Profit Card -->
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-content">
+          <% profit_class = @monthly_profit >= 0 ? 'positive-profit' : 'negative-profit' %>
+          <span class="stat-value <%= profit_class %>">
+            <%= number_to_currency(@monthly_profit.abs, precision: 0, delimiter: ',', unit: 'VND ') %>
+            <% if @monthly_profit < 0 %>
+              <small>(<%= t('revenues.loss') %>)</small>
+            <% end %>
+          </span>
+          <span class="stat-label"><%= t('revenues.monthly_profit') %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yearly Chart -->
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('revenues.yearly_overview') %> - <%= @year %></h2>
+      </div>
+      <div class="card-body">
+        <canvas id="revenueChart" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Revenue Breakdown -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('revenues.revenue_breakdown') %></h2>
+      </div>
+      <div class="card-body p-0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('rooms.number') %></th>
+              <th><%= t('room_assignments.tenant') %></th>
+              <th class="text-right"><%= t('revenues.amount') %></th>
+              <th><%= t('bills.status') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% bills = Bill.where("billing_date BETWEEN ? AND ?", 
+                                 @date.beginning_of_month, @date.end_of_month)
+                        .includes(room_assignment: [:room, :tenant])
+                        .order(total_amount: :desc) %>
+            
+            <% if bills.any? %>
+              <% bills.each do |bill| %>
+                <tr>
+                  <td><%= bill.room_assignment.room.number %></td>
+                  <td><%= bill.room_assignment.tenant.name %></td>
+                  <td class="text-right">
+                    <%= number_to_currency(bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </td>
+                  <td>
+                    <span class="status-badge status-<%= bill.status %>">
+                      <%= t("bills.#{bill.status}") %>
+                    </span>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="4" class="text-center">
+                  <%= t('revenues.no_bills') %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expense Breakdown -->
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('revenues.expense_breakdown') %></h2>
+      </div>
+      <div class="card-body p-0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('operating_expenses.category') %></th>
+              <th><%= t('operating_expenses.description') %></th>
+              <th><%= t('operating_expenses.expense_date') %></th>
+              <th class="text-right"><%= t('operating_expenses.amount') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expenses = OperatingExpense.for_month(@year, @month)
+                               .order(expense_date: :desc) %>
+            
+            <% if expenses.any? %>
+              <% expenses.each do |expense| %>
+                <tr>
+                  <td>
+                    <span class="category-badge">
+                      <%= t("operating_expenses.categories.#{expense.category}", default: expense.category) %>
+                    </span>
+                  </td>
+                  <td><%= expense.description %></td>
+                  <td><%= l expense.expense_date, format: :short %></td>
+                  <td class="text-right">
+                    <%= number_to_currency(expense.amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </td>
+                </tr>
+              <% end %>
+            <% else %>
+              <tr>
+                <td colspan="4" class="text-center">
+                  <%= t('revenues.no_expenses') %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Initialize the revenue chart -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  
+  const chartData = {
+    labels: <%= raw @yearly_data[:months].to_json %>,
+    datasets: [
+      {
+        label: '<%= t('revenues.revenue') %>',
+        data: <%= raw @yearly_data[:revenue].to_json %>,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 2,
+        tension: 0.1
+      },
+      {
+        label: '<%= t('revenues.expenses') %>',
+        data: <%= raw @yearly_data[:expenses].to_json %>,
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        borderColor: 'rgba(255, 99, 132, 1)',
+        borderWidth: 2,
+        tension: 0.1
+      },
+      {
+        label: '<%= t('revenues.profit') %>',
+        data: <%= raw @yearly_data[:profit].to_json %>,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        tension: 0.1
+      }
+    ]
+  };
+  
+  new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return value.toLocaleString('vi-VN') + ' VND';
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('vi-VN', { 
+                  style: 'currency', 
+                  currency: 'VND',
+                  maximumFractionDigits: 0
+                }).format(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+
+<style>
+.positive-profit {
+  color: #28a745;
+}
+.negative-profit {
+  color: #dc3545;
+}
+</style>

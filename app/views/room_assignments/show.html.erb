@@ -133,31 +133,31 @@
     
     <div class="card mt-4">
       <div class="card-header">
-        <h2 class="card-title">Room Details</h2>
+        <h2 class="card-title"><%= t('rooms.details') %></h2>
       </div>
       <div class="card-body">
         <div class="room-info">
-          <h3 class="room-number">Room <%= @room_assignment.room.number %></h3>
+          <h3 class="room-number"><%= t('rooms.number') %> <%= @room_assignment.room.number %></h3>
           
           <div class="detail-item">
-            <div class="detail-label">Floor</div>
+            <div class="detail-label"><%= t('rooms.floor') %></div>
             <div class="detail-value"><%= @room_assignment.room.floor %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Area</div>
+            <div class="detail-label"><%= t('rooms.area') %></div>
             <div class="detail-value"><%= @room_assignment.room.area %> m²</div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Monthly Rent</div>
+            <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
             <div class="detail-value">
               <%= number_to_currency(@room_assignment.room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
             </div>
           </div>
           
           <div class="card-actions">
-            <%= link_to "View Room", room_path(@room_assignment.room), class: "btn btn-sm btn-outline" %>
+            <%= link_to t('common.view') + " " + t('rooms.title').downcase, room_path(@room_assignment.room), class: "btn btn-sm btn-outline" %>
           </div>
         </div>
       </div>
@@ -165,29 +165,29 @@
     
     <div class="card mt-4">
       <div class="card-header">
-        <h2 class="card-title">Tenant Details</h2>
+        <h2 class="card-title"><%= t('tenants.details') %></h2>
       </div>
       <div class="card-body">
         <div class="tenant-info">
           <h3 class="tenant-name"><%= @room_assignment.tenant.name %></h3>
           
           <div class="detail-item">
-            <div class="detail-label">Phone</div>
+            <div class="detail-label"><%= t('tenants.phone') %></div>
             <div class="detail-value"><%= @room_assignment.tenant.phone %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">Email</div>
+            <div class="detail-label"><%= t('tenants.email') %></div>
             <div class="detail-value"><%= @room_assignment.tenant.email %></div>
           </div>
           
           <div class="detail-item">
-            <div class="detail-label">ID Number</div>
+            <div class="detail-label"><%= t('tenants.id_number') %></div>
             <div class="detail-value"><%= @room_assignment.tenant.id_number %></div>
           </div>
           
           <div class="card-actions">
-            <%= link_to "View Tenant", tenant_path(@room_assignment.tenant), class: "btn btn-sm btn-outline" %>
+            <%= link_to t('common.view') + " " + t('tenants.title').downcase, tenant_path(@room_assignment.tenant), class: "btn btn-sm btn-outline" %>
           </div>
         </div>
       </div>
@@ -196,16 +196,16 @@
     <% if @room_assignment.active? %>
       <div class="card mt-4">
         <div class="card-header">
-          <h2 class="card-title">Quick Actions</h2>
+          <h2 class="card-title"><%= t('dashboard.quick_actions') %></h2>
         </div>
         <div class="card-body">
           <div class="action-buttons">
             <%= link_to new_utility_reading_path(room_id: @room_assignment.room.id), class: "btn btn-outline" do %>
-              Add Utility Reading
+              <%= t('dashboard.actions.new_reading') %>
             <% end %>
             
             <%= link_to new_bill_path(room_assignment_id: @room_assignment.id), class: "btn btn-outline" do %>
-              Generate Bill
+              <%= t('dashboard.actions.create_bill') %>
             <% end %>
           </div>
         </div>
