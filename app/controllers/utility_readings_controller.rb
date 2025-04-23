@@ -10,7 +10,7 @@ class UtilityReadingsController < ApplicationController
     else
       @utility_readings = UtilityReading.includes(:room).order(reading_date: :desc)
     end
-    
+    service_charge = UtilityPrice.current.service_charge * RoomAssignment.where(room_id: params[:room_id],active: true).count
     respond_to do |format|
       format.html # renders the default index.html.erb template
       format.json do
@@ -31,7 +31,7 @@ class UtilityReadingsController < ApplicationController
               service_charge: reading.service_charge
             }
           end
-          
+
           # If we have a reading, organize the data for the form
           if latest_readings.present?
             latest = latest_readings.first
@@ -42,7 +42,8 @@ class UtilityReadingsController < ApplicationController
                 reading_date: latest[:reading_date],
                 previous_reading: latest[:previous_reading],
                 current_reading: latest[:current_reading],
-                rate: latest[:rate]
+                rate: latest[:rate],
+                service_charge: service_charge
               },
               {
                 id: latest[:id],
@@ -71,7 +72,7 @@ class UtilityReadingsController < ApplicationController
     @water_cost = @utility_reading.water_cost
     @service_charge_cost = @utility_reading.service_charge_cost
     @total_cost = @utility_reading.total_cost
-    
+
     # Find the current tenant of the room for the sidebar
     active_assignment = @utility_reading.room.room_assignments.find_by(active: true)
     @room_tenant = active_assignment&.tenant
@@ -121,7 +122,7 @@ class UtilityReadingsController < ApplicationController
   end
 
   def utility_reading_params
-    params.require(:utility_reading).permit(:room_id, :reading_date, :electricity_reading, 
+    params.require(:utility_reading).permit(:room_id, :reading_date, :electricity_reading,
                                            :water_reading, :service_charge)
   end
 

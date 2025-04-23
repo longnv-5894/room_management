@@ -10,6 +10,7 @@ UtilityReading.destroy_all
 RoomAssignment.destroy_all
 Room.destroy_all
 Tenant.destroy_all
+UtilityPrice.destroy_all  # Add this line to clear utility prices
 User.destroy_all
 
 # Create admin user
@@ -71,12 +72,25 @@ created_assignments = room_assignments.map do |assignment_data|
   RoomAssignment.create!(assignment_data)
 end
 
-# Create utility readings (past 3 months)
-puts "Creating utility readings..."
-
+# Create utility prices for each month
+puts "Creating utility prices..."
 # Define electricity and water rates
 electricity_rate = 3500 # VND per kWh
 water_rate = 15000      # VND per cubic meter
+service_charge = 100000 # VND per person
+
+# Create utility prices for February, March, and April 2025
+[Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
+  UtilityPrice.create!(
+    effective_date: month_start,
+    electricity_unit_price: electricity_rate,
+    water_unit_price: water_rate,
+    service_charge: service_charge
+  )
+end
+
+# Create utility readings (past 3 months)
+puts "Creating utility readings..."
 
 # For each room with a tenant, create utility readings for the past 3 months
 occupied_rooms = created_rooms.select { |room| room.status == 'occupied' }
@@ -85,40 +99,34 @@ occupied_rooms.each do |room|
   # Initial readings (February 2025)
   initial_electricity = rand(100..300)
   initial_water = rand(5..15)
-  
+
   UtilityReading.create!(
     room: room,
     reading_date: Date.new(2025, 2, 28),
     electricity_reading: initial_electricity,
-    water_reading: initial_water,
-    electricity_unit_price: electricity_rate,
-    water_unit_price: water_rate
+    water_reading: initial_water
   )
-  
+
   # March 2025 readings (with some usage)
   march_electricity = initial_electricity + rand(30..100)
   march_water = initial_water + rand(2..5)
-  
+
   UtilityReading.create!(
     room: room,
     reading_date: Date.new(2025, 3, 31),
     electricity_reading: march_electricity,
-    water_reading: march_water,
-    electricity_unit_price: electricity_rate,
-    water_unit_price: water_rate
+    water_reading: march_water
   )
-  
+
   # April 2025 readings (current month)
   april_electricity = march_electricity + rand(30..100)
   april_water = march_water + rand(2..5)
-  
+
   UtilityReading.create!(
     room: room,
     reading_date: Date.new(2025, 4, 20), # Current reading as of April 20, 2025
     electricity_reading: april_electricity,
-    water_reading: april_water,
-    electricity_unit_price: electricity_rate,
-    water_unit_price: water_rate
+    water_reading: april_water
   )
 end
 
@@ -131,28 +139,28 @@ occupied_rooms.each do |room|
                                 .where('reading_date >= ?', Date.new(2025, 4, 1))
                                 .order(reading_date: :desc)
                                 .first
-                                
+
   # Get the previous reading (March 2025)
   march_reading = UtilityReading.where(room: room)
                                .where('reading_date >= ? AND reading_date < ?', Date.new(2025, 3, 1), Date.new(2025, 4, 1))
                                .order(reading_date: :desc)
                                .first
-  
+
   if april_reading && march_reading
     # Calculate electricity and water usage
     electricity_usage = april_reading.electricity_reading - march_reading.electricity_reading
     water_usage = april_reading.water_reading - march_reading.water_reading
-    
+
     # Calculate fees
     electricity_fee = electricity_usage * electricity_rate
     water_fee = water_usage * water_rate
-    
+
     # Other fees (internet, garbage, etc.)
     other_fees = rand(100000..200000)
-    
+
     # Get the room assignment
     assignment = room.room_assignments.where(active: true).first
-    
+
     if assignment
       # Create bill
       Bill.create!(
@@ -188,11 +196,11 @@ tenant_sample = created_tenants.sample((created_tenants.length * 0.6).to_i)
 tenant_sample.each do |tenant|
   # Some tenants will have multiple vehicles
   vehicle_count = rand(1..2)
-  
+
   vehicle_count.times do
     vehicle_type = vehicle_types.sample
     brand = brands[vehicle_type].sample
-    
+
     model_year = (2015..2025).to_a.sample
     models = {
       'car' => ['Vios', 'City', 'Ranger', 'CX-5', 'Seltos', 'Accent'],
@@ -201,9 +209,9 @@ tenant_sample.each do |tenant|
       'scooter' => ['Sprint', 'Lead', 'NVX', 'Viva'],
       'other' => ['Custom']
     }
-    
+
     model = models[vehicle_type].sample
-    
+
     # Create license plate based on vehicle type
     license_plate = if vehicle_type == 'car'
                       "#{(29..99).to_a.sample}A-#{rand(100..999)}.#{rand(10..99)}"
@@ -215,7 +223,7 @@ tenant_sample.each do |tenant|
                       # Bicycles and others get a placeholder ID number
                       "ID-#{rand(1000..9999)}"
                     end
-    
+
     # Add optional notes to some vehicles
     notes_options = [
       "Insurance expires on #{rand(1..12)}/#{rand(2025..2026)}",
@@ -223,7 +231,7 @@ tenant_sample.each do |tenant|
       "Parking space ##{rand(1..20)}",
       nil, nil, nil  # Higher chance of no notes
     ]
-    
+
     Vehicle.create!(
       tenant: tenant,
       license_plate: license_plate,
@@ -239,7 +247,7 @@ end
 # Create operating expenses
 puts "Creating operating expenses..."
 expense_categories = [
-  'utilities', 'maintenance', 'repairs', 'cleaning', 'security', 
+  'utilities', 'maintenance', 'repairs', 'cleaning', 'security',
   'taxes', 'staff_salary', 'electric', 'water', 'internet', 'miscellaneous'
 ]
 
@@ -261,10 +269,10 @@ expense_descriptions = {
 [Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
   # Create 10-15 expenses per month
   expense_count = rand(10..15)
-  
+
   expense_count.times do
     category = expense_categories.sample
-    
+
     OperatingExpense.create!(
       category: category,
       description: expense_descriptions[category].sample,

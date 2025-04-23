@@ -100,7 +100,7 @@
                     <%= link_to t('common.view'), bill_path(bill), class: "btn btn-sm btn-outline" %>
                     
                     <% if bill.status == "unpaid" %>
-                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(bill), method: :patch, class: "btn btn-sm btn-success" %>
+                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(bill), data: { turbo_method: :patch }, class: "btn btn-sm btn-success" %>
                     <% end %>
                   </div>
                 </td>

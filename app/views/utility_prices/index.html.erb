@@ -5,48 +5,47 @@
   </div>
 </div>
 
-<div class="current-prices-container mb-4">
-  <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h2 class="card-title mb-0"><%= t('utility_prices.current') %></h2>
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title"><%= t('utility_prices.current') %> 
       <span class="badge bg-success"><%= t('utility_prices.effective_from') %>: <%= l(@current_price.effective_date, format: :default) %></span>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-4 mb-4">
-          <div class="price-card electricity-card">
-            <div class="icon-container">
-              <i class="fas fa-bolt"></i>
+    </h2>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-bolt text-warning mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.electricity') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@current_price.electricity_unit_price, unit: "", delimiter: ",", precision: 0) %>
             </div>
-            <div class="price-card-content">
-              <div class="price-card-title"><%= t('utility_readings.electricity') %></div>
-              <div class="price-card-amount"><%= number_to_currency(@current_price.electricity_unit_price, unit: "", delimiter: ",", precision: 0) %></div>
-              <div class="price-card-unit">VND/<%= t('utility_readings.kwh') %></div>
-            </div>
+            <div class="text-muted">VND/kWh</div>
           </div>
         </div>
-        <div class="col-md-4 mb-4">
-          <div class="price-card water-card">
-            <div class="icon-container">
-              <i class="fas fa-tint"></i>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-tint text-info mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.water') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@current_price.water_unit_price, unit: "", delimiter: ",", precision: 0) %>
             </div>
-            <div class="price-card-content">
-              <div class="price-card-title"><%= t('utility_readings.water') %></div>
-              <div class="price-card-amount"><%= number_to_currency(@current_price.water_unit_price, unit: "", delimiter: ",", precision: 0) %></div>
-              <div class="price-card-unit">VND/<%= t('utility_readings.cubic_meter') %></div>
-            </div>
+            <div class="text-muted">VND/m³</div>
           </div>
         </div>
-        <div class="col-md-4 mb-4">
-          <div class="price-card service-card">
-            <div class="icon-container">
-              <i class="fas fa-concierge-bell"></i>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-concierge-bell text-success mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.service_charge') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@current_price.service_charge, unit: "", delimiter: ",", precision: 0) %>
             </div>
-            <div class="price-card-content">
-              <div class="price-card-title"><%= t('utility_readings.service_charge') %></div>
-              <div class="price-card-amount"><%= number_to_currency(@current_price.service_charge, unit: "", delimiter: ",", precision: 0) %></div>
-              <div class="price-card-unit">VND/<%= t('utility_readings.tenant.one') %></div>
-            </div>
+            <div class="text-muted">VND/<%= t('utility_readings.tenant.one') %></div>
           </div>
         </div>
       </div>

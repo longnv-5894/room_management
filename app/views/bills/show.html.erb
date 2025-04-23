@@ -2,7 +2,7 @@
   <h1 class="header-title"><%= t('bills.details') %></h1>
   <div class="header-actions">
     <% if @bill.status == "unpaid" %>
-      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(@bill), method: :patch, class: "btn btn-success" %>
+      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(@bill), data: { turbo_method: :patch }, class: "btn btn-success" %>
     <% end %>
     <%= link_to t('common.back') + " " + t('bills.title').downcase, bills_path, class: "btn btn-outline" %>
   </div>
