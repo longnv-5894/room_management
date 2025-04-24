@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('operating_expenses.expense_details') %></h1>
+  <div class="header-actions">
+    <%= link_to edit_operating_expense_path(@operating_expense), class: "btn btn-outline" do %>
+      <i class="fas fa-edit"></i> <%= t('common.edit') %>
+    <% end %>
+    <%= link_to operating_expenses_path(year: @operating_expense.expense_date.year, month: @operating_expense.expense_date.month), class: "btn btn-outline" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label"><%= t('operating_expenses.category') %></div>
+            <div class="detail-value"><%= @operating_expense.category_name %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('operating_expenses.description') %></div>
+            <div class="detail-value"><%= @operating_expense.description %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('operating_expenses.amount') %></div>
+            <div class="detail-value highlight-price">
+              <%= number_to_currency(@operating_expense.amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('operating_expenses.expense_date') %></div>
+            <div class="detail-value">
+              <%= l(@operating_expense.expense_date, format: :long) %>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('common.created_at') %></div>
+            <div class="detail-value">
+              <%= l(@operating_expense.created_at, format: :long) %>
+            </div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('common.updated_at') %></div>
+            <div class="detail-value">
+              <%= l(@operating_expense.updated_at, format: :long) %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><%= t('common.actions') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="action-buttons d-grid gap-2">
+          <%= link_to edit_operating_expense_path(@operating_expense), class: "btn btn-outline mb-2" do %>
+            <i class="fas fa-edit me-1"></i> <%= t('common.edit') %>
+          <% end %>
+          
+          <%= button_to operating_expense_path(@operating_expense), 
+                      method: :delete, 
+                      form: { data: { turbo_confirm: t('operating_expenses.confirm_delete') } },
+                      class: "btn btn-danger" do %>
+            <i class="fas fa-trash me-1"></i> <%= t('common.delete') %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 0.5rem;
+  }
+  
+  .detail-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .detail-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+  }
+  
+  .detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #212529;
+  }
+  
+  .highlight-price {
+    color: #d9534f;
+    font-weight: bold;
+  }
+</style>

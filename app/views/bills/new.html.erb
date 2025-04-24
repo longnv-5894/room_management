@@ -8,9 +8,7 @@
 </div>
 
 <div class="form-container">
-  <div class="card shadow-sm mb-4">
     <div class="card-header bg-white">
-      <h2 class="card-title"><%= t('bills.new') %></h2>
       <p class="card-subtitle text-muted"><%= t('bills.bill_information') %></p>
     </div>
     
@@ -62,15 +60,6 @@
           
           <!-- No readings message -->
           <div id="no-readings-message" class="d-none">
-            <div class="alert alert-info">
-              <div class="d-flex align-items-center">
-                <i class="fas fa-info-circle me-3 fs-4"></i>
-                <div>
-                  <h5 class="mb-1"><%= t('utility_readings.no_readings_title') %></h5>
-                  <p class="mb-0"><%= t('utility_readings.no_readings_description') %></p>
-                </div>
-              </div>
-            </div>
             <div id="add-reading-container" class="text-center py-3"></div>
           </div>
           
@@ -285,7 +274,6 @@
         </div>
       <% end %>
     </div>
-  </div>
 </div>
 
 <script>

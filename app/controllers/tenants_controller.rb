@@ -4,6 +4,13 @@ class TenantsController < ApplicationController
 
   def index
     @tenants = Tenant.all
+    
+    respond_to do |format|
+      format.html # renders the default index.html.erb template
+      format.json do
+        render json: @tenants.as_json(methods: :has_active_assignment)
+      end
+    end
   end
 
   def show

@@ -49,7 +49,12 @@ tenants = [
   { name: 'Hoang Van E', phone: '0945678901', email: 'hoangvane@example.com', id_number: '005678901234', move_in_date: '2024-03-15' },
   { name: 'Nguyen Thi F', phone: '0956789012', email: 'nguyenthif@example.com', id_number: '006789012345', move_in_date: '2024-04-01' },
   { name: 'Tran Van G', phone: '0967890123', email: 'tranvang@example.com', id_number: '007890123456', move_in_date: '2024-01-05' },
-  { name: 'Le Thi H', phone: '0978901234', email: 'lethih@example.com', id_number: '008901234567', move_in_date: '2024-02-10' }
+  { name: 'Le Thi H', phone: '0978901234', email: 'lethih@example.com', id_number: '008901234567', move_in_date: '2024-02-10' },
+  # Adding additional tenants
+  { name: 'Pham Van I', phone: '0989012345', email: 'phamvani@example.com', id_number: '009012345678', move_in_date: '2024-03-10' },
+  { name: 'Vo Thi J', phone: '0990123456', email: 'vothij@example.com', id_number: '010123456789', move_in_date: '2024-02-20' },
+  { name: 'Truong Van K', phone: '0901234567', email: 'truongvank@example.com', id_number: '011234567890', move_in_date: '2024-01-20' },
+  { name: 'Do Thi L', phone: '0912345678', email: 'dothil@example.com', id_number: '012345678901', move_in_date: '2024-03-05' }
 ]
 
 created_tenants = tenants.map do |tenant_data|
@@ -65,7 +70,12 @@ room_assignments = [
   { room: created_rooms[3], tenant: created_tenants[3], start_date: '2024-03-01', deposit_amount: 2700000, active: true },
   { room: created_rooms[4], tenant: created_tenants[4], start_date: '2024-03-15', deposit_amount: 3200000, active: true },
   { room: created_rooms[6], tenant: created_tenants[5], start_date: '2024-04-01', deposit_amount: 2900000, active: true },
-  { room: created_rooms[7], tenant: created_tenants[6], start_date: '2024-01-05', deposit_amount: 3400000, active: true }
+  { room: created_rooms[7], tenant: created_tenants[6], start_date: '2024-01-05', deposit_amount: 3400000, active: true },
+  # Add multiple tenants to some rooms
+  { room: created_rooms[0], tenant: created_tenants[8], start_date: '2024-03-10', deposit_amount: 1250000, active: true },  # Second tenant in room 101
+  { room: created_rooms[0], tenant: created_tenants[9], start_date: '2024-02-20', deposit_amount: 1250000, active: true },  # Third tenant in room 101
+  { room: created_rooms[1], tenant: created_tenants[10], start_date: '2024-01-20', deposit_amount: 1500000, active: true }, # Second tenant in room 102
+  { room: created_rooms[4], tenant: created_tenants[11], start_date: '2024-03-05', deposit_amount: 1600000, active: true }, # Second tenant in room 202
 ]
 
 created_assignments = room_assignments.map do |assignment_data|
@@ -158,22 +168,35 @@ occupied_rooms.each do |room|
     # Other fees (internet, garbage, etc.)
     other_fees = rand(100000..200000)
 
-    # Get the room assignment
-    assignment = room.room_assignments.where(active: true).first
-
-    if assignment
-      # Create bill
-      Bill.create!(
-        room_assignment: assignment,
-        billing_date: Date.new(2025, 4, 1),
-        due_date: Date.new(2025, 4, 15),
-        room_fee: room.monthly_rent,
-        electricity_fee: electricity_fee,
-        water_fee: water_fee,
-        other_fees: other_fees,
-        status: ['unpaid', 'paid'].sample, # Use string values for enum
-        notes: "Electricity: #{electricity_usage} kWh, Water: #{water_usage} m³"
-      )
+    # Get all active room assignments for this room
+    active_assignments = room.room_assignments.where(active: true)
+    
+    # Count the number of tenants in this room
+    tenant_count = active_assignments.count
+    
+    if tenant_count > 0
+      # Calculate per-tenant costs (divide utilities among tenants)
+      per_tenant_electricity_fee = electricity_fee / tenant_count
+      per_tenant_water_fee = water_fee / tenant_count
+      per_tenant_other_fees = other_fees / tenant_count
+      
+      # For rooms with multiple tenants, split the rent evenly
+      per_tenant_rent = room.monthly_rent / tenant_count
+      
+      # Create a bill for each tenant in the room
+      active_assignments.each do |assignment|
+        Bill.create!(
+          room_assignment: assignment,
+          billing_date: Date.new(2025, 4, 1),
+          due_date: Date.new(2025, 4, 15),
+          room_fee: per_tenant_rent,
+          electricity_fee: per_tenant_electricity_fee,
+          water_fee: per_tenant_water_fee,
+          other_fees: per_tenant_other_fees,
+          status: ['unpaid', 'paid'].sample, # Use string values for enum
+          notes: "Electricity: #{(electricity_usage.to_f / tenant_count).round(2)} kWh, Water: #{(water_usage.to_f / tenant_count).round(2)} m³ (Split among #{tenant_count} tenants)"
+        )
+      end
     end
   end
 end

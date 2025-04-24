@@ -5,7 +5,7 @@ class RoomAssignment < ApplicationRecord
   
   validates :start_date, presence: true
   validate :end_date_after_start_date, if: -> { end_date.present? }
-  validate :no_active_assignment_for_room, if: :active?
+  # Removed validation that prevented multiple active assignments for a room
   
   before_save :update_room_status
   
@@ -22,14 +22,15 @@ class RoomAssignment < ApplicationRecord
     end
   end
   
-  def no_active_assignment_for_room
-    other_assignments = room.room_assignments.where(active: true)
-    other_assignments = other_assignments.where.not(id: id) if persisted?
-    
-    if other_assignments.exists?
-      errors.add(:room_id, "already has an active tenant")
-    end
-  end
+  # This validation has been removed to allow multiple tenants per room
+  # def no_active_assignment_for_room
+  #   other_assignments = room.room_assignments.where(active: true)
+  #   other_assignments = other_assignments.where.not(id: id) if persisted?
+  #   
+  #   if other_assignments.exists?
+  #     errors.add(:room_id, "already has an active tenant")
+  #   end
+  # end
   
   def update_room_status
     if active?

@@ -145,6 +145,10 @@ vi:
     no_tenants: "Không tìm thấy người thuê nào."
     current_room: "Phòng hiện tại"
     current_tenant: "Người thuê hiện tại"
+    current_tenants: "Người thuê hiện tại"
+    tenant:
+      one: "người thuê"
+      other: "người thuê"
     move_in_date: "Ngày dọn vào"
     create: "Tạo người thuê"
     update: "Cập nhật người thuê"
@@ -188,6 +192,13 @@ vi:
     select_tenant: "Chọn người thuê"
     create_assignment: "Tạo phân phối"
     no_active: "Không có phân phối đang hoạt động cho phòng này."
+    add_tenant: "Thêm người thuê"
+    add_to_occupied: "Phòng này đã có người thuê. Tiền thuê và chi phí tiện ích sẽ được chia đều cho tất cả người thuê."
+    rental_details: "Chi tiết thuê phòng"
+    show_all_tenants: "Hiển thị tất cả người thuê"
+    unassigned_only: "Chỉ người chưa phân phối"
+    all_tenants: "Tất cả người thuê"
+    currently_assigned: "(đã được phân phối)"
     
   # Utility Readings
   utility_readings:

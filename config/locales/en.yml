@@ -157,6 +157,10 @@ en:
     no_tenants: "No tenants found."
     current_room: "Current Room"
     current_tenant: "Current Tenant"
+    current_tenants: "Current Tenants"
+    tenant:
+      one: "tenant"
+      other: "tenants"
     move_in_date: "Move-in Date"
     create: "Create Tenant"
     update: "Update Tenant"
@@ -200,6 +204,13 @@ en:
     select_tenant: "Select a tenant"
     create_assignment: "Create Assignment"
     no_active: "No active assignment for this room."
+    add_tenant: "Add Tenant"
+    add_to_occupied: "This room already has tenants. The rent and utility costs will be split among all tenants."
+    rental_details: "Rental Details"
+    show_all_tenants: "Show all tenants"
+    unassigned_only: "Unassigned only"
+    all_tenants: "All tenants"
+    currently_assigned: "(currently assigned)"
     
   # Utility Readings
   utility_readings:

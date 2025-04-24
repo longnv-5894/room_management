@@ -6,11 +6,23 @@ class Tenant < ApplicationRecord
   validates :name, presence: true
   validates :id_number, presence: true, uniqueness: true
   
+  def current_room_assignments
+    room_assignments.where(active: true)
+  end
+  
   def current_room_assignment
-    room_assignments.where(active: true).first
+    current_room_assignments.first
+  end
+  
+  def current_rooms
+    rooms.joins(:room_assignments).where(room_assignments: { active: true, tenant_id: id })
   end
   
   def current_room
     current_room_assignment&.room
+  end
+  
+  def has_active_assignment
+    current_room_assignments.exists?
   end
 end

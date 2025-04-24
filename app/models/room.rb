@@ -8,12 +8,20 @@ class Room < ApplicationRecord
   
   enum :status, { available: 'available', occupied: 'occupied', maintenance: 'maintenance' }
   
+  def current_assignments
+    room_assignments.where(active: true)
+  end
+  
   def current_assignment
-    room_assignments.where(active: true).first
+    current_assignments.first
   end
   
   def current_tenant
     current_assignment&.tenant
+  end
+  
+  def current_tenants
+    tenants.joins(:room_assignments).where(room_assignments: { active: true, room_id: id })
   end
   
   def occupied?

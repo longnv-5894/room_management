@@ -34,8 +34,16 @@
                   </span>
                 </td>
                 <td>
-                  <% if room.current_tenant %>
-                    <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                  <% if room.current_tenants.any? %>
+                    <div class="tenant-count">
+                      <% if room.current_tenants.count > 1 %>
+                        <span class="badge bg-info"><%= room.current_tenants.count %></span>
+                      <% end %>
+                      <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                      <% if room.current_tenants.count > 1 %>
+                        <small class="text-muted">+<%= room.current_tenants.count - 1 %> <%= t('common.more') %></small>
+                      <% end %>
+                    </div>
                   <% else %>
                     <span class="text-muted"><%= t('common.none', default: 'None') %></span>
                   <% end %>

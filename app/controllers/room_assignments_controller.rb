@@ -34,8 +34,19 @@ class RoomAssignmentsController < ApplicationController
 
   def new
     @room_assignment = RoomAssignment.new
-    @available_rooms = Room.where(status: 'available')
-    @available_tenants = Tenant.all
+    
+    # Pre-populate room_id if provided in the URL
+    if params[:room_id].present?
+      @room_assignment.room_id = params[:room_id]
+    end
+    
+    # Include both available and occupied rooms (for adding additional tenants)
+    @available_rooms = Room.where(status: ['available', 'occupied'])
+    
+    # Only show tenants who aren't already assigned to any room
+    @available_tenants = Tenant.left_joins(:room_assignments)
+                              .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
+                              .distinct
   end
 
   def create
@@ -48,8 +59,14 @@ class RoomAssignmentsController < ApplicationController
       flash[:success] = t('room_assignments.create_success')
       redirect_to @room_assignment
     else
-      @available_rooms = Room.where(status: 'available')
-      @available_tenants = Tenant.all
+      # Include both available and occupied rooms for rerendering the form
+      @available_rooms = Room.where(status: ['available', 'occupied'])
+      
+      # Only show tenants who aren't already assigned to any room
+      @available_tenants = Tenant.left_joins(:room_assignments)
+                                .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
+                                .distinct
+      
       render :new, status: :unprocessable_entity
     end
   end

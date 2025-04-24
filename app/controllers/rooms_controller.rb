@@ -7,7 +7,7 @@ class RoomsController < ApplicationController
   end
 
   def show
-    @current_tenant = @room.current_tenant
+    @current_tenants = @room.current_tenants
     @latest_reading = @room.utility_readings.order(reading_date: :desc).first
   end
 
