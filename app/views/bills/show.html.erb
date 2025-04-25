@@ -15,59 +15,92 @@
         <h2 class="card-title"><%= t('bills.bill_information') %></h2>
       </div>
       <div class="card-body">
-        <div class="bill-detail-grid">
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.room') %>:</div>
-            <div class="detail-value">
-              <%= link_to @bill.room_assignment.room.number, room_path(@bill.room_assignment.room) %>
-            </div>
-          </div>
-          
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.tenant') %>:</div>
-            <div class="detail-value">
-              <%= link_to @bill.room_assignment.tenant.name, tenant_path(@bill.room_assignment.tenant) %>
-            </div>
-          </div>
-          
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.billing_date') %>:</div>
-            <div class="detail-value"><%= l @bill.billing_date, format: :long %></div>
-          </div>
-          
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.billing_period') %>:</div>
-            <div class="detail-value">
-              <%= l @bill.billing_period_start, format: :long %> - 
-              <%= l @bill.billing_period_end, format: :long %>
-            </div>
-          </div>
-          
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.due_date') %>:</div>
-            <div class="detail-value">
-              <%= l @bill.due_date, format: :long %>
+        <div class="bill-info-container p-2">
+          <!-- Status indicator at the top -->
+          <div class="bill-status-indicator mb-4 text-center">
+            <div class="status-badge-large status-<%= @bill.status %> d-inline-block px-4 py-2 rounded">
+              <i class="fas <%= @bill.status == 'paid' ? 'fa-check-circle' : 'fa-clock' %> me-2"></i>
+              <%= t("bills.#{@bill.status}") %>
+              
               <% if @bill.status == "unpaid" && @bill.due_date < Date.today %>
-                <span class="badge badge-danger"><%= t('bills.overdue') %></span>
+                <span class="ms-2 badge badge-danger"><%= t('bills.overdue') %></span>
               <% end %>
             </div>
           </div>
           
-          <div class="detail-row">
-            <div class="detail-label"><%= t('bills.status') %>:</div>
-            <div class="detail-value">
-              <span class="status-badge status-<%= @bill.status %>">
-                <%= t("bills.#{@bill.status}") %>
-              </span>
+          <!-- Bill information cards in responsive grid -->
+          <div class="row g-3">
+            <!-- Room information card -->
+            <div class="col-md-6">
+              <div class="info-card bg-light rounded p-3 h-100">
+                <div class="info-card-header mb-2">
+                  <i class="fas fa-home text-primary me-2"></i>
+                  <strong><%= t('bills.room') %></strong>
+                </div>
+                <div class="info-card-value">
+                  <%= link_to @bill.room_assignment.room.number, room_path(@bill.room_assignment.room), class: "h5 text-decoration-none" %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Tenant information card -->
+            <div class="col-md-6">
+              <div class="info-card bg-light rounded p-3 h-100">
+                <div class="info-card-header mb-2">
+                  <i class="fas fa-user text-primary me-2"></i>
+                  <strong><%= t('bills.tenant') %></strong>
+                </div>
+                <div class="info-card-value">
+                  <%= link_to @bill.room_assignment.tenant.name, tenant_path(@bill.room_assignment.tenant), class: "h5 text-decoration-none" %>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Billing period card -->
+            <div class="col-md-6">
+              <div class="info-card bg-light rounded p-3 h-100">
+                <div class="info-card-header mb-2">
+                  <i class="fas fa-calendar-alt text-primary me-2"></i>
+                  <strong><%= t('bills.billing_period') %></strong>
+                </div>
+                <div class="info-card-value">
+                  <div><%= l @bill.billing_period_start, format: :long %></div>
+                  <div class="text-center my-1">
+                    <i class="fas fa-arrow-down text-muted"></i>
+                  </div>
+                  <div><%= l @bill.billing_period_end, format: :long %></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Important dates card -->
+            <div class="col-md-6">
+              <div class="info-card bg-light rounded p-3 h-100">
+                <div class="info-card-header mb-2">
+                  <i class="far fa-calendar-check text-primary me-2"></i>
+                  <strong><%= t('bills.important_dates') %></strong>
+                </div>
+                <div class="info-card-value">
+                  <div class="d-flex justify-content-between">
+                    <span><i class="fas fa-file-invoice me-2 text-muted"></i> <%= t('bills.billing_date') %>:</span>
+                    <strong><%= l @bill.billing_date, format: :long %></strong>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between mt-2">
+                    <span><i class="fas fa-hourglass-end me-2 text-<%= @bill.due_date < Date.today && @bill.status == "unpaid" ? 'danger' : 'muted' %>"></i> <%= t('bills.due_date') %>:</span>
+                    <strong><%= l @bill.due_date, format: :long %></strong>
+                  </div>
+                  
+                  <% if @bill.payment_date.present? %>
+                    <div class="d-flex justify-content-between mt-2">
+                      <span><i class="fas fa-money-bill-wave me-2 text-success"></i> <%= t('bills.payment_date') %>:</span>
+                      <strong><%= l @bill.payment_date, format: :long %></strong>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <% if @bill.payment_date.present? %>
-            <div class="detail-row">
-              <div class="detail-label"><%= t('bills.payment_date') %>:</div>
-              <div class="detail-value"><%= l @bill.payment_date, format: :long %></div>
-            </div>
-          <% end %>
         </div>
       </div>
     </div>
@@ -239,14 +272,40 @@
         <h2 class="card-title"><%= t('common.actions') %></h2>
       </div>
       <div class="card-body">
-        <div class="action-buttons d-flex flex-column">
-          <button class="btn btn-outline mb-3" onclick="window.print(); return false;">
-            <%= t('bills.print_bill') %>
-          </button>        
-          <%= button_to t('common.delete'), bill_path(@bill), 
-                      method: :delete,
-                      data: { turbo_confirm: t('bills.confirm_delete') }, 
-                      class: "btn btn-danger" %>
+        <div class="action-buttons-container">
+          <!-- Primary actions -->
+          <div class="action-group mb-3">
+            <button class="btn btn-primary w-100 mb-2" onclick="window.print(); return false;">
+              <i class="fas fa-print me-2"></i> <%= t('bills.print_bill') %>
+            </button>
+            
+            <%= link_to edit_bill_path(@bill), class: "btn btn-outline-primary w-100" do %>
+              <i class="fas fa-edit me-2"></i> <%= t('common.edit') %>
+            <% end %>
+          </div>
+          
+          <% if @bill.status == "unpaid" %>
+            <!-- Mark as paid action -->
+            <div class="action-group mb-3">
+              <%= link_to mark_as_paid_bill_path(@bill), 
+                        data: { turbo_method: :patch }, 
+                        class: "btn btn-success w-100" do %>
+                <i class="fas fa-check-circle me-2"></i> <%= t('bills.mark_as_paid') %>
+              <% end %>
+            </div>
+          <% end %>
+          
+          <!-- Danger zone with confirmation -->
+          <div class="danger-zone mt-4 pt-3 border-top border-danger">
+            <p class="text-muted small mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> <%= t('bills.danger_zone_warning') %></p>
+            
+            <%= button_to bill_path(@bill), 
+                        method: :delete,
+                        data: { turbo_confirm: t('bills.confirm_delete') }, 
+                        class: "btn btn-outline-danger w-100" do %>
+              <i class="fas fa-trash-alt me-2"></i> <%= t('common.delete') %>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>

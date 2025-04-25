@@ -64,6 +64,11 @@ vi:
     signup: "Đăng ký"
     language: "Ngôn ngữ"
     utility_prices: "Cài đặt giá tiện ích"
+    # Sidebar group headers
+    property_management: "Quản lý tòa nhà"
+    tenant_management: "Quản lý người thuê"
+    billing_management: "Quản lý hóa đơn"
+    financial_management: "Quản lý tài chính"
   
   # Authentication
   auth:
@@ -354,6 +359,17 @@ vi:
     room_fee: "Tiền phòng"
     view_all: "Xem tất cả"
     view_all_for_room: "Xem tất cả chỉ số tiện ích của phòng"
+    edit_bill: "Chỉnh sửa hóa đơn"
+    edit_description: "Cập nhật thông tin hóa đơn"
+    room_and_tenant: "Phòng và người thuê"
+    dates: "Ngày tháng"
+    charges: "Các khoản phí"
+    main_charges: "Phí chính"
+    utility_charges_total: "Tổng phí tiện ích"
+    automatic_calculation_note: "Tổng số tiền được tự động tính toán dựa trên các giá trị bên trên"
+    danger_zone_warning: "Việc xóa hóa đơn không thể hoàn tác"
+    create_bill: "Tạo hóa đơn"
+    important_dates: "Ngày quan trọng"
     
   # Operating Expenses
   operating_expenses:

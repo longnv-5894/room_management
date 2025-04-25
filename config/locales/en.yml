@@ -88,6 +88,12 @@ en:
     login: "Login"
     signup: "Sign Up"
     language: "Language"
+    utility_prices: "Utility Prices"
+    # Sidebar group headers
+    property_management: "Property Management"
+    tenant_management: "Tenant Management"
+    billing_management: "Billing Management"
+    financial_management: "Financial Management"
   
   # Authentication
   auth:
@@ -341,6 +347,16 @@ en:
     id: "Bill ID"
     notes_hint: "Additional notes or information about this bill."
     room_fee: "Room Fee"
+    edit_bill: "Edit Bill"
+    edit_description: "Update bill information"
+    room_and_tenant: "Room and Tenant"
+    dates: "Dates"
+    charges: "Charges"
+    main_charges: "Main Charges"
+    utility_charges_total: "Total Utility Charges"
+    automatic_calculation_note: "Total amount is automatically calculated based on the values above"
+    danger_zone_warning: "Deleting a bill cannot be undone"
+    create_bill: "Create Bill"
     
   # Operating Expenses
   operating_expenses:

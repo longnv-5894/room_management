@@ -9,108 +9,69 @@
 
 <div class="row">
   <div class="col-md-8">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('utility_readings.details') %></h2>
-      </div>
-      <div class="card-body">
-        <div class="detail-grid">
-          <div class="detail-item">
-            <div class="detail-label"><%= t('utility_readings.room') %></div>
-            <div class="detail-value">
-              <%= link_to @utility_reading.room.number, room_path(@utility_reading.room) %>
-            </div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('utility_readings.reading_date') %></div>
-            <div class="detail-value"><%= l @utility_reading.reading_date, format: :long %></div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('utility_readings.previous_reading_date') %></div>
-            <div class="detail-value">
-              <% if @previous_reading %>
-                <%= l @previous_reading.reading_date, format: :long %>
-              <% else %>
-                <%= t('utility_readings.no_previous') %>
-              <% end %>
-            </div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('utility_readings.electricity_unit_price') %></div>
-            <div class="detail-value">
-              <%= number_to_currency(@utility_reading.electricity_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %>
-            </div>
-          </div>
-          
-          <div class="detail-item">
-            <div class="detail-label"><%= t('utility_readings.water_unit_price') %></div>
-            <div class="detail-value">
-              <%= number_to_currency(@utility_reading.water_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %>
-            </div>
-          </div>
+    <!-- Basic details card with room info and dates -->
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center">
+        <div class="me-2">
+          <i class="fas fa-info-circle text-primary"></i>
         </div>
-      </div>
-    </div>
-
-    <div class="card mt-4">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('utility_readings.reading_details') %></h2>
+        <h2 class="card-title mb-0"><%= t('utility_readings.details') %></h2>
       </div>
       <div class="card-body">
         <div class="row">
+          <!-- Room and dates information -->
           <div class="col-md-6">
-            <h4 class="mb-3"><%= t('utility_readings.electricity') %></h4>
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.current_electricity') %></div>
-              <div class="detail-value"><%= @utility_reading.electricity_reading %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.previous_electricity') %></div>
-              <div class="detail-value">
-                <%= @previous_reading ? @previous_reading.electricity_reading : 0 %>
+            <div class="info-card bg-light rounded p-3 mb-3">
+              <div class="info-card-header mb-2">
+                <i class="fas fa-home text-primary me-2"></i>
+                <strong><%= t('utility_readings.room') %></strong>
+              </div>
+              <div class="info-card-value">
+                <%= link_to @utility_reading.room.number, room_path(@utility_reading.room), class: "h5 text-decoration-none" %>
               </div>
             </div>
             
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.electricity_usage') %></div>
-              <div class="detail-value"><%= @electricity_usage %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.electricity_cost') %></div>
-              <div class="detail-value font-weight-bold">
-                <%= number_to_currency(@electricity_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+            <div class="info-card bg-light rounded p-3">
+              <div class="info-card-header mb-2">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                <strong><%= t('utility_readings.reading_date') %></strong>
+              </div>
+              <div class="info-card-value">
+                <%= l @utility_reading.reading_date, format: :long %>
               </div>
             </div>
           </div>
           
+          <!-- Previous reading and price information -->
           <div class="col-md-6">
-            <h4 class="mb-3"><%= t('utility_readings.water') %></h4>
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.current_water') %></div>
-              <div class="detail-value"><%= @utility_reading.water_reading %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.previous_water') %></div>
-              <div class="detail-value">
-                <%= @previous_reading ? @previous_reading.water_reading : 0 %>
+            <div class="info-card bg-light rounded p-3 mb-3">
+              <div class="info-card-header mb-2">
+                <i class="fas fa-history text-primary me-2"></i>
+                <strong><%= t('utility_readings.previous_reading_date') %></strong>
+              </div>
+              <div class="info-card-value">
+                <% if @previous_reading %>
+                  <%= l @previous_reading.reading_date, format: :long %>
+                <% else %>
+                  <span class="text-muted"><%= t('utility_readings.no_previous') %></span>
+                <% end %>
               </div>
             </div>
             
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.water_usage') %></div>
-              <div class="detail-value"><%= @water_usage %></div>
-            </div>
-            
-            <div class="detail-item">
-              <div class="detail-label"><%= t('utility_readings.water_cost') %></div>
-              <div class="detail-value font-weight-bold">
-                <%= number_to_currency(@water_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+            <div class="info-card bg-light rounded p-3">
+              <div class="info-card-header mb-2">
+                <i class="fas fa-tags text-primary me-2"></i>
+                <strong><%= t('utility_readings.unit_prices') %></strong>
+              </div>
+              <div class="info-card-value">
+                <div class="d-flex justify-content-between mb-2">
+                  <span><i class="fas fa-bolt text-warning me-1"></i> <%= t('utility_readings.electricity') %>:</span>
+                  <strong><%= number_to_currency(@utility_reading.electricity_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span><i class="fas fa-tint text-info me-1"></i> <%= t('utility_readings.water') %>:</span>
+                  <strong><%= number_to_currency(@utility_reading.water_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></strong>
+                </div>
               </div>
             </div>
           </div>
@@ -118,18 +79,177 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('common.actions') %></h2>
+    <!-- Reading details card with electricity and water -->
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center">
+        <div class="me-2">
+          <i class="fas fa-chart-line text-primary"></i>
+        </div>
+        <h2 class="card-title mb-0"><%= t('utility_readings.reading_details') %></h2>
       </div>
       <div class="card-body">
-        <div class="action-buttons">
-          <%= button_to utility_reading_path(@utility_reading), 
+        <div class="row g-3">
+          <!-- Electricity section -->
+          <div class="col-md-6">
+            <div class="utility-card bg-light rounded p-3 border border-warning border-opacity-25">
+              <div class="utility-header d-flex align-items-center mb-3">
+                <div class="utility-icon me-2 p-2 rounded-circle bg-warning bg-opacity-25">
+                  <i class="fas fa-bolt text-warning"></i>
+                </div>
+                <h4 class="mb-0"><%= t('utility_readings.electricity') %></h4>
+              </div>
+              
+              <div class="utility-details">
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.current_electricity') %>:</span>
+                  <strong><%= @utility_reading.electricity_reading %> kWh</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.previous_electricity') %>:</span>
+                  <strong><%= @previous_reading ? @previous_reading.electricity_reading : 0 %> kWh</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.electricity_usage') %>:</span>
+                  <strong class="text-warning"><%= @electricity_usage %> kWh</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2">
+                  <span><%= t('utility_readings.electricity_cost') %>:</span>
+                  <strong class="text-primary">
+                    <%= number_to_currency(@electricity_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Water section -->
+          <div class="col-md-6">
+            <div class="utility-card bg-light rounded p-3 border border-info border-opacity-25">
+              <div class="utility-header d-flex align-items-center mb-3">
+                <div class="utility-icon me-2 p-2 rounded-circle bg-info bg-opacity-25">
+                  <i class="fas fa-tint text-info"></i>
+                </div>
+                <h4 class="mb-0"><%= t('utility_readings.water') %></h4>
+              </div>
+              
+              <div class="utility-details">
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.current_water') %>:</span>
+                  <strong><%= @utility_reading.water_reading %> m³</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.previous_water') %>:</span>
+                  <strong><%= @previous_reading ? @previous_reading.water_reading : 0 %> m³</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2 border-bottom">
+                  <span><%= t('utility_readings.water_usage') %>:</span>
+                  <strong class="text-info"><%= @water_usage %> m³</strong>
+                </div>
+                
+                <div class="reading-item d-flex justify-content-between py-2">
+                  <span><%= t('utility_readings.water_cost') %>:</span>
+                  <strong class="text-primary">
+                    <%= number_to_currency(@water_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Total cost summary -->
+        <div class="total-cost-summary mt-4 p-3 bg-primary bg-opacity-10 rounded">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><%= t('utility_readings.total_cost') %></h4>
+            <h3 class="mb-0 text-primary">
+              <%= number_to_currency(@electricity_cost + @water_cost, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right sidebar with additional info or actions could be added here -->
+  <div class="col-md-4">
+    <!-- Related bills card -->
+    <div class="card mb-4">
+      <div class="card-header d-flex align-items-center">
+        <div class="me-2">
+          <i class="fas fa-file-invoice-dollar text-primary"></i>
+        </div>
+        <h2 class="card-title mb-0"><%= t('utility_readings.related_bills') %></h2>
+      </div>
+      <div class="card-body">
+        <% if @related_bills && @related_bills.any? %>
+          <div class="related-bills-list">
+            <% @related_bills.each do |bill| %>
+              <div class="related-bill-item p-2 mb-2 border-bottom">
+                <div class="d-flex justify-content-between">
+                  <div><%= l bill.billing_date, format: :short %></div>
+                  <div>
+                    <span class="status-badge status-<%= bill.status %>">
+                      <%= t("bills.#{bill.status}") %>
+                    </span>
+                  </div>
+                </div>
+                <div class="mt-1">
+                  <%= link_to bill_path(bill), class: "btn btn-sm btn-outline-primary w-100" do %>
+                    <i class="fas fa-eye me-1"></i> <%= t('common.view') %>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-muted text-center py-3">
+            <i class="fas fa-info-circle mb-2 d-block"></i>
+            <%= t('utility_readings.no_related_bills') %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Quick actions card -->
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <div class="me-2">
+          <i class="fas fa-bolt text-primary"></i>
+        </div>
+        <h2 class="card-title mb-0"><%= t('common.quick_actions') %></h2>
+      </div>
+      <div class="card-body">
+        <div class="quick-actions d-grid gap-2">
+          <%= link_to new_utility_reading_path(room_id: @utility_reading.room_id), class: "btn btn-outline-primary" do %>
+            <i class="fas fa-plus-circle me-2"></i> <%= t('utility_readings.add_new_reading') %>
+          <% end %>
+          
+          <%= link_to utility_readings_path(room_id: @utility_reading.room_id), class: "btn btn-outline-secondary" do %>
+            <i class="fas fa-history me-2"></i> <%= t('utility_readings.view_history') %>
+          <% end %>
+          
+          <% if @utility_reading.related_bills.empty? %>
+            <%= link_to new_bill_path(utility_reading_id: @utility_reading.id), class: "btn btn-outline-success" do %>
+              <i class="fas fa-file-invoice-dollar me-2"></i> <%= t('utility_readings.create_bill') %>
+            <% end %>
+          <% end %>
+          
+          <!-- Danger zone with delete action -->
+          <div class="danger-zone mt-4 pt-3 border-top border-danger">
+            <p class="text-muted small mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> <%= t('utility_readings.danger_zone_warning') %></p>
+            
+            <%= button_to utility_reading_path(@utility_reading), 
                       method: :delete, 
                       data: { turbo_confirm: t('common.confirm_delete') },
-                      class: "btn btn-danger" do %>
-            <i class="fas fa-trash mr-1"></i> <%= t('common.delete') %>
-          <% end %>
+                      class: "btn btn-outline-danger w-100" do %>
+              <i class="fas fa-trash-alt me-2"></i> <%= t('common.delete') %>
+            <% end %>
+          </div>
         </div>
       </div>
     </div>

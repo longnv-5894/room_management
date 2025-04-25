@@ -220,6 +220,18 @@
         font-weight: 600;
       }
       
+      /* Sidebar group headers */
+      .sidebar-group-header {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--text-light);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 16px 20px 8px;
+        margin-top: 8px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+      }
+      
       /* Flash messages styling */
       .flash {
         padding: 12px 15px;
@@ -468,15 +480,28 @@
         <!-- Left sidebar -->
         <div class="sidebar">
           <ul class="sidebar-nav">
+            <!-- Dashboard -->
             <li><%= link_to t('nav.dashboard'), dashboard_path, class: "nav-link #{current_page?(dashboard_path) ? 'active' : ''}" %></li>
+            
+            <!-- Property Management Group -->
+            <li class="sidebar-group-header"><%= t('nav.property_management') %></li>
             <li><%= link_to t('nav.buildings'), buildings_path, class: "nav-link #{controller_name == 'buildings' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.rooms'), rooms_path, class: "nav-link #{controller_name == 'rooms' ? 'active' : ''}" %></li>
+            
+            <!-- Tenant Management Group -->
+            <li class="sidebar-group-header"><%= t('nav.tenant_management') %></li>
             <li><%= link_to t('nav.tenants'), tenants_path, class: "nav-link #{controller_name == 'tenants' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.assignments'), room_assignments_path, class: "nav-link #{controller_name == 'room_assignments' ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.vehicles'), vehicles_path, class: "nav-link #{controller_name == 'vehicles' ? 'active' : ''}" %></li>
+            
+            <!-- Billing Management Group -->
+            <li class="sidebar-group-header"><%= t('nav.billing_management') %></li>
             <li><%= link_to t('nav.utilities'), utility_readings_path, class: "nav-link #{controller_name == 'utility_readings' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.utility_prices'), utility_prices_path, class: "nav-link #{controller_name == 'utility_prices' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.bills'), bills_path, class: "nav-link #{controller_name == 'bills' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.vehicles'), vehicles_path, class: "nav-link #{controller_name == 'vehicles' ? 'active' : ''}" %></li>
+            
+            <!-- Financial Management Group -->
+            <li class="sidebar-group-header"><%= t('nav.financial_management') %></li>
             <li><%= link_to t('nav.expenses'), operating_expenses_path, class: "nav-link #{controller_name == 'operating_expenses' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.revenues'), revenues_path, class: "nav-link #{controller_name == 'revenues' ? 'active' : ''}" %></li>
           </ul>
