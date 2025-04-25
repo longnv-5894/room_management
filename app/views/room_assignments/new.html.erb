@@ -23,7 +23,7 @@
       <div class="d-flex align-items-center">
         <%= form.collection_select :room_id, @available_rooms, :id, :number, 
                                 { prompt: t('room_assignments.select_room', default: 'Select a room') }, 
-                                { class: "form-select", id: "room_assignment_room_id" } %>
+                                { class: "form-select", id: "room_assignment_room_id", required: true } %>
         <div id="room-status-indicator" class="ms-2 d-none">
           <span class="badge bg-info">
             <i class="fas fa-users me-1"></i> <span id="tenant-count">0</span> <%= t('tenants.tenant', count: 0) %>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="form-group">
-      <%= form.label :tenant_id, t('room_assignments.tenant'), class: "form-label" %>
+      <label class="form-label"><%= t('room_assignments.select_tenants') %></label>
       <div class="d-flex align-items-center mb-2">
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="show-all-tenants">
@@ -45,21 +45,27 @@
           </label>
         </div>
       </div>
-      <div class="d-flex align-items-center">
-        <%= form.collection_select :tenant_id, @available_tenants, :id, :name, 
-                                { prompt: t('room_assignments.select_tenant', default: 'Select a tenant') }, 
-                                { class: "form-select", id: "tenant-select" } %>
-        <div id="tenant-badge" class="ms-2">
+      
+      <div class="tenant-select-container mb-3">
+        <select id="tenant-multiselect" name="tenant_ids[]" class="form-select" multiple data-placeholder="<%= t('room_assignments.select_tenants_placeholder') %>">
+          <% @available_tenants.each do |tenant| %>
+            <option value="<%= tenant.id %>"><%= tenant.name %></option>
+          <% end %>
+        </select>
+        <div id="tenant-badge" class="mt-2">
           <span class="badge bg-success">
             <i class="fas fa-check-circle me-1"></i> <%= t('room_assignments.unassigned_only') %>
           </span>
         </div>
+        <small class="form-text text-muted">
+          <%= t('room_assignments.tenant_selection_help') %>
+        </small>
       </div>
     </div>
 
     <div class="form-group">
       <%= form.label :start_date, t('room_assignments.start_date'), class: "form-label" %>
-      <%= form.date_field :start_date, value: Date.current, class: "form-control" %>
+      <%= form.date_field :start_date, value: Date.current, class: "form-control", required: true %>
     </div>
 
     <div class="form-group">
@@ -80,6 +86,15 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Initialize select2 for multiple selection
+    $('#tenant-multiselect').select2({
+      width: '100%',
+      multiple: true,
+      closeOnSelect: false,
+      placeholder: '<%= t('room_assignments.select_tenants_placeholder') %>',
+      allowClear: true
+    });
+
     // Room status data
     const roomStatus = {
       <% @available_rooms.each do |room| %>
@@ -127,7 +142,7 @@
     // Handle tenant toggle switch
     const showAllTenantsToggle = document.getElementById('show-all-tenants');
     const tenantBadge = document.getElementById('tenant-badge');
-    const tenantSelect = document.getElementById('tenant-select');
+    const tenantMultiselect = $('#tenant-multiselect');
     
     showAllTenantsToggle.addEventListener('change', function() {
       if (this.checked) {
@@ -151,37 +166,27 @@
       fetch('/tenants.json')
         .then(response => response.json())
         .then(data => {
-          // Save the current selection
-          const currentSelection = tenantSelect.value;
+          // Save the current selections
+          const currentSelections = tenantMultiselect.val() || [];
           
           // Clear the current options
-          tenantSelect.innerHTML = '';
-          
-          // Add the prompt option
-          const promptOption = document.createElement('option');
-          promptOption.value = '';
-          promptOption.textContent = '<%= t('room_assignments.select_tenant') %>';
-          tenantSelect.appendChild(promptOption);
+          tenantMultiselect.empty();
           
           // Add all tenants
           data.forEach(tenant => {
-            const option = document.createElement('option');
-            option.value = tenant.id;
-            option.textContent = tenant.name;
+            const option = new Option(tenant.name, tenant.id);
             
             // Mark assigned tenants with a special text
             if (tenant.has_active_assignment) {
-              option.textContent += ' <%= t('room_assignments.currently_assigned') %>';
+              option.text += ' <%= t('room_assignments.currently_assigned') %>';
               option.classList.add('text-muted');
             }
             
-            tenantSelect.appendChild(option);
+            tenantMultiselect.append(option);
           });
           
-          // Restore the selection if possible
-          if (currentSelection) {
-            tenantSelect.value = currentSelection;
-          }
+          // Restore the selections if possible
+          tenantMultiselect.val(currentSelections).trigger('change');
         })
         .catch(error => {
           console.error('Error fetching tenants:', error);

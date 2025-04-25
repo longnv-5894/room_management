@@ -5,3 +5,22 @@
 // vendor/assets/javascripts directory can be referenced here using a relative path.
 
 // Initialize Rails functionality
+
+// Bootstrap JavaScript
+import * as bootstrap from 'bootstrap'
+window.bootstrap = bootstrap
+
+// Initialize all dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize all dropdowns
+  var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
+  var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+    return new bootstrap.Dropdown(dropdownToggleEl)
+  })
+  
+  // Initialize tooltips
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+})

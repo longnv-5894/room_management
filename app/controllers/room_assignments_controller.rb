@@ -3,7 +3,46 @@ class RoomAssignmentsController < ApplicationController
   before_action :set_room_assignment, only: [:show, :edit, :update, :destroy, :end]
 
   def index
-    @room_assignments = RoomAssignment.includes(:room, :tenant).order(created_at: :desc)
+    # Start with base query including related models
+    @room_assignments = RoomAssignment.includes(:room, :tenant)
+    
+    # Apply room filter
+    if params[:room_id].present?
+      @room_assignments = @room_assignments.where(room_id: params[:room_id])
+    end
+    
+    # Apply tenant filter
+    if params[:tenant_id].present?
+      @room_assignments = @room_assignments.where(tenant_id: params[:tenant_id])
+    end
+    
+    # Apply status filter
+    if params[:status].present?
+      @room_assignments = @room_assignments.where(active: params[:status] == 'active')
+    end
+    
+    # Apply date range filter for start_date
+    if params[:start_date_from].present?
+      @room_assignments = @room_assignments.where('start_date >= ?', params[:start_date_from])
+    end
+    
+    if params[:start_date_to].present?
+      @room_assignments = @room_assignments.where('start_date <= ?', params[:start_date_to])
+    end
+    
+    # Get data for filter dropdowns
+    @rooms = Room.order(:number)
+    @tenants = Tenant.order(:name)
+    
+    # Set filter variables for the view
+    @filter_room_id = params[:room_id]
+    @filter_tenant_id = params[:tenant_id]
+    @filter_status = params[:status]
+    @filter_start_date_from = params[:start_date_from]
+    @filter_start_date_to = params[:start_date_to]
+    
+    # Apply final ordering
+    @room_assignments = @room_assignments.order(created_at: :desc)
   end
 
   def show
@@ -50,19 +89,67 @@ class RoomAssignmentsController < ApplicationController
   end
 
   def create
-    @room_assignment = RoomAssignment.new(room_assignment_params)
-
-    if @room_assignment.save
-      # Set the room as occupied
-      @room_assignment.room.update(status: 'occupied')
+    # Handle multiple tenant IDs
+    room_id = params[:room_assignment][:room_id]
+    tenant_ids = params[:tenant_ids] || []
+    start_date = params[:room_assignment][:start_date]
+    deposit_amount = params[:room_assignment][:deposit_amount]
+    notes = params[:room_assignment][:notes]
+    
+    # If no tenants selected, return to form with error
+    if tenant_ids.empty?
+      @room_assignment = RoomAssignment.new(room_assignment_params)
+      @room_assignment.errors.add(:base, t('room_assignments.no_tenants_selected'))
       
-      flash[:success] = t('room_assignments.create_success')
-      redirect_to @room_assignment
-    else
-      # Include both available and occupied rooms for rerendering the form
       @available_rooms = Room.where(status: ['available', 'occupied'])
+      @available_tenants = Tenant.left_joins(:room_assignments)
+                                .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
+                                .distinct
       
-      # Only show tenants who aren't already assigned to any room
+      return render :new, status: :unprocessable_entity
+    end
+    
+    # Create room assignments for each selected tenant
+    created_assignments = []
+    failed_assignments = []
+    
+    tenant_ids.each do |tenant_id|
+      room_assignment = RoomAssignment.new(
+        room_id: room_id,
+        tenant_id: tenant_id,
+        start_date: start_date,
+        deposit_amount: deposit_amount,
+        notes: notes,
+        active: true
+      )
+      
+      if room_assignment.save
+        created_assignments << room_assignment
+      else
+        failed_assignments << { tenant_id: tenant_id, errors: room_assignment.errors.full_messages }
+      end
+    end
+    
+    # Set the room as occupied if at least one assignment was successful
+    if created_assignments.any?
+      Room.find(room_id).update(status: 'occupied')
+      
+      if failed_assignments.any?
+        # Some assignments failed
+        flash[:warning] = t('room_assignments.partial_success', count: created_assignments.size, total: tenant_ids.size)
+      else
+        # All assignments successful
+        flash[:success] = t('room_assignments.multiple_create_success', count: created_assignments.size)
+      end
+      
+      # Redirect to the room page if assignments were for a specific room
+      redirect_to room_path(room_id)
+    else
+      # All assignments failed
+      @room_assignment = RoomAssignment.new(room_assignment_params)
+      @room_assignment.errors.add(:base, t('room_assignments.all_create_failed'))
+      
+      @available_rooms = Room.where(status: ['available', 'occupied'])
       @available_tenants = Tenant.left_joins(:room_assignments)
                                 .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
                                 .distinct

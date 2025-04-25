@@ -15,6 +15,9 @@ Rails.application.routes.draw do
   # Users routes
   get  '/signup',  to: 'users#new'
   post '/signup',  to: 'users#create'
+  get  '/profile', to: 'users#show', as: :profile
+  get  '/profile/edit', to: 'users#edit', as: :edit_profile
+  patch '/profile', to: 'users#update'
 
   # Language switching route
   get '/switch_language/:locale', to: 'languages#switch', as: :switch_language
