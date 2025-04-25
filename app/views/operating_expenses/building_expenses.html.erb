@@ -1,0 +1,122 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('operating_expenses.for_building', building: @building.name) %></h1>
+  <div class="header-actions">
+    <div class="btn-group me-2">
+      <%= link_to building_operating_expenses_path(@building, year: @date.prev_month.year, month: @date.prev_month.month), 
+                  class: "btn btn-outline" do %>
+        <i class="fas fa-chevron-left"></i> <%= l @date.prev_month, format: :month_year %>
+      <% end %>
+      
+      <%= link_to building_operating_expenses_path(@building, year: Date.today.year, month: Date.today.month), 
+                  class: "btn #{@date.year == Date.today.year && @date.month == Date.today.month ? 'btn-primary' : 'btn-outline'}" do %>
+        <%= t('common.current_month') %>
+      <% end %>
+      
+      <%= link_to building_operating_expenses_path(@building, year: @date.next_month.year, month: @date.next_month.month), 
+                  class: "btn btn-outline" do %>
+        <%= l @date.next_month, format: :month_year %> <i class="fas fa-chevron-right"></i>
+      <% end %>
+    </div>
+    
+    <%= link_to building_path(@building), class: "btn btn-outline me-2" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+    
+    <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
+      <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <!-- Summary Stats -->
+  <div class="col-md-4 mb-4">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center">
+        <i class="fas fa-chart-pie me-2"></i> <%= t('operating_expenses.summary') %>
+      </div>
+      <div class="card-body">
+        <h5 class="mb-3"><%= l @date, format: :month_year %></h5>
+        <h2 class="text-danger mb-4"><%= number_to_currency(@total_amount) %></h2>
+        
+        <% if @expenses_by_category.empty? %>
+          <p class="text-muted text-center"><%= t('operating_expenses.no_expenses_this_month') %></p>
+        <% else %>
+          <div class="list-group">
+            <% @expenses_by_category.sort_by { |_, amount| -amount }.each do |category, amount| %>
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="badge bg-secondary me-2">
+                    <%= number_to_percentage((amount / @total_amount) * 100, precision: 0) %>
+                  </span>
+                  <%= t("operating_expenses.categories.#{category}", default: category) %>
+                </div>
+                <span class="text-danger"><%= number_to_currency(amount) %></span>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Expense List -->
+  <div class="col-md-8 mb-4">
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <i class="fas fa-file-invoice-dollar me-2"></i> 
+        <%= t('operating_expenses.expenses_for', month_year: l(@date, format: :month_year)) %>
+      </div>
+      
+      <% if @operating_expenses.empty? %>
+        <div class="card-body text-center py-5">
+          <div class="empty-state-icon mb-3">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </div>
+          <h5><%= t('operating_expenses.no_expenses') %></h5>
+          <p class="text-muted"><%= t('operating_expenses.no_expenses_month') %></p>
+          <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
+            <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="table-responsive">
+          <table class="table table-hover table-striped mb-0">
+            <thead>
+              <tr>
+                <th><%= t('operating_expenses.date') %></th>
+                <th><%= t('operating_expenses.category') %></th>
+                <th><%= t('operating_expenses.amount') %></th>
+                <th><%= t('operating_expenses.notes') %></th>
+                <th><%= t('common.actions') %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @operating_expenses.each do |expense| %>
+                <tr>
+                  <td><%= l expense.expense_date %></td>
+                  <td><%= expense.category_name %></td>
+                  <td><%= number_to_currency(expense.amount) %></td>
+                  <td><%= truncate(expense.notes, length: 30) if expense.notes.present? %></td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <%= link_to edit_operating_expense_path(expense), class: "btn btn-outline-secondary" do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+                      <%= link_to operating_expense_path(expense), 
+                              method: :delete, 
+                              data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
+                              class: "btn btn-outline-danger" do %>
+                        <i class="fas fa-trash-alt"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

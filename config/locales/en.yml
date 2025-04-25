@@ -69,10 +69,13 @@ en:
     apply_filters: "Apply Filters"
     clear: "Clear Filters"
     optional: "Optional"
+    view_all: "View All"
+    danger_zone: "Danger Zone"
   
   # Navigation
   nav:
     dashboard: "Dashboard"
+    buildings: "Buildings"
     rooms: "Rooms"
     tenants: "Tenants"
     assignments: "Assignments"
@@ -142,6 +145,18 @@ en:
     cannot_delete_with_assignments: "Cannot delete room with assignments."
     no_rooms: "No rooms found. Click 'Add New Room' to create your first room."
     no_tenant: "This room has no tenant assigned."
+    building: "Building"
+    in_building: "Rooms in %{building}"
+    new_in_building: "New Room in %{building}"
+    no_building: "No Building"
+    no_rooms_in_building: "This building doesn't have any rooms yet."
+    add: "Add Room"
+    room_details: "Room Details"
+    rent: "Monthly Rent"
+    statuses:
+      available: "Available"
+      occupied: "Occupied"
+      maintenance: "Maintenance"
     
   # Tenants
   tenants:
@@ -222,7 +237,6 @@ en:
     filters: "Filters"
     start_date_from: "Start Date (From)"
     start_date_to: "Start Date (To)"
-    show_all_tenants: "Show all tenants"
     show_all_tenants: "Show all tenants"
     unassigned_only: "Unassigned only"
     all_tenants: "All tenants"
@@ -364,6 +378,15 @@ en:
       internet: "Internet"
       rent: "Rent"
       miscellaneous: "Miscellaneous"
+    add: "Add Expense"
+    building: "Building"
+    no_building: "No Building"
+    for_building: "Expenses for %{building}"
+    expenses_for: "Expenses for %{month_year}"
+    no_expenses_in_building: "This building doesn't have any expenses yet."
+    no_expenses_this_month: "No expenses recorded this month."
+    expenses_by_building: "Expenses by Building"
+    notes: "Notes"
 
   # Revenues
   revenues:
@@ -444,3 +467,54 @@ en:
       male: "Male"
       female: "Female"
       other: "Other"
+
+  # Buildings
+  buildings:
+    all_buildings: "All Buildings"
+    add_building: "Add Building"
+    edit_building: "Edit Building"
+    building_info: "Building Information"
+    building_details: "Building Details"
+    name: "Building Name"
+    address: "Address"
+    description: "Description"
+    floors: "Number of Floors"
+    year_built: "Year Built"
+    total_area: "Total Area"
+    status: "Status"
+    rooms: "Rooms"
+    tenants: "Tenants"
+    occupancy: "Occupancy Rate"
+    total_rooms: "Total Rooms"
+    monthly_revenue: "Monthly Revenue"
+    monthly_expenses: "Monthly Expenses" 
+    recent_expenses: "Recent Expenses"
+    created: "Building was successfully created."
+    updated: "Building was successfully updated."
+    deleted: "Building was successfully deleted."
+    create_error: "There was a problem creating the building."
+    update_error: "There was a problem updating the building."
+    cannot_delete: "Cannot delete a building with rooms. Please delete all rooms first."
+    confirm_delete: "Are you sure you want to delete this building?"
+    no_buildings: "No Buildings Found"
+    no_buildings_description: "Start managing your properties by adding your first building."
+    delete_building: "Delete Building"
+    delete_building_warning: "Once you delete a building, there is no going back. This will permanently delete the building and all its data."
+    create: "Create Building"
+    update: "Update Building"
+    not_found: "Building not found."
+    statuses:
+      active: "Active"
+      under_construction: "Under Construction"
+      renovation: "Under Renovation"
+      inactive: "Inactive"
+
+  # Currency format
+  number:
+    currency:
+      format:
+        format: "%n %u"
+        unit: "VND"
+        precision: 0
+        delimiter: ","
+        separator: "."

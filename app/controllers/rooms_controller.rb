@@ -1,9 +1,15 @@
 class RoomsController < ApplicationController
   before_action :require_login
   before_action :set_room, only: [:show, :edit, :update, :destroy]
+  before_action :set_building, only: [:index, :new, :create]
 
   def index
-    @rooms = Room.all
+    if @building
+      @rooms = @building.rooms.order(:number)
+      render 'building_rooms'
+    else
+      @rooms = Room.includes(:building).order('buildings.name', :number)
+    end
   end
 
   def show
@@ -12,15 +18,23 @@ class RoomsController < ApplicationController
   end
 
   def new
-    @room = Room.new
+    @room = @building ? @building.rooms.build : Room.new
   end
 
   def create
-    @room = Room.new(room_params)
+    if @building
+      @room = @building.rooms.build(room_params)
+    else
+      @room = Room.new(room_params)
+    end
 
     if @room.save
       flash[:success] = t('rooms.create_success')
-      redirect_to @room
+      if @building
+        redirect_to building_path(@building)
+      else
+        redirect_to @room
+      end
     else
       render :new, status: :unprocessable_entity
     end
@@ -41,11 +55,12 @@ class RoomsController < ApplicationController
   def destroy
     if @room.room_assignments.exists?
       flash[:danger] = t('rooms.cannot_delete_with_assignments')
-      redirect_to rooms_url
+      redirect_to @room.building || rooms_url
     else
+      building = @room.building
       @room.destroy
       flash[:success] = t('rooms.delete_success')
-      redirect_to rooms_url
+      redirect_to building || rooms_url
     end
   end
 
@@ -54,9 +69,13 @@ class RoomsController < ApplicationController
   def set_room
     @room = Room.find(params[:id])
   end
+  
+  def set_building
+    @building = Building.find(params[:building_id]) if params[:building_id]
+  end
 
   def room_params
-    params.require(:room).permit(:number, :floor, :area, :monthly_rent, :status)
+    params.require(:room).permit(:number, :floor, :area, :monthly_rent, :status, :building_id)
   end
 
   def require_login

@@ -10,29 +10,79 @@ UtilityReading.destroy_all
 RoomAssignment.destroy_all
 Room.destroy_all
 Tenant.destroy_all
-UtilityPrice.destroy_all  # Add this line to clear utility prices
+UtilityPrice.destroy_all
+Building.destroy_all
 User.destroy_all
 
 # Create admin user
 puts "Creating admin user..."
-User.create!(
+user = User.create!(
+  name: 'Admin User',
   email: 'admin@example.com',
   password: 'password123',
   password_confirmation: 'password123'
 )
 
+# Create buildings
+puts "Creating buildings..."
+buildings = [
+  { 
+    name: 'Building A', 
+    address: '123 Nguyen Hue St., District 1, HCMC', 
+    description: 'Modern 3-floor apartment complex with convenient location near city center',
+    num_floors: 3,
+    year_built: 2021,
+    total_area: 800.0,
+    status: 'active',
+    user: user
+  },
+  { 
+    name: 'Building B', 
+    address: '456 Le Loi St., District 3, HCMC', 
+    description: 'Budget-friendly rooms in quiet neighborhood',
+    num_floors: 2,
+    year_built: 2019,
+    total_area: 500.0,
+    status: 'active',
+    user: user
+  },
+  { 
+    name: 'Building C', 
+    address: '789 Tran Hung Dao St., District 5, HCMC', 
+    description: 'Newly renovated building with modern amenities',
+    num_floors: 4,
+    year_built: 2018,
+    total_area: 1200.0,
+    status: 'under_construction',
+    user: user
+  }
+]
+
+created_buildings = buildings.map do |building_data|
+  Building.create!(building_data)
+end
+
 # Create rooms
 puts "Creating rooms..."
 rooms = [
-  { number: '101', floor: 1, area: 25.0, monthly_rent: 2500000, status: 'occupied' },
-  { number: '102', floor: 1, area: 30.0, monthly_rent: 3000000, status: 'occupied' },
-  { number: '103', floor: 1, area: 20.0, monthly_rent: 2000000, status: 'occupied' },
-  { number: '201', floor: 2, area: 25.0, monthly_rent: 2700000, status: 'occupied' },
-  { number: '202', floor: 2, area: 30.0, monthly_rent: 3200000, status: 'occupied' },
-  { number: '203', floor: 2, area: 20.0, monthly_rent: 2200000, status: 'available' },
-  { number: '301', floor: 3, area: 25.0, monthly_rent: 2900000, status: 'occupied' },
-  { number: '302', floor: 3, area: 30.0, monthly_rent: 3400000, status: 'occupied' },
-  { number: '303', floor: 3, area: 20.0, monthly_rent: 2400000, status: 'maintenance' }
+  # Building A rooms
+  { number: '101', floor: 1, area: 25.0, monthly_rent: 2500000, status: 'occupied', building: created_buildings[0] },
+  { number: '102', floor: 1, area: 30.0, monthly_rent: 3000000, status: 'occupied', building: created_buildings[0] },
+  { number: '103', floor: 1, area: 20.0, monthly_rent: 2000000, status: 'occupied', building: created_buildings[0] },
+  { number: '201', floor: 2, area: 25.0, monthly_rent: 2700000, status: 'occupied', building: created_buildings[0] },
+  { number: '202', floor: 2, area: 30.0, monthly_rent: 3200000, status: 'occupied', building: created_buildings[0] },
+  { number: '203', floor: 2, area: 20.0, monthly_rent: 2200000, status: 'available', building: created_buildings[0] },
+  { number: '301', floor: 3, area: 25.0, monthly_rent: 2900000, status: 'occupied', building: created_buildings[0] },
+  { number: '302', floor: 3, area: 30.0, monthly_rent: 3400000, status: 'occupied', building: created_buildings[0] },
+  { number: '303', floor: 3, area: 20.0, monthly_rent: 2400000, status: 'maintenance', building: created_buildings[0] },
+  
+  # Building B rooms
+  { number: '101', floor: 1, area: 22.0, monthly_rent: 2200000, status: 'occupied', building: created_buildings[1] },
+  { number: '102', floor: 1, area: 25.0, monthly_rent: 2500000, status: 'occupied', building: created_buildings[1] },
+  { number: '103', floor: 1, area: 22.0, monthly_rent: 2200000, status: 'available', building: created_buildings[1] },
+  { number: '201', floor: 2, area: 22.0, monthly_rent: 2300000, status: 'occupied', building: created_buildings[1] },
+  { number: '202', floor: 2, area: 25.0, monthly_rent: 2600000, status: 'available', building: created_buildings[1] },
+  { number: '203', floor: 2, area: 22.0, monthly_rent: 2300000, status: 'maintenance', building: created_buildings[1] }
 ]
 
 created_rooms = rooms.map do |room_data|
@@ -64,6 +114,7 @@ end
 # Create room assignments
 puts "Creating room assignments..."
 room_assignments = [
+  # Building A assignments
   { room: created_rooms[0], tenant: created_tenants[0], start_date: '2024-01-15', deposit_amount: 2500000, active: true },
   { room: created_rooms[1], tenant: created_tenants[1], start_date: '2024-02-01', deposit_amount: 3000000, active: true },
   { room: created_rooms[2], tenant: created_tenants[2], start_date: '2024-02-15', deposit_amount: 2000000, active: true },
@@ -76,6 +127,11 @@ room_assignments = [
   { room: created_rooms[0], tenant: created_tenants[9], start_date: '2024-02-20', deposit_amount: 1250000, active: true },  # Third tenant in room 101
   { room: created_rooms[1], tenant: created_tenants[10], start_date: '2024-01-20', deposit_amount: 1500000, active: true }, # Second tenant in room 102
   { room: created_rooms[4], tenant: created_tenants[11], start_date: '2024-03-05', deposit_amount: 1600000, active: true }, # Second tenant in room 202
+  
+  # Building B assignments
+  { room: created_rooms[9], tenant: created_tenants[7], start_date: '2024-02-10', deposit_amount: 2200000, active: true },
+  { room: created_rooms[10], tenant: created_tenants[8], start_date: '2024-03-10', deposit_amount: 2500000, active: true },
+  { room: created_rooms[12], tenant: created_tenants[9], start_date: '2024-02-20', deposit_amount: 2300000, active: true }
 ]
 
 created_assignments = room_assignments.map do |assignment_data|
@@ -288,20 +344,23 @@ expense_descriptions = {
   'miscellaneous' => ['Office supplies', 'Misc administrative expenses', 'Unexpected expenses']
 }
 
-# Create expenses for February, March, and April 2025
+# Create expenses for February, March, and April 2025 for each building
 [Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
-  # Create 10-15 expenses per month
-  expense_count = rand(10..15)
-
-  expense_count.times do
-    category = expense_categories.sample
-
-    OperatingExpense.create!(
-      category: category,
-      description: expense_descriptions[category].sample,
-      amount: rand(200000..5000000),  # 200,000 to 5,000,000 VND
-      expense_date: month_start + rand(0..28)  # Random day in the month
-    )
+  created_buildings.each do |building|
+    # Create 5-8 expenses per month per building
+    expense_count = rand(5..8)
+    
+    expense_count.times do
+      category = expense_categories.sample
+      
+      OperatingExpense.create!(
+        building: building,
+        category: category,
+        description: expense_descriptions[category].sample,
+        amount: rand(200000..5000000),  # 200,000 to 5,000,000 VND
+        expense_date: month_start + rand(0..28)  # Random day in the month
+      )
+    end
   end
 end
 

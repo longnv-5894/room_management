@@ -415,30 +415,38 @@
             <!-- User profile dropdown -->
             <div class="dropdown user-dropdown">
               <a href="#" class="nav-link d-flex align-items-center" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <% if current_user.profile_image.attached? %>
+                <% if current_user && current_user.profile_image.attached? %>
                   <%= image_tag current_user.profile_image.variant(resize_to_limit: [36, 36]), 
                       class: "rounded-circle", 
                       style: "width: 36px; height: 36px; object-fit: cover;" %>
                 <% else %>
                   <div class="profile-avatar">
-                    <%= (current_user.name.presence || current_user.email).first.upcase %>
+                    <%= current_user ? (current_user.name.presence || current_user.email).first.upcase : "?" %>
                   </div>
                 <% end %>
-                <span class="mx-2"><%= current_user.name.presence || current_user.email.split('@').first %></span>
+                <span class="mx-2"><%= current_user ? (current_user.name.presence || current_user.email.split('@').first) : "Guest" %></span>
                 <i class="fas fa-chevron-down small ms-1"></i>
               </a>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
-                <li>
-                  <%= link_to profile_path, class: "dropdown-item" do %>
-                    <i class="fas fa-user me-2"></i> <%= t('users.profile') %>
-                  <% end %>
-                </li>
-                <li><hr class="dropdown-divider my-1"></li>
-                <li>
-                  <%= link_to logout_path, data: { turbo_method: :delete }, class: "dropdown-item" do %>
-                    <i class="fas fa-sign-out-alt me-2"></i> <%= t('nav.logout') %>
-                  <% end %>
-                </li>
+                <% if current_user %>
+                  <li>
+                    <%= link_to profile_path, class: "dropdown-item" do %>
+                      <i class="fas fa-user me-2"></i> <%= t('users.profile') %>
+                    <% end %>
+                  </li>
+                  <li><hr class="dropdown-divider my-1"></li>
+                  <li>
+                    <%= link_to logout_path, data: { turbo_method: :delete }, class: "dropdown-item" do %>
+                      <i class="fas fa-sign-out-alt me-2"></i> <%= t('nav.logout') %>
+                    <% end %>
+                  </li>
+                <% else %>
+                  <li>
+                    <%= link_to login_path, class: "dropdown-item" do %>
+                      <i class="fas fa-sign-in-alt me-2"></i> <%= t('nav.login') %>
+                    <% end %>
+                  </li>
+                <% end %>
               </ul>
             </div>
             
@@ -461,6 +469,7 @@
         <div class="sidebar">
           <ul class="sidebar-nav">
             <li><%= link_to t('nav.dashboard'), dashboard_path, class: "nav-link #{current_page?(dashboard_path) ? 'active' : ''}" %></li>
+            <li><%= link_to t('nav.buildings'), buildings_path, class: "nav-link #{controller_name == 'buildings' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.rooms'), rooms_path, class: "nav-link #{controller_name == 'rooms' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.tenants'), tenants_path, class: "nav-link #{controller_name == 'tenants' ? 'active' : ''}" %></li>
             <li><%= link_to t('nav.assignments'), room_assignments_path, class: "nav-link #{controller_name == 'room_assignments' ? 'active' : ''}" %></li>

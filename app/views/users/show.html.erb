@@ -13,7 +13,7 @@
           <%= image_tag @user.profile_image.variant(resize_to_limit: [200, 200]), class: "rounded-circle img-fluid mb-3", style: "width: 150px; height: 150px; object-fit: cover;" %>
         <% else %>
           <div class="profile-placeholder rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; background-color: #e9ecef;">
-            <span style="font-size: 64px; color: #6c757d;"><%= @user.name.first.upcase %></span>
+            <span style="font-size: 64px; color: #6c757d;"><%= @user.name.present? ? @user.name.first.upcase : '?' %></span>
           </div>
         <% end %>
         <h3 class="mb-1"><%= @user.name %></h3>

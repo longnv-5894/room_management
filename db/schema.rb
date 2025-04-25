@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_25_044223) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_25_072739) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -60,6 +60,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_044223) do
     t.index ["room_assignment_id"], name: "index_bills_on_room_assignment_id"
   end
 
+  create_table "buildings", force: :cascade do |t|
+    t.string "name"
+    t.string "address"
+    t.text "description"
+    t.bigint "user_id", null: false
+    t.integer "num_floors"
+    t.integer "year_built"
+    t.float "total_area"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_buildings_on_user_id"
+  end
+
   create_table "operating_expenses", force: :cascade do |t|
     t.string "category"
     t.string "description"
@@ -67,6 +81,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_044223) do
     t.date "expense_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "building_id"
+    t.index ["building_id"], name: "index_operating_expenses_on_building_id"
   end
 
   create_table "room_assignments", force: :cascade do |t|
@@ -92,7 +108,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_044223) do
     t.string "status", default: "available"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["number"], name: "index_rooms_on_number", unique: true
+    t.bigint "building_id"
+    t.index ["building_id", "number"], name: "index_rooms_on_building_id_and_number", unique: true
+    t.index ["building_id"], name: "index_rooms_on_building_id"
   end
 
   create_table "tenants", force: :cascade do |t|
@@ -160,8 +178,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_044223) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "bills", "room_assignments"
+  add_foreign_key "buildings", "users"
+  add_foreign_key "operating_expenses", "buildings"
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
+  add_foreign_key "rooms", "buildings"
   add_foreign_key "utility_readings", "rooms"
   add_foreign_key "vehicles", "tenants"
 end

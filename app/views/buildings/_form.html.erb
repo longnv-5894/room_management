@@ -1,0 +1,64 @@
+<%= form_with(model: building, local: true) do |form| %>
+  <% if building.errors.any? %>
+    <div class="alert alert-danger">
+      <h5><%= pluralize(building.errors.count, "error") %> <%= t('common.form_error') %>:</h5>
+      <ul class="mb-0">
+        <% building.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <%= form.label :name, t('buildings.name'), class: "form-label" %>
+      <%= form.text_field :name, class: "form-control", required: true %>
+    </div>
+    
+    <div class="col-md-6">
+      <%= form.label :status, t('buildings.status'), class: "form-label" %>
+      <%= form.select :status, Building.statuses_for_select, { include_blank: false }, { class: "form-select" } %>
+    </div>
+  </div>
+  
+  <div class="mb-3">
+    <%= form.label :address, t('buildings.address'), class: "form-label" %>
+    <%= form.text_field :address, class: "form-control", required: true %>
+  </div>
+  
+  <div class="mb-3">
+    <%= form.label :description, t('buildings.description'), class: "form-label" %>
+    <%= form.text_area :description, class: "form-control", rows: 3 %>
+  </div>
+  
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <%= form.label :num_floors, t('buildings.floors'), class: "form-label" %>
+      <%= form.number_field :num_floors, class: "form-control", min: 1 %>
+    </div>
+    
+    <div class="col-md-4">
+      <%= form.label :year_built, t('buildings.year_built'), class: "form-label" %>
+      <%= form.number_field :year_built, class: "form-control", min: 1800, max: Date.today.year %>
+    </div>
+    
+    <div class="col-md-4">
+      <%= form.label :total_area, t('buildings.total_area'), class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :total_area, class: "form-control", min: 0, step: 0.01 %>
+        <span class="input-group-text">m²</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="d-flex justify-content-end">
+    <% if building.persisted? %>
+      <%= link_to t('common.cancel'), building_path(building), class: "btn btn-outline me-2" %>
+    <% else %>
+      <%= link_to t('common.cancel'), buildings_path, class: "btn btn-outline me-2" %>
+    <% end %>
+    
+    <%= form.submit building.persisted? ? t('buildings.update') : t('buildings.create'), class: "btn btn-primary" %>
+  </div>
+<% end %>

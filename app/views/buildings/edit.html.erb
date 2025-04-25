@@ -1,0 +1,35 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('buildings.edit_building') %></h1>
+  <div class="header-actions">
+    <%= link_to building_path(@building), class: "btn btn-outline" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center">
+    <i class="fas fa-building me-2"></i> <%= t('buildings.building_details') %>
+  </div>
+  <div class="card-body">
+    <%= render 'form', building: @building %>
+  </div>
+</div>
+
+<div class="mt-4">
+  <div class="card bg-light border-danger">
+    <div class="card-header text-danger d-flex align-items-center">
+      <i class="fas fa-exclamation-triangle me-2"></i> <%= t('common.danger_zone') %>
+    </div>
+    <div class="card-body">
+      <h5 class="card-title"><%= t('buildings.delete_building') %></h5>
+      <p class="card-text text-muted"><%= t('buildings.delete_building_warning') %></p>
+      <%= link_to building_path(@building), 
+          method: :delete, 
+          data: { turbo_method: :delete, turbo_confirm: t('buildings.confirm_delete') },
+          class: "btn btn-danger" do %>
+        <i class="fas fa-trash-alt"></i> <%= t('buildings.delete_building') %>
+      <% end %>
+    </div>
+  </div>
+</div>

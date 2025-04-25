@@ -1,0 +1,84 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('rooms.in_building', building: @building.name) %></h1>
+  <div class="header-actions">
+    <%= link_to building_path(@building), class: "btn btn-outline me-2" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+    <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
+      <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+    <% end %>
+  </div>
+</div>
+
+<% if @rooms.empty? %>
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i class="fas fa-door-open"></i>
+    </div>
+    <h3><%= t('rooms.no_rooms') %></h3>
+    <p><%= t('rooms.no_rooms_in_building') %></p>
+    <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
+      <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card">
+    <div class="card-header d-flex align-items-center">
+      <i class="fas fa-door-open me-2"></i> <%= t('rooms.all_rooms') %>
+    </div>
+    
+    <div class="table-responsive">
+      <table class="table table-hover table-striped mb-0">
+        <thead>
+          <tr>
+            <th><%= t('rooms.number') %></th>
+            <th><%= t('rooms.floor') %></th>
+            <th><%= t('rooms.rent') %></th>
+            <th><%= t('rooms.area') %></th>
+            <th><%= t('rooms.status') %></th>
+            <th><%= t('rooms.current_tenant') %></th>
+            <th><%= t('common.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @rooms.each do |room| %>
+            <tr>
+              <td><%= room.number %></td>
+              <td><%= room.floor.presence || t('common.none') %></td>
+              <td><%= number_to_currency(room.monthly_rent) %></td>
+              <td><%= room.area.present? ? "#{room.area} m²" : t('common.none') %></td>
+              <td>
+                <span class="badge bg-<%= room.status == 'occupied' ? 'success' : (room.status == 'maintenance' ? 'warning' : 'primary') %>">
+                  <%= t("rooms.statuses.#{room.status}") %>
+                </span>
+              </td>
+              <td>
+                <% if room.current_tenant %>
+                  <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                <% else %>
+                  <%= t('common.none') %>
+                <% end %>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <%= link_to room_path(room), class: "btn btn-outline-primary" do %>
+                    <i class="fas fa-eye"></i>
+                  <% end %>
+                  <%= link_to edit_room_path(room), class: "btn btn-outline-secondary" do %>
+                    <i class="fas fa-edit"></i>
+                  <% end %>
+                  <%= link_to room_path(room), 
+                          method: :delete, 
+                          data: { turbo_method: :delete, turbo_confirm: t('rooms.confirm_delete') },
+                          class: "btn btn-outline-danger" do %>
+                    <i class="fas fa-trash-alt"></i>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+<% end %>

@@ -1,4 +1,13 @@
 Rails.application.routes.draw do
+  # Remove the auto-generated buildings routes
+  # get "buildings/index"
+  # get "buildings/show"
+  # get "buildings/new"
+  # get "buildings/create"
+  # get "buildings/edit"
+  # get "buildings/update"
+  # get "buildings/destroy"
+  
   # Remove the auto-generated utility prices routes
   # get "utility_prices/index"
   # get "utility_prices/new"
@@ -23,6 +32,10 @@ Rails.application.routes.draw do
   get '/switch_language/:locale', to: 'languages#switch', as: :switch_language
 
   # Resource routes
+  resources :buildings do
+    resources :rooms, only: [:index, :new, :create]
+    resources :operating_expenses, only: [:index, :new, :create]
+  end
   resources :rooms
   resources :tenants do
     resources :vehicles, only: [:index, :new, :create]

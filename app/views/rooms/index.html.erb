@@ -13,6 +13,7 @@
           <thead>
             <tr>
               <th><%= t('rooms.number') %></th>
+              <th><%= t('rooms.building') %></th>
               <th><%= t('rooms.floor') %></th>
               <th><%= t('rooms.area') %> (m²)</th>
               <th><%= t('rooms.monthly_rent') %></th>
@@ -25,6 +26,13 @@
             <% @rooms.each do |room| %>
               <tr>
                 <td><%= room.number %></td>
+                <td>
+                  <% if room.building %>
+                    <%= link_to room.building.name, building_path(room.building) %>
+                  <% else %>
+                    <span class="text-muted"><%= t('rooms.no_building') %></span>
+                  <% end %>
+                </td>
                 <td><%= room.floor %></td>
                 <td><%= room.area %></td>
                 <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>

@@ -1,0 +1,269 @@
+<div class="page-header">
+  <h1 class="header-title"><%= @building.name %></h1>
+  <div class="header-actions">
+    <%= link_to buildings_path, class: "btn btn-outline me-2" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+    <%= link_to edit_building_path(@building), class: "btn btn-primary" do %>
+      <i class="fas fa-edit"></i> <%= t('common.edit') %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Building Info Card -->
+  <div class="col-md-4 mb-4">
+    <div class="card">
+      <div class="card-header d-flex align-items-center">
+        <i class="fas fa-building me-2"></i> <%= t('buildings.building_info') %>
+      </div>
+      <div class="card-body">
+        <p class="text-muted mb-2"><%= t('buildings.address') %>:</p>
+        <p class="mb-3"><%= @building.address %></p>
+        
+        <% if @building.description.present? %>
+          <p class="text-muted mb-2"><%= t('buildings.description') %>:</p>
+          <p class="mb-3"><%= @building.description %></p>
+        <% end %>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="text-muted mb-1"><%= t('buildings.year_built') %>:</p>
+            <p><%= @building.year_built.present? ? @building.year_built : t('common.none') %></p>
+          </div>
+          <div class="col-md-6">
+            <p class="text-muted mb-1"><%= t('buildings.total_area') %>:</p>
+            <p><%= @building.total_area.present? ? "#{@building.total_area} m²" : t('common.none') %></p>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="text-muted mb-1"><%= t('buildings.floors') %>:</p>
+            <p><%= @building.num_floors.present? ? @building.num_floors : t('common.none') %></p>
+          </div>
+          <div class="col-md-6">
+            <p class="text-muted mb-1"><%= t('buildings.status') %>:</p>
+            <p>
+              <span class="badge bg-<%= @building.status == 'active' ? 'success' : 'warning' %>">
+                <%= t("buildings.statuses.#{@building.status}") %>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Stats Cards -->
+  <div class="col-md-8 mb-4">
+    <div class="row">
+      <!-- Building Stats -->
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle mx-auto mb-3">
+              <i class="fas fa-home"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('buildings.total_rooms') %></h5>
+            <h3><%= @total_rooms %></h3>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle mx-auto mb-3">
+              <i class="fas fa-percentage"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('buildings.occupancy') %></h5>
+            <h3><%= number_to_percentage(@occupancy_rate, precision: 0) %></h3>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle mx-auto mb-3">
+              <i class="fas fa-users"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('buildings.tenants') %></h5>
+            <h3><%= @total_tenants %></h3>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Financial Stats -->
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle stat-positive mx-auto mb-3">
+              <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('buildings.monthly_revenue') %></h5>
+            <h3><%= number_to_currency(@monthly_revenue) %></h3>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle stat-negative mx-auto mb-3">
+              <i class="fas fa-receipt"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('buildings.monthly_expenses') %></h5>
+            <h3><%= number_to_currency(@monthly_expenses) %></h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rooms Section -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fas fa-door-open me-2"></i> <%= t('buildings.rooms') %>
+    </div>
+    <div>
+      <%= link_to new_building_room_path(@building), class: "btn btn-sm btn-primary" do %>
+        <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+      <% end %>
+      <%= link_to building_rooms_path(@building), class: "btn btn-sm btn-outline-secondary ms-2" do %>
+        <i class="fas fa-list"></i> <%= t('common.view_all') %>
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @rooms.empty? %>
+    <div class="card-body text-center py-5">
+      <div class="empty-state-icon mb-3">
+        <i class="fas fa-door-open"></i>
+      </div>
+      <h5><%= t('rooms.no_rooms') %></h5>
+      <p class="text-muted"><%= t('rooms.no_rooms_in_building') %></p>
+      <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
+        <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="table-responsive">
+      <table class="table table-hover table-striped mb-0">
+        <thead>
+          <tr>
+            <th><%= t('rooms.number') %></th>
+            <th><%= t('rooms.floor') %></th>
+            <th><%= t('rooms.rent') %></th>
+            <th><%= t('rooms.area') %></th>
+            <th><%= t('rooms.status') %></th>
+            <th><%= t('rooms.current_tenant') %></th>
+            <th><%= t('common.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @rooms.each do |room| %>
+            <tr>
+              <td><%= room.number %></td>
+              <td><%= room.floor.presence || t('common.none') %></td>
+              <td><%= number_to_currency(room.monthly_rent) %></td>
+              <td><%= room.area.present? ? "#{room.area} m²" : t('common.none') %></td>
+              <td>
+                <span class="badge bg-<%= room.status == 'occupied' ? 'success' : (room.status == 'maintenance' ? 'warning' : 'primary') %>">
+                  <%= t("rooms.statuses.#{room.status}") %>
+                </span>
+              </td>
+              <td>
+                <% if room.current_tenant %>
+                  <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                <% else %>
+                  <%= t('common.none') %>
+                <% end %>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <%= link_to room_path(room), class: "btn btn-outline-primary" do %>
+                    <i class="fas fa-eye"></i>
+                  <% end %>
+                  <%= link_to edit_room_path(room), class: "btn btn-outline-secondary" do %>
+                    <i class="fas fa-edit"></i>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
+
+<!-- Recent Expenses Section -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fas fa-file-invoice-dollar me-2"></i> <%= t('buildings.recent_expenses') %>
+    </div>
+    <div>
+      <%= link_to new_building_operating_expense_path(@building), class: "btn btn-sm btn-primary" do %>
+        <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
+      <% end %>
+      <%= link_to building_operating_expenses_path(@building), class: "btn btn-sm btn-outline-secondary ms-2" do %>
+        <i class="fas fa-list"></i> <%= t('common.view_all') %>
+      <% end %>
+    </div>
+  </div>
+  
+  <% if @operating_expenses.empty? %>
+    <div class="card-body text-center py-5">
+      <div class="empty-state-icon mb-3">
+        <i class="fas fa-file-invoice-dollar"></i>
+      </div>
+      <h5><%= t('operating_expenses.no_expenses') %></h5>
+      <p class="text-muted"><%= t('operating_expenses.no_expenses_in_building') %></p>
+      <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
+        <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="table-responsive">
+      <table class="table table-hover table-striped mb-0">
+        <thead>
+          <tr>
+            <th><%= t('operating_expenses.date') %></th>
+            <th><%= t('operating_expenses.category') %></th>
+            <th><%= t('operating_expenses.amount') %></th>
+            <th><%= t('operating_expenses.notes') %></th>
+            <th><%= t('common.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @operating_expenses.each do |expense| %>
+            <tr>
+              <td><%= l expense.expense_date %></td>
+              <td><%= expense.category_name %></td>
+              <td><%= number_to_currency(expense.amount) %></td>
+              <td><%= truncate(expense.description, length: 30) if expense.description.present? %></td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <%= link_to edit_operating_expense_path(expense), class: "btn btn-outline-secondary" do %>
+                    <i class="fas fa-edit"></i>
+                  <% end %>
+                  <%= link_to operating_expense_path(expense), 
+                          method: :delete, 
+                          data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
+                          class: "btn btn-outline-danger" do %>
+                    <i class="fas fa-trash-alt"></i>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

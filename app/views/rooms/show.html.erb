@@ -4,8 +4,14 @@
     <%= link_to edit_room_path(@room), class: "btn btn-outline" do %>
       <i class="fas fa-edit"></i> <%= t('common.edit') %>
     <% end %>
-    <%= link_to rooms_path, class: "btn btn-outline" do %>
-      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% if @room.building %>
+      <%= link_to building_path(@room.building), class: "btn btn-outline" do %>
+        <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+      <% end %>
+    <% else %>
+      <%= link_to rooms_path, class: "btn btn-outline" do %>
+        <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+      <% end %>
     <% end %>
   </div>
 </div>
@@ -22,6 +28,18 @@
       </div>
       <div class="card-body">
         <div class="detail-grid">
+          <% if @room.building %>
+            <div class="detail-item">
+              <div class="detail-label"><%= t('rooms.building') %></div>
+              <div class="detail-value">
+                <%= link_to @room.building.name, building_path(@room.building), class: "text-decoration-none" %>
+                <span class="badge bg-<%= @room.building.status == 'active' ? 'success' : 'warning' %>">
+                  <%= t("buildings.statuses.#{@room.building.status}") %>
+                </span>
+              </div>
+            </div>
+          <% end %>
+          
           <div class="detail-item">
             <div class="detail-label"><%= t('rooms.number') %></div>
             <div class="detail-value"><%= @room.number %></div>

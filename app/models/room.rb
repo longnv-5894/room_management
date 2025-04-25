@@ -1,12 +1,19 @@
 class Room < ApplicationRecord
+  belongs_to :building, optional: true
   has_many :room_assignments
   has_many :tenants, through: :room_assignments
   has_many :utility_readings
   
-  validates :number, presence: true, uniqueness: true
+  validates :number, presence: true, uniqueness: { scope: :building_id }
   validates :monthly_rent, presence: true, numericality: { greater_than: 0 }
   
   enum :status, { available: 'available', occupied: 'occupied', maintenance: 'maintenance' }
+  
+  # Display name for room with building
+  def full_name
+    building_name = building ? "#{building.name} - " : ""
+    "#{building_name}Room #{number}"
+  end
   
   def current_assignments
     room_assignments.where(active: true)

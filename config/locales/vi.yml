@@ -50,6 +50,7 @@ vi:
   # Navigation
   nav:
     dashboard: "Bảng điều khiển"
+    buildings: "Tòa nhà" 
     rooms: "Phòng"
     tenants: "Người thuê"
     assignments: "Phân phối phòng"
@@ -130,6 +131,11 @@ vi:
     area_hint: "Diện tích phòng tính bằng mét vuông"
     rent_hint: "Tiền thuê hàng tháng cho phòng này"
     status_hint: "Trạng thái hiện tại của phòng"
+    building: "Tòa nhà"
+    in_building: "Phòng trong %{building}"
+    new_in_building: "Thêm phòng mới trong %{building}"
+    no_building: "Không thuộc tòa nhà"
+    no_rooms_in_building: "Tòa nhà này chưa có phòng nào."
     
   # Tenants
   tenants:
@@ -385,6 +391,14 @@ vi:
       internet: "Internet"
       rent: "Tiền thầu tòa nhà"
       miscellaneous: "Chi phí khác"
+    building: "Tòa nhà"
+    no_building: "Không thuộc tòa nhà"
+    for_building: "Chi phí cho %{building}"
+    expenses_for: "Chi phí trong %{month_year}"
+    no_expenses_in_building: "Tòa nhà này chưa có chi phí nào."
+    no_expenses_this_month: "Không có chi phí nào được ghi nhận trong tháng này."
+    expenses_by_building: "Chi phí theo tòa nhà"
+    notes: "Ghi chú"
       
   # Revenues
   revenues:
@@ -465,3 +479,54 @@ vi:
       male: "Nam"
       female: "Nữ"
       other: "Khác"
+
+  # Buildings
+  buildings:
+    all_buildings: "Tất cả tòa nhà"
+    add_building: "Thêm tòa nhà"
+    edit_building: "Sửa tòa nhà"
+    building_info: "Thông tin tòa nhà"
+    building_details: "Chi tiết tòa nhà"
+    name: "Tên tòa nhà"
+    address: "Địa chỉ"
+    description: "Mô tả"
+    floors: "Số tầng"
+    year_built: "Năm xây dựng"
+    total_area: "Tổng diện tích"
+    status: "Trạng thái"
+    rooms: "Phòng"
+    tenants: "Người thuê"
+    occupancy: "Tỷ lệ lấp đầy"
+    total_rooms: "Tổng số phòng"
+    monthly_revenue: "Doanh thu hàng tháng"
+    monthly_expenses: "Chi phí hàng tháng" 
+    recent_expenses: "Chi phí gần đây"
+    created: "Đã tạo tòa nhà thành công."
+    updated: "Đã cập nhật tòa nhà thành công."
+    deleted: "Đã xóa tòa nhà thành công."
+    create_error: "Có lỗi khi tạo tòa nhà."
+    update_error: "Có lỗi khi cập nhật tòa nhà."
+    cannot_delete: "Không thể xóa tòa nhà có phòng. Vui lòng xóa tất cả phòng trước."
+    confirm_delete: "Bạn có chắc muốn xóa tòa nhà này không?"
+    no_buildings: "Không tìm thấy tòa nhà nào"
+    no_buildings_description: "Bắt đầu quản lý bất động sản của bạn bằng cách thêm tòa nhà đầu tiên."
+    delete_building: "Xóa tòa nhà"
+    delete_building_warning: "Sau khi xóa tòa nhà, bạn không thể khôi phục lại. Thao tác này sẽ xóa vĩnh viễn tòa nhà và tất cả dữ liệu liên quan."
+    create: "Tạo tòa nhà"
+    update: "Cập nhật tòa nhà"
+    not_found: "Không tìm thấy tòa nhà."
+    statuses:
+      active: "Đang hoạt động"
+      under_construction: "Đang xây dựng"
+      renovation: "Đang sửa chữa"
+      inactive: "Không hoạt động"
+
+  # Currency format
+  number:
+    currency:
+      format:
+        format: "%n %u"
+        unit: "VND"
+        precision: 0
+        delimiter: "."
+        separator: ","

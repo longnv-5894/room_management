@@ -1,54 +1,29 @@
 <div class="page-header">
-  <h1 class="header-title"><%= t('rooms.new') %></h1>
+  <h1 class="header-title">
+    <% if @building %>
+      <%= t('rooms.new_in_building', building: @building.name) %>
+    <% else %>
+      <%= t('rooms.new') %>
+    <% end %>
+  </h1>
   <div class="header-actions">
-    <%= link_to t('common.cancel'), rooms_path, class: "btn btn-outline" %>
+    <% if @building %>
+      <%= link_to building_path(@building), class: "btn btn-outline" do %>
+        <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+      <% end %>
+    <% else %>
+      <%= link_to rooms_path, class: "btn btn-outline" do %>
+        <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+      <% end %>
+    <% end %>
   </div>
 </div>
 
-<div class="form-container">
-  <%= form_with(model: @room, local: true) do |form| %>
-    <% if @room.errors.any? %>
-      <div class="alert alert-danger">
-        <h2><%= pluralize(@room.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
-        <ul>
-          <% @room.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
-      </div>
-    <% end %>
-
-    <div class="form-group">
-      <%= form.label :number, t('rooms.number'), class: "form-label" %>
-      <%= form.text_field :number, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :floor, t('rooms.floor'), class: "form-label" %>
-      <%= form.number_field :floor, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :area, t('rooms.area'), class: "form-label" %>
-      <%= form.number_field :area, class: "form-control", step: 0.1 %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :monthly_rent, t('rooms.monthly_rent'), class: "form-label" %>
-      <%= form.number_field :monthly_rent, class: "form-control", min: 0 %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :status, t('rooms.status'), class: "form-label" %>
-      <%= form.select :status, options_for_select([
-        [t('rooms.available'), 'available'],
-        [t('rooms.occupied'), 'occupied'],
-        [t('rooms.maintenance'), 'maintenance']
-      ]), {}, { class: "form-select" } %>
-    </div>
-
-    <div class="form-actions">
-      <%= form.submit t('rooms.create'), class: "btn btn-primary" %>
-    </div>
-  <% end %>
+<div class="card">
+  <div class="card-header d-flex align-items-center">
+    <i class="fas fa-door-open me-2"></i> <%= t('rooms.room_details') %>
+  </div>
+  <div class="card-body">
+    <%= render 'form', room: @room %>
+  </div>
 </div>

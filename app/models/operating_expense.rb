@@ -1,4 +1,5 @@
 class OperatingExpense < ApplicationRecord
+  belongs_to :building, optional: true
   validates :category, presence: true
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :expense_date, presence: true
@@ -37,8 +38,17 @@ class OperatingExpense < ApplicationRecord
     where(expense_date: start_date..end_date)
   }
 
+  scope :for_building, ->(building_id) {
+    where(building_id: building_id)
+  }
+
   # Calculate total expenses for a given month and year
   def self.total_for_month(year, month)
     for_month(year, month).sum(:amount)
+  end
+
+  # Calculate total expenses for a given month, year and building
+  def self.total_for_month_and_building(year, month, building_id)
+    for_month(year, month).for_building(building_id).sum(:amount)
   end
 end

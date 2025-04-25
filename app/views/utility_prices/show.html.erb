@@ -1,0 +1,93 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('utility_prices.show_title') %></h1>
+  <div class="header-actions">
+    <%= link_to t('common.back'), utility_prices_path, class: "btn btn-outline me-2" %>
+    <%= link_to t('common.edit'), edit_utility_price_path(@utility_price), class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="card-title">
+      <%= t('utility_prices.details') %>
+      <% if @utility_price == UtilityPrice.current %>
+        <span class="badge bg-success ms-2"><%= t('utility_prices.current_label') %></span>
+      <% end %>
+    </h2>
+  </div>
+  <div class="card-body">
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <h5 class="text-muted mb-1"><%= t('utility_prices.effective_date') %></h5>
+          <p class="fs-5"><%= l(@utility_price.effective_date, format: :default) %></p>
+        </div>
+        
+        <% if @utility_price.notes.present? %>
+          <div class="mb-3">
+            <h5 class="text-muted mb-1"><%= t('common.notes') %></h5>
+            <p><%= @utility_price.notes %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-bolt text-warning mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.electricity') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@utility_price.electricity_unit_price, unit: "", delimiter: ",", precision: 0) %>
+            </div>
+            <div class="text-muted">VND/kWh</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-tint text-info mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.water') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@utility_price.water_unit_price, unit: "", delimiter: ",", precision: 0) %>
+            </div>
+            <div class="text-muted">VND/m³</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="fas fa-concierge-bell text-success mb-2" style="font-size: 24px;"></i>
+            <h5><%= t('utility_readings.service_charge') %></h5>
+            <div class="mt-2 mb-1" style="font-size: 22px; font-weight: bold;">
+              <%= number_to_currency(@utility_price.service_charge, unit: "", delimiter: ",", precision: 0) %>
+            </div>
+            <div class="text-muted">VND/<%= t('utility_readings.tenant.one') %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+  <div>
+    <%= link_to utility_prices_path, class: "btn btn-outline" do %>
+      <i class="fas fa-arrow-left me-1"></i> <%= t('common.back_to_list') %>
+    <% end %>
+  </div>
+  <div class="d-flex">
+    <%= link_to edit_utility_price_path(@utility_price), class: "btn btn-primary me-2" do %>
+      <i class="fas fa-edit me-1"></i> <%= t('common.edit') %>
+    <% end %>
+    <%= button_to utility_price_path(@utility_price), 
+      method: :delete,
+      form: { data: { turbo_confirm: t('utility_prices.confirm_delete') }, class: "d-inline-block" },
+      class: "btn btn-danger" do %>
+      <i class="fas fa-trash me-1"></i> <%= t('common.delete') %>
+    <% end %>
+  </div>
+</div>
