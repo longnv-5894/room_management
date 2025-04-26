@@ -231,26 +231,19 @@ occupied_rooms.each do |room|
     tenant_count = active_assignments.count
     
     if tenant_count > 0
-      # Calculate per-tenant costs (divide utilities among tenants)
-      per_tenant_electricity_fee = electricity_fee / tenant_count
-      per_tenant_water_fee = water_fee / tenant_count
-      per_tenant_other_fees = other_fees / tenant_count
-      
-      # For rooms with multiple tenants, split the rent evenly
-      per_tenant_rent = room.monthly_rent / tenant_count
-      
       # Create a bill for each tenant in the room
       active_assignments.each do |assignment|
         Bill.create!(
           room_assignment: assignment,
           billing_date: Date.new(2025, 4, 1),
           due_date: Date.new(2025, 4, 15),
-          room_fee: per_tenant_rent,
-          electricity_fee: per_tenant_electricity_fee,
-          water_fee: per_tenant_water_fee,
-          other_fees: per_tenant_other_fees,
-          status: ['unpaid', 'paid'].sample, # Use string values for enum
-          notes: "Electricity: #{(electricity_usage.to_f / tenant_count).round(2)} kWh, Water: #{(water_usage.to_f / tenant_count).round(2)} m³ (Split among #{tenant_count} tenants)"
+          room_fee: room.monthly_rent,
+          electricity_fee: electricity_fee,
+          water_fee: water_fee,
+          service_fee: service_charge * tenant_count, 
+          other_fees: other_fees,
+          status: ['unpaid', 'paid'].sample,
+          notes: "Electricity: #{electricity_usage.to_f} kWh, Water: #{water_usage.to_f} m³"
         )
       end
     end

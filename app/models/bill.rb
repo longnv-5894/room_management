@@ -19,6 +19,8 @@ class Bill < ApplicationRecord
   
   def mark_as_paid
     update(status: 'paid')
+    # When one tenant pays, mark all other tenants' bills for the same room and period as paid
+    mark_other_tenant_bills_as_paid if status == 'paid'
   end
   
   # Calculate billing period (first day of the month to last day)
@@ -76,5 +78,27 @@ class Bill < ApplicationRecord
   def calculate_total
     service_fee_value = respond_to?(:service_fee) ? service_fee : 0
     self.total_amount = room_fee + electricity_fee + water_fee + service_fee_value + other_fees
+  end
+  
+  # Mark all bills for other tenants in the same room for the same period as paid
+  def mark_other_tenant_bills_as_paid
+    return unless room && billing_date
+    
+    # Find all active room assignments for this room
+    room_assignments = room.room_assignments.where(active: true)
+    
+    # Find and mark bills for other tenants in the same room for the same billing period
+    room_assignments.each do |assignment|
+      next if assignment.id == room_assignment_id # Skip current tenant's bill
+      
+      # Find bills for the same month
+      other_bills = Bill.where(room_assignment_id: assignment.id)
+                        .where('extract(month from billing_date) = ?', billing_date.month)
+                        .where('extract(year from billing_date) = ?', billing_date.year)
+                        .where.not(status: 'paid')
+      
+      # Mark as paid
+      other_bills.update_all(status: 'paid')
+    end
   end
 end

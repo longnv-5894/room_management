@@ -3,7 +3,39 @@ class TenantsController < ApplicationController
   before_action :set_tenant, only: [:show, :edit, :update, :destroy]
 
   def index
-    @tenants = Tenant.all
+    @search_query = params[:search]
+    @room_filter = params[:room_id]
+    @building_filter = params[:building_id]
+    
+    # Start with base query
+    query = Tenant.all
+    
+    # Apply search filter if present
+    if @search_query.present?
+      query = query.where("LOWER(name) LIKE ? OR 
+                          LOWER(phone) LIKE ? OR 
+                          LOWER(email) LIKE ? OR 
+                          LOWER(id_number) LIKE ?", 
+                          "%#{@search_query.downcase}%",
+                          "%#{@search_query.downcase}%",
+                          "%#{@search_query.downcase}%",
+                          "%#{@search_query.downcase}%")
+    end
+    
+    # Apply room filter if present
+    if @room_filter.present?
+      query = query.joins(:room_assignments)
+                   .where(room_assignments: { room_id: @room_filter, active: true })
+    end
+    
+    # Apply building filter if present
+    if @building_filter.present?
+      query = query.joins(room_assignments: :room)
+                   .where(rooms: { building_id: @building_filter })
+                   .where(room_assignments: { active: true })
+    end
+    
+    @tenants = query.distinct
     
     respond_to do |format|
       format.html # renders the default index.html.erb template

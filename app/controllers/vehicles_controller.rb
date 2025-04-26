@@ -5,9 +5,10 @@ class VehiclesController < ApplicationController
   def index
     @search_query = params[:search]
     @room_filter = params[:room_id]
+    @building_filter = params[:building_id]
     base_vehicles = @tenant ? @tenant.vehicles : Vehicle.includes(:tenant)
     
-    if @search_query.present? || @room_filter.present?
+    if @search_query.present? || @room_filter.present? || @building_filter.present?
       # Start with base query
       query = base_vehicles.joins(:tenant)
       
@@ -27,10 +28,17 @@ class VehiclesController < ApplicationController
                          "%#{@search_query.downcase}%")
       end
       
+      # Apply building filter if present
+      if @building_filter.present?
+        query = query.joins(tenant: { room_assignments: :room })
+                     .where(rooms: { building_id: @building_filter })
+                     .where(room_assignments: { active: true })
+      end
+      
       # Apply room filter if present
       if @room_filter.present?
         query = query.joins(tenant: :room_assignments)
-                    .where(room_assignments: { room_id: @room_filter, active: true })
+                     .where(room_assignments: { room_id: @room_filter, active: true })
       end
       
       @vehicles = query.distinct

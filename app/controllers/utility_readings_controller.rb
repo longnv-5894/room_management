@@ -3,19 +3,42 @@ class UtilityReadingsController < ApplicationController
   before_action :set_utility_reading, only: [:show, :edit, :update, :destroy]
 
   def index
-    if params[:room_id].present?
-      @utility_readings = UtilityReading.where(room_id: params[:room_id])
-                                       .order(reading_date: :desc)
-                                       .limit(2)
-    else
-      @utility_readings = UtilityReading.includes(:room).order(reading_date: :desc)
+    # Start with base query
+    query = UtilityReading.includes(:room => :building)
+    
+    # Apply building filter
+    if params[:building_id].present?
+      query = query.joins(:room).where(rooms: { building_id: params[:building_id] })
     end
-    service_charge = UtilityPrice.current.service_charge * RoomAssignment.where(room_id: params[:room_id],active: true).count
+    
+    # Apply room filter (takes precedence over building filter)
+    if params[:room_id].present?
+      query = query.where(room_id: params[:room_id])
+    end
+    
+    # Apply date range filters
+    if params[:start_date].present?
+      query = query.where("reading_date >= ?", params[:start_date])
+    end
+    
+    if params[:end_date].present?
+      query = query.where("reading_date <= ?", params[:end_date])
+    end
+    
+    # Final ordering
+    @utility_readings = query.order(reading_date: :desc)
+    
+    # Return correct format
+    service_charge = 0
+    if params[:room_id].present?
+      service_charge = UtilityPrice.current.service_charge * RoomAssignment.where(room_id: params[:room_id], active: true).count
+    end
+    
     respond_to do |format|
       format.html # renders the default index.html.erb template
       format.json do
         if params[:room_id].present?
-          latest_readings = @utility_readings.map do |reading|
+          latest_readings = @utility_readings.limit(2).map do |reading|
             {
               id: reading.id,
               reading_date: reading.reading_date,

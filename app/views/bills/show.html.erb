@@ -47,11 +47,18 @@
             <div class="col-md-6">
               <div class="info-card bg-light rounded p-3 h-100">
                 <div class="info-card-header mb-2">
-                  <i class="fas fa-user text-primary me-2"></i>
-                  <strong><%= t('bills.tenant') %></strong>
+                  <i class="fas fa-users text-primary me-2"></i>
+                  <strong><%= t('bills.tenants', default: 'Tenants') %></strong>
                 </div>
                 <div class="info-card-value">
-                  <%= link_to @bill.room_assignment.tenant.name, tenant_path(@bill.room_assignment.tenant), class: "h5 text-decoration-none" %>
+                  <% @room_assignments.each do |assignment| %>
+                    <div class="mb-1">
+                      <%= link_to assignment.tenant.name, tenant_path(assignment.tenant), class: "text-decoration-none" %>
+                      <% if assignment.id == @bill.room_assignment_id %>
+                        <span class="text-muted small">(<%= t('bills.representative_tenant', default: 'representative') %>)</span>
+                      <% end %>
+                    </div>
+                  <% end %>
                 </div>
               </div>
             </div>

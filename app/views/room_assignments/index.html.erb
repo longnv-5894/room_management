@@ -8,51 +8,80 @@
     </div>
   </div>
 
-  <!-- Filter section with improved styling -->
+  <!-- Filter section with consistent styling -->
   <div class="card mb-4">
     <div class="card-body">
-      <h5 class="mb-3 fw-semibold"><%= t('common.filter') %></h5>
-      
-      <%= form_with url: room_assignments_path, method: :get, class: 'row g-3', data: { turbo: false } do |form| %>
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label"><%= t('room_assignments.room') %></label>
-          <%= form.select :room_id, 
-              options_for_select([['', '']] + @rooms.map { |r| [r.number, r.id] }, @filter_room_id), 
-              {}, { class: 'form-select' } %>
-        </div>
-        
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label"><%= t('room_assignments.tenant') %></label>
-          <%= form.select :tenant_id, 
-              options_for_select([['', '']] + @tenants.map { |t| [t.name, t.id] }, @filter_tenant_id), 
-              {}, { class: 'form-select' } %>
-        </div>
-        
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label"><%= t('room_assignments.status') %></label>
-          <%= form.select :status, 
-              options_for_select([
-                ['', ''],
-                [t('room_assignments.active'), 'active'], 
-                [t('room_assignments.inactive'), 'inactive']
-              ], @filter_status), 
-              {}, { class: 'form-select' } %>
-        </div>
-        
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label"><%= t('room_assignments.start_date_from') %></label>
-          <%= form.date_field :start_date_from, value: @filter_start_date_from, class: 'form-control' %>
-        </div>
-        
-        <div class="col-md-3 col-sm-6">
-          <label class="form-label"><%= t('room_assignments.start_date_to') %></label>
-          <%= form.date_field :start_date_to, value: @filter_start_date_to, class: 'form-control' %>
-        </div>
-        
-        <div class="col-12">
-          <div class="d-flex gap-2">
-            <%= form.submit t('common.apply_filters'), class: 'btn btn-primary' %>
-            <%= link_to t('common.clear'), room_assignments_path, class: 'btn btn-outline' %>
+      <%= form_with url: room_assignments_path, method: :get, class: "search-form", id: "room-assignments-filter-form" do |form| %>
+        <div class="filter-container">
+          <!-- Building filter -->
+          <div class="filter-select-container">
+            <%= form.select :building_id, 
+                        options_for_select(Building.all.map { |b| [b.name, b.id] }, params[:building_id]), 
+                        { prompt: t('room_assignments.filter_by_building', default: 'Tòa nhà') },
+                        class: "form-select filter-select", 
+                        id: "building-filter",
+                        onchange: "filterRooms()" %>
+          </div>
+          
+          <!-- Room filter -->
+          <div class="filter-select-container">
+            <%= form.select :room_id, 
+                          options_for_select(Room.all.map { |r| 
+                            ["#{r.number}", r.id, { 'data-building-id': r.building_id }]  
+                          }, params[:room_id]), 
+                          { prompt: t('room_assignments.filter_by_room', default: 'Phòng') },
+                          class: "form-select filter-select",
+                          id: "room-filter" %>
+          </div>
+          
+          <!-- Tenant filter -->
+          <div class="filter-select-container">
+            <%= form.select :tenant_id, 
+                          options_for_select(@tenants.map { |t| [t.name, t.id] }, params[:tenant_id]), 
+                          { prompt: t('room_assignments.filter_by_tenant', default: 'Người thuê') },
+                          class: "form-select filter-select",
+                          id: "tenant-filter" %>
+          </div>
+          
+          <!-- Status filter -->
+          <div class="filter-select-container">
+            <%= form.select :status, 
+                          options_for_select([
+                            [t('room_assignments.active'), 'active'], 
+                            [t('room_assignments.inactive'), 'inactive']
+                          ], params[:status]), 
+                          { prompt: t('room_assignments.filter_by_status', default: 'Trạng thái') },
+                          class: "form-select filter-select",
+                          id: "status-filter" %>
+          </div>
+          
+          <!-- Date range filter container -->
+          <div class="date-range-container">
+            <div class="date-start-container">
+              <%= form.date_field :start_date_from, 
+                                value: params[:start_date_from], 
+                                class: "form-control date-input", 
+                                placeholder: t('room_assignments.start_date_from', default: 'Từ ngày') %>
+            </div>
+            <div class="date-end-container">
+              <%= form.date_field :start_date_to, 
+                                value: params[:start_date_to], 
+                                class: "form-control date-input", 
+                                placeholder: t('room_assignments.start_date_to', default: 'Đến ngày') %>
+            </div>
+          </div>
+          
+          <!-- Action buttons -->
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary filter-btn">
+              <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
+            </button>
+            
+            <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
+              <%= link_to room_assignments_path, class: "btn btn-outline-secondary filter-clear-btn" do %>
+                <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+              <% end %>
+            <% end %>
           </div>
         </div>
       <% end %>
@@ -62,6 +91,44 @@
   <div class="card">
     <div class="card-body p-0">
       <% if @room_assignments.any? %>
+        <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
+          <div class="search-results-info mb-3 px-3 pt-3">
+            <%= t('room_assignments.filter_results', count: @room_assignments.count, default: "Found #{@room_assignments.count} assignments") %>
+            <% if params[:room_id].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-home me-1"></i><%= Room.find(params[:room_id]).number %>
+              </span>
+            <% end %>
+            <% if params[:building_id].present? && !params[:room_id].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-building me-1"></i><%= Building.find(params[:building_id]).name %>
+              </span>
+            <% end %>
+            <% if params[:tenant_id].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-user me-1"></i><%= Tenant.find(params[:tenant_id]).name %>
+              </span>
+            <% end %>
+            <% if params[:status].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-check-circle me-1"></i><%= t("room_assignments.#{params[:status]}") %>
+              </span>
+            <% end %>
+            <% if params[:start_date_from].present? && params[:start_date_to].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-calendar-alt me-1"></i><%= l Date.parse(params[:start_date_from]), format: :short %> - <%= l Date.parse(params[:start_date_to]), format: :short %>
+              </span>
+            <% elsif params[:start_date_from].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-calendar-alt me-1"></i><%= t('common.from', default: 'From') %> <%= l Date.parse(params[:start_date_from]), format: :short %>
+              </span>
+            <% elsif params[:start_date_to].present? %>
+              <span class="filter-tag">
+                <i class="fas fa-calendar-alt me-1"></i><%= t('common.until', default: 'Until') %> <%= l Date.parse(params[:start_date_to]), format: :short %>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
         <div class="table-responsive">
           <table class="table data-table mb-0">
             <thead>
@@ -130,9 +197,152 @@
         </div>
       <% else %>
         <div class="empty-state p-4 text-center">
-          <p class="text-muted mb-0"><%= t('room_assignments.no_assignments') %></p>
+          <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
+            <p class="text-muted mb-3"><%= t('room_assignments.no_assignments_with_filter', default: 'No assignments match your filter criteria.') %></p>
+            <%= link_to t('common.clear_filters', default: 'Clear all filters'), room_assignments_path, class: "btn btn-primary" %>
+          <% else %>
+            <p class="text-muted mb-0"><%= t('room_assignments.no_assignments') %></p>
+          <% end %>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<style>
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .filter-select-container {
+    flex: 1;
+    min-width: 160px;
+  }
+  
+  .date-range-container {
+    flex: 2;
+    display: flex;
+    gap: 10px;
+    min-width: 300px;
+  }
+  
+  .date-start-container, .date-end-container {
+    flex: 1;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-control, .form-select {
+    border-radius: 4px;
+    height: 40px;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 110px;
+    justify-content: center;
+  }
+
+  .filter-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  .search-results-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  
+  .filter-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    margin-top: 5px;
+  }
+</style>
+
+<script>
+  // Function to filter room options based on the selected building
+  function filterRooms() {
+    const buildingFilter = document.getElementById('building-filter');
+    const roomFilter = document.getElementById('room-filter');
+    const selectedBuildingId = buildingFilter.value;
+    
+    // Save current room selection
+    const currentRoomId = roomFilter.value;
+    
+    // Get all options except the first one (prompt)
+    const options = Array.from(roomFilter.options).slice(1);
+    
+    // Hide/show options based on selected building
+    options.forEach(option => {
+      const buildingId = option.getAttribute('data-building-id');
+      
+      if (!selectedBuildingId || buildingId === selectedBuildingId) {
+        // Show the option if no building selected or it matches the selected building
+        option.style.display = '';
+      } else {
+        // Hide options from other buildings
+        option.style.display = 'none';
+      }
+    });
+    
+    // If the currently selected room is from a different building, reset the selection
+    if (currentRoomId) {
+      const selectedOption = roomFilter.querySelector(`option[value="${currentRoomId}"]`);
+      if (selectedOption) {
+        const optionBuildingId = selectedOption.getAttribute('data-building-id');
+        if (selectedBuildingId && optionBuildingId !== selectedBuildingId) {
+          roomFilter.selectedIndex = 0;
+        }
+      }
+    }
+  }
+
+  // Run on page load to handle initial state
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up initial filter if building is already selected
+    const buildingFilter = document.getElementById('building-filter');
+    if (buildingFilter && buildingFilter.value) {
+      filterRooms();
+    }
+    
+    // Make sure selected room is visible 
+    const roomFilter = document.getElementById('room-filter');
+    const selectedRoomId = roomFilter.value;
+    
+    if (selectedRoomId) {
+      const selectedOption = roomFilter.querySelector(`option[value="${selectedRoomId}"]`);
+      if (selectedOption) {
+        selectedOption.style.display = '';
+      }
+    }
+  });
+</script>

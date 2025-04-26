@@ -15,29 +15,54 @@
 
 <div class="card mb-4">
   <div class="card-body">
-    <%= form_with url: @tenant ? tenant_vehicles_path(@tenant) : vehicles_path, method: :get, class: "search-form" do |form| %>
-      <div class="input-group">
-        <%= form.text_field :search, value: @search_query, class: "form-control", placeholder: t('vehicles.search_placeholder') %>
+    <%= form_with url: @tenant ? tenant_vehicles_path(@tenant) : vehicles_path, method: :get, class: "search-form", id: "vehicles-filter-form" do |form| %>
+      <div class="filter-container">
+        <!-- Search input -->
+        <div class="search-input-container">
+          <%= form.text_field :search, value: @search_query, class: "form-control", placeholder: t('vehicles.search_placeholder') %>
+        </div>
+        
         <% unless @tenant %>
-          <%= form.select :room_id, 
-                        options_for_select([['', '']] + @rooms.map { |r| [r.number, r.id] }, @room_filter), 
-                        { prompt: t('vehicles.filter_by_room') },
-                        class: "form-select custom-room-filter" %>
+          <!-- Building filter -->
+          <div class="filter-select-container">
+            <%= form.select :building_id, 
+                          options_for_select(Building.all.map { |b| [b.name, b.id] }, params[:building_id]), 
+                          { prompt: t('vehicles.filter_by_building', default: 'Tòa nhà') },
+                          class: "form-select filter-select", 
+                          id: "building-filter",
+                          onchange: "filterRooms()" %>
+          </div>
+          
+          <!-- Room filter -->
+          <div class="filter-select-container">
+            <%= form.select :room_id, 
+                          options_for_select([['', '']] + @rooms.map { |r| 
+                            ["#{r.number}", r.id, { 'data-building-id': r.building_id }]  
+                          }, @room_filter), 
+                          { prompt: t('vehicles.filter_by_room', default: 'Lọc theo phòng') },
+                          class: "form-select filter-select",
+                          id: "room-filter" %>
+          </div>
         <% end %>
-        <button type="submit" class="btn btn-primary custom-search-button">
-          <i class="fas fa-search me-1"></i><span class="btn-text"><%= t('common.search') %></span>
-        </button>
-        <% if @search_query.present? || @room_filter.present? %>
-          <% if @tenant %>
-            <%= link_to tenant_vehicles_path(@tenant), class: "btn btn-outline custom-clear-button" do %>
-              <i class="fas fa-times me-1"></i><%= t('common.clear') %>
-            <% end %>
-          <% else %>
-            <%= link_to vehicles_path, class: "btn btn-outline custom-clear-button" do %>
-              <i class="fas fa-times me-1"></i><%= t('common.clear') %>
+        
+        <!-- Action buttons -->
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary filter-btn">
+            <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
+          </button>
+          
+          <% if @search_query.present? || @room_filter.present? || params[:building_id].present? %>
+            <% if @tenant %>
+              <%= link_to tenant_vehicles_path(@tenant), class: "btn btn-outline-secondary filter-clear-btn" do %>
+                <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+              <% end %>
+            <% else %>
+              <%= link_to vehicles_path, class: "btn btn-outline-secondary filter-clear-btn" do %>
+                <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+              <% end %>
             <% end %>
           <% end %>
-        <% end %>
+        </div>
       </div>
     <% end %>
   </div>
@@ -174,19 +199,33 @@
     margin-bottom: 0;
   }
 
-  .search-form .input-group {
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-input-container {
+    flex: 3;
+  }
+
+  .filter-select-container {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .filter-actions {
     display: flex;
     align-items: center;
     gap: 10px;
   }
 
-  .search-form .form-control {
+  .form-control {
     border-radius: 4px;
     height: 40px;
-    flex: 3;
   }
 
-  .custom-search-button {
+  .filter-btn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -197,7 +236,7 @@
     justify-content: center;
   }
 
-  .custom-clear-button {
+  .filter-clear-btn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -206,15 +245,12 @@
     height: 40px;
     min-width: 100px;
     justify-content: center;
-    margin-left: 10px;
   }
 
-  .custom-room-filter {
+  .filter-select {
     border-radius: 4px;
     height: 40px;
-    width: 160px;
-    max-width: 160px;
-    flex: 1;
+    width: 100%;
   }
 
   .search-results-info {
@@ -234,3 +270,39 @@
     margin: 0;
   }
 </style>
+
+<script>
+  // Function to filter room options based on the selected building
+  function filterRooms() {
+    const buildingFilter = document.getElementById('building-filter');
+    const roomFilter = document.getElementById('room-filter');
+    const selectedBuildingId = buildingFilter.value;
+    
+    // Reset room selection when building changes
+    roomFilter.selectedIndex = 0;
+    
+    // Get all options except the first one (prompt)
+    const options = Array.from(roomFilter.options).slice(1);
+    
+    options.forEach(option => {
+      const buildingId = option.getAttribute('data-building-id');
+      
+      if (!selectedBuildingId || buildingId === selectedBuildingId) {
+        // Show the option if no building selected or it matches the selected building
+        option.style.display = '';
+      } else {
+        // Hide options from other buildings
+        option.style.display = 'none';
+      }
+    });
+  }
+
+  // Run on page load to handle initial state
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up initial filter if building is already selected
+    const buildingFilter = document.getElementById('building-filter');
+    if (buildingFilter && buildingFilter.value) {
+      filterRooms();
+    }
+  });
+</script>

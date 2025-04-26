@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="<%= I18n.locale %>">
   <head>
     <title><%= content_for(:title) || t('dashboard.title') %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="<%= content_for(:meta_description) || t('meta.description', default: 'Room Management System') %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
@@ -12,9 +13,6 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
-    
     <!-- Select2 CSS and JS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
@@ -23,11 +21,15 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
-    <!-- Bootstrap CSS and JS (added proper Bootstrap 5 CDN) -->
+    <!-- Bootstrap CSS and JS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    
     <style>
+      /* Core variables */
       :root {
         --primary-color: #6c5ce7;
         --primary-light: rgba(108, 92, 231, 0.1);
@@ -35,70 +37,31 @@
         --accent-color: #fd79a8;
         --text-dark: #333;
         --text-light: #6c757d;
+        --light-bg: #f8f9fa;
         --white: #fff;
+        --border-color: #dee2e6;
         --border-radius: 8px;
         --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         --transition: all 0.2s ease;
+        --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       }
 
       body {
         font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         color: var(--text-dark);
         background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
       }
       
-      .language-switcher {
-        position: relative;
-        display: inline-block;
-      }
-      
-      .language-dropdown {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background-color: var(--white);
-        box-shadow: var(--box-shadow);
-        border-radius: var(--border-radius);
-        min-width: 150px;
-        z-index: 1000;
-        display: none;
-        overflow: hidden;
-      }
-      
-      .language-switcher:hover .language-dropdown {
-        display: block;
-      }
-      
-      .language-item {
-        display: block;
-        padding: 10px 15px;
-        text-decoration: none;
-        color: var(--text-dark);
-        font-size: 14px;
-      }
-      
-      .language-item:hover {
-        background-color: var(--primary-light);
-      }
-      
-      .language-item.active {
-        font-weight: bold;
-        background-color: var(--primary-medium);
-        color: var(--primary-color);
-      }
-      
+      /* Layout containers */
       .app-container {
         display: flex;
         min-height: 100vh;
       }
       
-      .main-content {
-        flex: 1;
-        margin-left: 250px;
-        padding: 20px;
-        transition: margin-left 0.3s;
-      }
-      
+      /* Sidebar */
       .sidebar {
         width: 250px;
         background-color: var(--white);
@@ -111,8 +74,17 @@
         transition: transform 0.3s;
         overflow-y: auto;
         padding-top: 20px;
+        border-right: 1px solid var(--border-color);
       }
       
+      .main-content {
+        flex: 1;
+        margin-left: 250px;
+        padding: 20px;
+        transition: margin-left 0.3s;
+      }
+
+      /* Top navbar */
       .top-navbar {
         background-color: var(--white);
         box-shadow: var(--box-shadow);
@@ -121,6 +93,7 @@
         top: 0;
         z-index: 100;
         height: 60px;
+        width: 100%;
       }
       
       .top-navbar-content {
@@ -128,6 +101,7 @@
         justify-content: space-between;
         align-items: center;
         height: 100%;
+        padding: 0 20px;
       }
       
       .top-navbar-left {
@@ -141,6 +115,7 @@
         height: 100%;
       }
       
+      /* User dropdown */
       .user-dropdown {
         height: 100%;
       }
@@ -188,6 +163,7 @@
         margin-right: 8px;
       }
       
+      /* Sidebar navigation */
       .sidebar-nav {
         list-style: none;
         padding: 0;
@@ -220,7 +196,6 @@
         font-weight: 600;
       }
       
-      /* Sidebar group headers */
       .sidebar-group-header {
         font-size: 12px;
         text-transform: uppercase;
@@ -230,6 +205,100 @@
         padding: 16px 20px 8px;
         margin-top: 8px;
         border-bottom: 1px solid rgba(0,0,0,0.05);
+      }
+      
+      /* Language switcher */
+      .language-switcher {
+        position: relative;
+        display: inline-block;
+      }
+      
+      .language-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: var(--white);
+        box-shadow: var(--box-shadow);
+        border-radius: var(--border-radius);
+        min-width: 150px;
+        z-index: 1000;
+        display: none;
+        overflow: hidden;
+      }
+      
+      .language-switcher:hover .language-dropdown {
+        display: block;
+      }
+      
+      .language-item {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: var(--text-dark);
+        font-size: 14px;
+      }
+      
+      .language-item:hover {
+        background-color: var(--primary-light);
+      }
+      
+      .language-item.active {
+        font-weight: bold;
+        background-color: var(--primary-medium);
+        color: var(--primary-color);
+      }
+      
+      /* Dashboard styling */
+      .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+        margin-bottom: 35px;
+      }
+
+      .stat-card {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+
+      .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background-color: rgba(108, 92, 231, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c5ce7;
+        margin-right: 18px;
+      }
+
+      .stat-content {
+        flex: 1;
+      }
+
+      .stat-value {
+        display: block;
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .stat-label {
+        font-size: 15px;
+        color: #70757a;
+        font-weight: 500;
       }
       
       /* Flash messages styling */
@@ -276,25 +345,6 @@
         gap: 10px;
       }
       
-      /* Card styling enhancements */
-      .card {
-        border: none;
-        box-shadow: var(--box-shadow);
-        border-radius: var(--border-radius);
-        margin-bottom: 24px;
-        overflow: hidden;
-      }
-      
-      .card-header {
-        background-color: var(--white);
-        border-bottom: 1px solid rgba(0,0,0,0.1);
-        padding: 16px 20px;
-      }
-      
-      .card-body {
-        padding: 20px;
-      }
-      
       /* Button styling */
       .btn {
         font-weight: 500;
@@ -324,37 +374,26 @@
         color: var(--text-dark);
       }
       
-      .btn-danger {
-        background-color: #e74c3c;
-        border-color: #e74c3c;
+      /* Card styling */
+      .card {
+        border: none;
+        box-shadow: var(--box-shadow);
+        border-radius: var(--border-radius);
+        margin-bottom: 24px;
+        overflow: hidden;
       }
       
-      .btn-danger:hover {
-        background-color: #c0392b;
-        border-color: #c0392b;
+      .card-header {
+        background-color: var(--white);
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding: 16px 20px;
       }
       
-      /* Status badges */
-      .status-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 30px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
+      .card-body {
+        padding: 20px;
       }
       
-      .status-active {
-        background-color: #d4edda;
-        color: #155724;
-      }
-      
-      .status-inactive {
-        background-color: #f8d7da;
-        color: #721c24;
-      }
-      
-      /* Table styling */
+      /* Data tables */
       .data-table {
         width: 100%;
         border-collapse: separate;
@@ -367,7 +406,6 @@
         text-align: left;
         border-bottom: 1px solid #dee2e6;
         background-color: #f8f9fa;
-        color: var (--text-dark);
       }
       
       .data-table td {
@@ -380,23 +418,198 @@
         background-color: #f8f9fa;
       }
       
-      /* Filter form styling */
-      .filter-form {
-        margin-bottom: 16px;
+      /* Status badges */
+      .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
       }
       
-      .filter-form .form-label {
-        font-weight: 500;
-        font-size: 14px;
-        margin-bottom: 6px;
+      .status-active, .status-paid, .status-available {
+        background-color: #d4edda;
+        color: #155724;
       }
       
-      .filter-form .form-control,
-      .filter-form .form-select {
-        border: 1px solid #dee2e6;
-        border-radius: var(--border-radius);
-        padding: 8px 12px;
+      .status-inactive, .status-unpaid, .status-maintenance {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      
+      .status-partial, .status-occupied {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      
+      /* Skip to content link */
+      .skip-to-content {
+        position: absolute;
+        left: -999px;
+        width: 1px;
+        height: 1px;
+        top: auto;
+        overflow: hidden;
+      }
+      
+      .skip-to-content:focus {
+        color: var(--white);
+        background-color: var(--primary-color);
+        left: 0;
+        top: 0;
+        width: auto;
         height: auto;
+        overflow: auto;
+        padding: 10px;
+        text-align: center;
+        font-weight: 600;
+        z-index: 9999;
+      }
+      
+      /* Filter components */
+      .filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .search-input-container {
+        flex: 3;
+        min-width: 200px;
+      }
+      
+      .filter-select-container {
+        flex: 1;
+        min-width: 160px;
+      }
+      
+      .filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .form-control {
+        border-radius: 4px;
+        height: 40px;
+      }
+      
+      .filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 4px;
+        height: 40px;
+        min-width: 110px;
+        justify-content: center;
+      }
+      
+      .filter-clear-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 4px;
+        height: 40px;
+        min-width: 100px;
+        justify-content: center;
+      }
+      
+      .filter-select {
+        border-radius: 4px;
+        height: 40px;
+        width: 100%;
+      }
+      
+      .search-results-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+      }
+      
+      .filter-tag {
+        display: inline-block;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-size: 0.85rem;
+        margin-right: 5px;
+        margin-top: 5px;
+      }
+      
+      /* Quick Actions styling - horizontal layout with icons */
+      .quick-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin: 30px 0;
+      }
+      
+      .quick-action-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--text-dark);
+        transition: transform 0.2s;
+      }
+      
+      .quick-action-item:hover {
+        transform: translateY(-3px);
+        color: var(--primary-color);
+      }
+      
+      .quick-action-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        background-color: #f0f0ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+        color: var(--primary-color);
+        font-size: 18px;
+      }
+      
+      .quick-action-label {
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+      }
+      
+      /* Quick action types */
+      .quick-action-building {
+        background-color: #e6f7ff;
+        color: #1890ff;
+      }
+      
+      .quick-action-room {
+        background-color: #f6ffed;
+        color: #52c41a;
+      }
+      
+      .quick-action-tenant {
+        background-color: #fff2e8;
+        color: #fa8c16;
+      }
+      
+      .quick-action-assignment {
+        background-color: #f9f0ff;
+        color: #722ed1;
+      }
+      
+      .quick-action-utility {
+        background-color: #e6fffb;
+        color: #13c2c2;
+      }
+      
+      .quick-action-bill {
+        background-color: #fcffe6;
+        color: #a0d911;
       }
       
       @media (max-width: 768px) {
@@ -411,16 +624,49 @@
         .main-content {
           margin-left: 0;
         }
+        
+        .filter-container {
+          flex-direction: column;
+        }
+        
+        .quick-actions {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+      }
+      
+      /* Mobile menu toggle button */
+      .mobile-navbar-toggler {
+        display: none;
+        background: none;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        color: var(--text-dark);
+      }
+      
+      @media (max-width: 768px) {
+        .mobile-navbar-toggler {
+          display: block !important;
+        }
       }
     </style>
   </head>
 
   <body>
     <% if session[:user_id] %>
+      <!-- Skip link for accessibility -->
+      <a href="#main-content" class="skip-to-content">Skip to main content</a>
+      
       <!-- Top navbar -->
       <nav class="top-navbar">
         <div class="container-fluid px-4 top-navbar-content">
           <div class="top-navbar-left">
+            <!-- Mobile menu toggle button -->
+            <button class="mobile-navbar-toggler me-3" aria-label="Toggle navigation menu">
+              <i class="fas fa-bars"></i>
+            </button>
+            
             <%= link_to t('dashboard.title'), dashboard_path, class: "navbar-brand fw-bold" %>
           </div>
           <div class="top-navbar-right">
@@ -479,35 +725,123 @@
       <div class="app-container">
         <!-- Left sidebar -->
         <div class="sidebar">
-          <ul class="sidebar-nav">
+          <ul class="sidebar-nav" role="menu">
             <!-- Dashboard -->
-            <li><%= link_to t('nav.dashboard'), dashboard_path, class: "nav-link #{current_page?(dashboard_path) ? 'active' : ''}" %></li>
+            <li>
+              <%= link_to dashboard_path, 
+                  class: "nav-link #{current_page?(dashboard_path) ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (current_page?(dashboard_path) ? "page" : nil) do %>
+                <i class="fas fa-tachometer-alt me-2"></i>
+                <%= t('nav.dashboard') %>
+              <% end %>
+            </li>
             
             <!-- Property Management Group -->
-            <li class="sidebar-group-header"><%= t('nav.property_management') %></li>
-            <li><%= link_to t('nav.buildings'), buildings_path, class: "nav-link #{controller_name == 'buildings' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.rooms'), rooms_path, class: "nav-link #{controller_name == 'rooms' ? 'active' : ''}" %></li>
+            <li class="sidebar-group-header" role="presentation"><%= t('nav.property_management') %></li>
+            <li>
+              <%= link_to buildings_path, 
+                  class: "nav-link #{controller_name == 'buildings' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'buildings' ? "page" : nil) do %>
+                <i class="fas fa-building me-2"></i>
+                <%= t('nav.buildings') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to rooms_path, 
+                  class: "nav-link #{controller_name == 'rooms' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'rooms' ? "page" : nil) do %>
+                <i class="fas fa-door-open me-2"></i>
+                <%= t('nav.rooms') %>
+              <% end %>
+            </li>
             
             <!-- Tenant Management Group -->
-            <li class="sidebar-group-header"><%= t('nav.tenant_management') %></li>
-            <li><%= link_to t('nav.tenants'), tenants_path, class: "nav-link #{controller_name == 'tenants' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.assignments'), room_assignments_path, class: "nav-link #{controller_name == 'room_assignments' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.vehicles'), vehicles_path, class: "nav-link #{controller_name == 'vehicles' ? 'active' : ''}" %></li>
+            <li class="sidebar-group-header" role="presentation"><%= t('nav.tenant_management') %></li>
+            <li>
+              <%= link_to tenants_path, 
+                  class: "nav-link #{controller_name == 'tenants' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'tenants' ? "page" : nil) do %>
+                <i class="fas fa-users me-2"></i>
+                <%= t('nav.tenants') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to room_assignments_path, 
+                  class: "nav-link #{controller_name == 'room_assignments' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'room_assignments' ? "page" : nil) do %>
+                <i class="fas fa-exchange-alt me-2"></i>
+                <%= t('nav.assignments') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to vehicles_path, 
+                  class: "nav-link #{controller_name == 'vehicles' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'vehicles' ? "page" : nil) do %>
+                <i class="fas fa-car me-2"></i>
+                <%= t('nav.vehicles') %>
+              <% end %>
+            </li>
             
             <!-- Billing Management Group -->
-            <li class="sidebar-group-header"><%= t('nav.billing_management') %></li>
-            <li><%= link_to t('nav.utilities'), utility_readings_path, class: "nav-link #{controller_name == 'utility_readings' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.utility_prices'), utility_prices_path, class: "nav-link #{controller_name == 'utility_prices' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.bills'), bills_path, class: "nav-link #{controller_name == 'bills' ? 'active' : ''}" %></li>
+            <li class="sidebar-group-header" role="presentation"><%= t('nav.billing_management') %></li>
+            <li>
+              <%= link_to utility_readings_path, 
+                  class: "nav-link #{controller_name == 'utility_readings' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'utility_readings' ? "page" : nil) do %>
+                <i class="fas fa-tachometer-alt me-2"></i>
+                <%= t('nav.utilities') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to utility_prices_path, 
+                  class: "nav-link #{controller_name == 'utility_prices' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'utility_prices' ? "page" : nil) do %>
+                <i class="fas fa-tag me-2"></i>
+                <%= t('nav.utility_prices') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to bills_path, 
+                  class: "nav-link #{controller_name == 'bills' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'bills' ? "page" : nil) do %>
+                <i class="fas fa-file-invoice-dollar me-2"></i>
+                <%= t('nav.bills') %>
+              <% end %>
+            </li>
             
             <!-- Financial Management Group -->
-            <li class="sidebar-group-header"><%= t('nav.financial_management') %></li>
-            <li><%= link_to t('nav.expenses'), operating_expenses_path, class: "nav-link #{controller_name == 'operating_expenses' ? 'active' : ''}" %></li>
-            <li><%= link_to t('nav.revenues'), revenues_path, class: "nav-link #{controller_name == 'revenues' ? 'active' : ''}" %></li>
+            <li class="sidebar-group-header" role="presentation"><%= t('nav.financial_management') %></li>
+            <li>
+              <%= link_to operating_expenses_path, 
+                  class: "nav-link #{controller_name == 'operating_expenses' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'operating_expenses' ? "page" : nil) do %>
+                <i class="fas fa-money-bill-wave me-2"></i>
+                <%= t('nav.expenses') %>
+              <% end %>
+            </li>
+            <li>
+              <%= link_to revenues_path, 
+                  class: "nav-link #{controller_name == 'revenues' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'revenues' ? "page" : nil) do %>
+                <i class="fas fa-chart-line me-2"></i>
+                <%= t('nav.revenues') %>
+              <% end %>
+            </li>
           </ul>
         </div>
         
-        <div class="main-content">
+        <div id="main-content" class="main-content" tabindex="-1">
           <% flash.each do |message_type, message| %>
             <div class="flash flash-<%= message_type %>">
               <%= message %>
@@ -528,5 +862,39 @@
         <%= yield %>
       </div>
     <% end %>
+    
+    <script>
+      // Initialize mobile navigation
+      document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.querySelector('.mobile-navbar-toggler');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (toggleButton && sidebar) {
+          toggleButton.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            // Update button icon
+            const icon = this.querySelector('i');
+            if (sidebar.classList.contains('active')) {
+              icon.className = 'fas fa-times';
+            } else {
+              icon.className = 'fas fa-bars';
+            }
+          });
+          
+          // Close sidebar when clicking outside on mobile
+          document.addEventListener('click', function(e) {
+            if (sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                !toggleButton.contains(e.target)) {
+              sidebar.classList.remove('active');
+              const icon = toggleButton.querySelector('i');
+              if (icon) {
+                icon.className = 'fas fa-bars';
+              }
+            }
+          });
+        }
+      });
+    </script>
   </body>
 </html>

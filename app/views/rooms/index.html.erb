@@ -5,9 +5,81 @@
   </div>
 </div>
 
+<div class="card mb-4">
+  <div class="card-body">
+    <%= form_with url: rooms_path, method: :get, class: "search-form", id: "rooms-filter-form" do |form| %>
+      <div class="filter-container">
+        <!-- Search input -->
+        <div class="search-input-container">
+          <%= form.text_field :search, value: params[:search], class: "form-control", placeholder: t('rooms.search_placeholder', default: 'Tìm theo số phòng...') %>
+        </div>
+        
+        <!-- Building filter -->
+        <div class="filter-select-container">
+          <%= form.select :building_id, 
+                        options_for_select(Building.all.map { |b| [b.name, b.id] }, params[:building_id] || (@building&.id)), 
+                        { prompt: t('rooms.filter_by_building', default: 'Tòa nhà') },
+                        class: "form-select filter-select", 
+                        id: "building-filter" %>
+        </div>
+        
+        <!-- Status filter -->
+        <div class="filter-select-container">
+          <%= form.select :status, 
+                        options_for_select([
+                          [t('rooms.available'), 'available'],
+                          [t('rooms.occupied'), 'occupied'],
+                          [t('rooms.maintenance'), 'maintenance']
+                        ], params[:status]), 
+                        { prompt: t('rooms.filter_by_status', default: 'Trạng thái') },
+                        class: "form-select filter-select",
+                        id: "status-filter" %>
+        </div>
+        
+        <!-- Hidden field to ignore building context when filtering -->
+        <%= form.hidden_field :ignore_building_context, value: 'true' %>
+        
+        <!-- Action buttons -->
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary filter-btn">
+            <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
+          </button>
+          
+          <% if params[:search].present? || params[:status].present? || params[:building_id].present? %>
+            <%= link_to rooms_path(ignore_building_context: true), class: "btn btn-outline-secondary filter-clear-btn" do %>
+              <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-body">
     <% if @rooms.any? %>
+      <% if @search_query.present? || @building_filter.present? || @status_filter.present? %>
+        <div class="search-results-info mb-3">
+          <%= t('rooms.filter_results_count', count: @rooms.count) %>
+          <% if @search_query.present? %>
+            <span class="filter-tag">
+              <%= t('rooms.search_term', term: @search_query) %>
+            </span>
+          <% end %>
+          <% if @building_filter.present? %>
+            <span class="filter-tag">
+              <%= t('rooms.building_filter', building: Building.find(@building_filter).name) %>
+            </span>
+          <% end %>
+          <% if @status_filter.present? %>
+            <span class="filter-tag">
+              <%= t('rooms.status_filter', status: t("rooms.#{@status_filter}")) %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+      
       <div class="table-responsive">
         <table class="data-table">
           <thead>
@@ -69,8 +141,96 @@
       </div>
     <% else %>
       <div class="empty-state">
-        <p><%= t('rooms.no_rooms', default: 'No rooms found. Click "Add New Room" to create your first room.') %></p>
+        <% if @search_query.present? || @building_filter.present? || @status_filter.present? %>
+          <p><%= t('rooms.no_rooms_with_filter', default: 'No rooms match your filter criteria.') %></p>
+          <%= link_to t('common.clear_filters', default: 'Clear all filters'), rooms_path, class: "btn btn-primary" %>
+        <% else %>
+          <p><%= t('rooms.no_rooms', default: 'No rooms found. Click "Add New Room" to create your first room.') %></p>
+        <% end %>
       </div>
     <% end %>
   </div>
 </div>
+
+<style>
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-input-container {
+    flex: 3;
+  }
+
+  .filter-select-container {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-control {
+    border-radius: 4px;
+    height: 40px;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 110px;
+    justify-content: center;
+  }
+
+  .filter-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  .filter-select {
+    border-radius: 4px;
+    height: 40px;
+    width: 100%;
+  }
+
+  .search-results-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  
+  .filter-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    margin-top: 5px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 15px;
+  }
+</style>

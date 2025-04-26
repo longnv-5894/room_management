@@ -6,48 +6,65 @@
 </div>
 
 <div class="card mb-4">
-  <div class="card-header">
-    <h2 class="card-title"><%= t('bills.filter_bills', default: 'Filter Bills') %></h2>
-  </div>
   <div class="card-body">
-    <%= form_with(url: bills_path, method: :get, local: true, class: "filter-form") do |form| %>
-      <div class="filter-group">
-        <%= form.label :room, t('bills.room'), class: "filter-label" %>
-        <%= form.select :room_id, 
-                       Room.all.map { |r| [r.number, r.id] }, 
-                       { include_blank: t('bills.all_rooms', default: 'All Rooms') }, 
-                       { class: "filter-select" } %>
-      </div>
-      
-      <div class="filter-group">
-        <%= form.label :tenant, t('bills.tenant'), class: "filter-label" %>
-        <%= form.select :tenant_id, 
-                       Tenant.all.map { |t| [t.name, t.id] }, 
-                       { include_blank: t('bills.all_tenants', default: 'All Tenants') }, 
-                       { class: "filter-select" } %>
-      </div>
-      
-      <div class="filter-group">
-        <%= form.label :status, t('bills.status'), class: "filter-label" %>
-        <%= form.select :status, 
-                       [[t('bills.unpaid'), "unpaid"], [t('bills.paid'), "paid"], [t('bills.overdue'), "overdue"]], 
-                       { include_blank: t('bills.all_statuses', default: 'All Statuses') }, 
-                       { class: "filter-select" } %>
-      </div>
-      
-      <div class="filter-group">
-        <%= form.label :date_from, t('bills.date_from', default: 'Date From'), class: "filter-label" %>
-        <%= form.date_field :date_from, class: "filter-input" %>
-      </div>
-      
-      <div class="filter-group">
-        <%= form.label :date_to, t('bills.date_to', default: 'Date To'), class: "filter-label" %>
-        <%= form.date_field :date_to, class: "filter-input" %>
-      </div>
-      
-      <div class="filter-actions">
-        <%= form.submit t('bills.filter', default: 'Filter'), class: "btn btn-primary" %>
-        <%= link_to t('bills.reset', default: 'Reset'), bills_path, class: "btn btn-outline" %>
+    <%= form_with url: bills_path, method: :get, class: "search-form", id: "bills-filter-form" do |form| %>
+      <div class="filter-container">
+        <!-- Building filter -->
+        <div class="filter-select-container">
+          <%= form.select :building_id, 
+                        options_for_select(Building.all.map { |b| [b.name, b.id] }, params[:building_id]), 
+                        { prompt: t('bills.filter_by_building', default: 'Tòa nhà') },
+                        class: "form-select filter-select", 
+                        id: "building-filter",
+                        onchange: "filterRooms()" %>
+        </div>
+        
+        <!-- Room filter -->
+        <div class="filter-select-container">
+          <%= form.select :room_id, 
+                        options_for_select(Room.all.map { |r| 
+                          ["#{r.number}", r.id, { 'data-building-id': r.building_id }]  
+                        }, params[:room_id]), 
+                        { prompt: t('bills.filter_by_room', default: 'Phòng') },
+                        class: "form-select filter-select",
+                        id: "room-filter" %>
+        </div>
+        
+        <!-- Status filter -->
+        <div class="filter-select-container">
+          <%= form.select :status, 
+                        options_for_select([
+                          [t('bills.unpaid'), 'unpaid'],
+                          [t('bills.paid'), 'paid'],
+                          [t('bills.overdue'), 'overdue']
+                        ], params[:status]), 
+                        { prompt: t('bills.filter_by_status', default: 'Trạng thái') },
+                        class: "form-select filter-select",
+                        id: "status-filter" %>
+        </div>
+        
+        <!-- Date range filter container -->
+        <div class="date-range-container">
+          <div class="date-start-container">
+            <%= form.date_field :date_from, value: params[:date_from], class: "form-control date-input", placeholder: t('common.from_date', default: 'Từ ngày') %>
+          </div>
+          <div class="date-end-container">
+            <%= form.date_field :date_to, value: params[:date_to], class: "form-control date-input", placeholder: t('common.to_date', default: 'Đến ngày') %>
+          </div>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary filter-btn">
+            <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
+          </button>
+          
+          <% if params[:room_id].present? || params[:building_id].present? || params[:status].present? || params[:date_from].present? || params[:date_to].present? %>
+            <%= link_to bills_path, class: "btn btn-outline-secondary filter-clear-btn" do %>
+              <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+            <% end %>
+          <% end %>
+        </div>
       </div>
     <% end %>
   </div>
@@ -55,13 +72,46 @@
 
 <div class="card">
   <div class="card-body">
-    <% if @bills.any? %>
+    <% if @room_bills.any? %>
+      <% if params[:room_id].present? || params[:building_id].present? || params[:status].present? || params[:date_from].present? || params[:date_to].present? %>
+        <div class="search-results-info mb-3">
+          <%= t('bills.filter_results', count: @room_bills.count, default: "Found #{@room_bills.count} bills") %>
+          <% if params[:room_id].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-home me-1"></i><%= Room.find(params[:room_id]).number %>
+            </span>
+          <% end %>
+          <% if params[:building_id].present? && !params[:room_id].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-building me-1"></i><%= Building.find(params[:building_id]).name %>
+            </span>
+          <% end %>
+          <% if params[:status].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-check-circle me-1"></i><%= t("bills.#{params[:status]}") %>
+            </span>
+          <% end %>
+          <% if params[:date_from].present? && params[:date_to].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-calendar-alt me-1"></i><%= l Date.parse(params[:date_from]), format: :short %> - <%= l Date.parse(params[:date_to]), format: :short %>
+            </span>
+          <% elsif params[:date_from].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-calendar-alt me-1"></i><%= t('common.from', default: 'From') %> <%= l Date.parse(params[:date_from]), format: :short %>
+            </span>
+          <% elsif params[:date_to].present? %>
+            <span class="filter-tag">
+              <i class="fas fa-calendar-alt me-1"></i><%= t('common.until', default: 'Until') %> <%= l Date.parse(params[:date_to]), format: :short %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
       <div class="table-responsive">
         <table class="data-table">
           <thead>
             <tr>
               <th><%= t('bills.room') %></th>
-              <th><%= t('bills.tenant') %></th>
+              <th><%= t('bills.tenants', default: 'Tenants') %></th>
               <th><%= t('bills.billing_date') %></th>
               <th><%= t('bills.billing_period') %></th>
               <th><%= t('bills.monthly_rent') %></th>
@@ -72,35 +122,39 @@
             </tr>
           </thead>
           <tbody>
-            <% @bills.each do |bill| %>
+            <% @room_bills.each do |room_bill| %>
               <tr>
-                <td><%= link_to bill.room_assignment.room.number, room_path(bill.room_assignment.room) %></td>
-                <td><%= link_to bill.room_assignment.tenant.name, tenant_path(bill.room_assignment.tenant) %></td>
-                <td><%= l bill.billing_date, format: :short %></td>
+                <td><%= link_to room_bill[:room].number, room_path(room_bill[:room]) %></td>
                 <td>
-                  <%= l bill.billing_period_start, format: :short %> - 
-                  <%= l bill.billing_period_end, format: :short %>
+                  <% room_bill[:tenants].uniq.each do |tenant| %>
+                    <%= link_to tenant.name, tenant_path(tenant) %><br>
+                  <% end %>
+                </td>
+                <td><%= l room_bill[:billing_date], format: :short %></td>
+                <td>
+                  <%= l room_bill[:billing_period_start], format: :short %> - 
+                  <%= l room_bill[:billing_period_end], format: :short %>
                 </td>
                 <td>
-                  <span class="currency-amount"><%= number_to_currency(bill.rent_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                  <span class="currency-amount"><%= number_to_currency(room_bill[:rent_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
                 </td>
                 <td>
-                  <span class="currency-amount"><%= number_to_currency(bill.utility_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                  <span class="currency-amount"><%= number_to_currency(room_bill[:utility_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
                 </td>
                 <td>
-                  <span class="currency-amount"><%= number_to_currency(bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                  <span class="currency-amount"><%= number_to_currency(room_bill[:total_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
                 </td>
                 <td>
-                  <span class="status-badge status-<%= bill.status %>">
-                    <%= t("bills.#{bill.status}") %>
+                  <span class="status-badge status-<%= room_bill[:status] %>">
+                    <%= t("bills.#{room_bill[:status]}") %>
                   </span>
                 </td>
                 <td>
                   <div class="action-links">
-                    <%= link_to t('common.view'), bill_path(bill), class: "btn btn-sm btn-outline" %>
+                    <%= link_to t('common.view'), bill_path(room_bill[:representative_bill]), class: "btn btn-sm btn-outline" %>
                     
-                    <% if bill.status == "unpaid" %>
-                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(bill), data: { turbo_method: :patch }, class: "btn btn-sm btn-success" %>
+                    <% if room_bill[:status] == "unpaid" %>
+                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(room_bill[:representative_bill]), data: { turbo_method: :patch }, class: "btn btn-sm btn-success" %>
                     <% end %>
                   </div>
                 </td>
@@ -111,8 +165,161 @@
       </div>
     <% else %>
       <div class="empty-state">
-        <p><%= t('bills.no_bills', default: 'No bills found. Click "Create New Bill" to generate a bill for a tenant.') %></p>
+        <% if params[:room_id].present? || params[:building_id].present? || params[:status].present? || params[:date_from].present? || params[:date_to].present? %>
+          <p><%= t('bills.no_bills_with_filter', default: 'No bills match your filter criteria.') %></p>
+          <%= link_to t('common.clear_filters', default: 'Clear all filters'), bills_path, class: "btn btn-primary" %>
+        <% else %>
+          <p><%= t('bills.no_bills', default: 'No bills found. Click "Create New Bill" to generate a bill for a tenant.') %></p>
+        <% end %>
       </div>
     <% end %>
   </div>
 </div>
+
+<style>
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .filter-select-container {
+    flex: 1;
+    min-width: 160px;
+  }
+  
+  .date-range-container {
+    flex: 2;
+    display: flex;
+    gap: 10px;
+    min-width: 300px;
+  }
+  
+  .date-start-container, .date-end-container {
+    flex: 1;
+  }
+
+  .date-input {
+    width: 100%;
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-control, .form-select {
+    border-radius: 4px;
+    height: 40px;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 110px;
+    justify-content: center;
+  }
+
+  .filter-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  .search-results-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  
+  .filter-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    margin-top: 5px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 15px;
+  }
+</style>
+
+<script>
+  // Function to filter room options based on the selected building
+  function filterRooms() {
+    const buildingFilter = document.getElementById('building-filter');
+    const roomFilter = document.getElementById('room-filter');
+    const selectedBuildingId = buildingFilter.value;
+    
+    // Save current room selection
+    const currentRoomId = roomFilter.value;
+    
+    // Get all options except the first one (prompt)
+    const options = Array.from(roomFilter.options).slice(1);
+    
+    // Hide/show options based on selected building
+    options.forEach(option => {
+      const buildingId = option.getAttribute('data-building-id');
+      
+      if (!selectedBuildingId || buildingId === selectedBuildingId) {
+        // Show the option if no building selected or it matches the selected building
+        option.style.display = '';
+      } else {
+        // Hide options from other buildings
+        option.style.display = 'none';
+      }
+    });
+    
+    // If the currently selected room is from a different building, reset the selection
+    if (currentRoomId) {
+      const selectedOption = roomFilter.querySelector(`option[value="${currentRoomId}"]`);
+      if (selectedOption) {
+        const optionBuildingId = selectedOption.getAttribute('data-building-id');
+        if (selectedBuildingId && optionBuildingId !== selectedBuildingId) {
+          roomFilter.selectedIndex = 0;
+        }
+      }
+    }
+  }
+
+  // Run on page load to handle initial state
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up initial filter if building is already selected
+    const buildingFilter = document.getElementById('building-filter');
+    if (buildingFilter && buildingFilter.value) {
+      filterRooms();
+    }
+    
+    // Make sure selected room is visible 
+    const roomFilter = document.getElementById('room-filter');
+    const selectedRoomId = roomFilter.value;
+    
+    if (selectedRoomId) {
+      const selectedOption = roomFilter.querySelector(`option[value="${selectedRoomId}"]`);
+      if (selectedOption) {
+        selectedOption.style.display = '';
+      }
+    }
+  });
+</script>

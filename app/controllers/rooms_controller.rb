@@ -4,11 +4,34 @@ class RoomsController < ApplicationController
   before_action :set_building, only: [:index, :new, :create]
 
   def index
-    if @building
+    # Check if we're viewing rooms for a specific building
+    if @building && !params[:ignore_building_context]
       @rooms = @building.rooms.order(:number)
       render 'building_rooms'
     else
-      @rooms = Room.includes(:building).order('buildings.name', :number)
+      @search_query = params[:search]
+      @building_filter = params[:building_id]
+      @status_filter = params[:status]
+      
+      # Start with base query
+      query = Room.includes(:building)
+      
+      # Apply search filter if present
+      if @search_query.present?
+        query = query.where("LOWER(number) LIKE ?", "%#{@search_query.downcase}%")
+      end
+      
+      # Apply building filter if present
+      if @building_filter.present?
+        query = query.where(building_id: @building_filter)
+      end
+      
+      # Apply status filter if present
+      if @status_filter.present?
+        query = query.where(status: @status_filter)
+      end
+      
+      @rooms = query.order('buildings.name', :number)
     end
   end
 
