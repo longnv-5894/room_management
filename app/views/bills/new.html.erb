@@ -8,8 +8,17 @@
 </div>
 
 <div class="form-container">
+  <div class="card shadow-sm">
     <div class="card-header bg-white">
-      <p class="card-subtitle text-muted"><%= t('bills.bill_information') %></p>
+      <div class="d-flex align-items-center">
+        <div class="bill-icon-container me-3">
+          <i class="fas fa-file-invoice-dollar text-primary"></i>
+        </div>
+        <div>
+          <h2 class="card-title mb-0"><%= t('bills.new') %></h2>
+          <p class="card-subtitle text-muted mb-0"><%= t('bills.bill_information') %></p>
+        </div>
+      </div>
     </div>
     
     <div class="card-body">
@@ -30,10 +39,22 @@
           <% if params[:room_assignment_id].present? %>
             <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
             <%= form.hidden_field :room_assignment_id, value: assignment.id %>
-            <div class="form-static-display p-3 bg-light rounded">
-              <div class="d-flex align-items-center">
-                <i class="fas fa-door-open me-2 text-primary"></i>
-                <strong><%= t('rooms.number') %>:</strong> <%= assignment.room.number %> - <%= assignment.tenant.name %>
+            <div class="info-card bg-light rounded p-3">
+              <div class="info-card-header mb-2">
+                <i class="fas fa-home text-primary me-2"></i>
+                <strong><%= t('bills.room_and_tenant') %></strong>
+              </div>
+              <div class="info-card-value">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong><%= t('rooms.number') %>:</strong> 
+                    <%= assignment.room.number %>
+                  </div>
+                  <div>
+                    <strong><%= t('bills.tenant') %>:</strong> 
+                    <%= assignment.tenant.name %>
+                  </div>
+                </div>
               </div>
             </div>
           <% else %>
@@ -99,174 +120,230 @@
           </div>
         </div>
 
-        <div class="row mb-4">
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :billing_date, t('bills.billing_date'), class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-calendar"></i>
-                </span>
-                <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
+        <!-- Main form tabs -->
+        <ul class="nav nav-tabs mb-4" id="billFormTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="dates-tab" data-bs-toggle="tab" data-bs-target="#dates" type="button" role="tab" aria-controls="dates" aria-selected="true">
+              <i class="fas fa-calendar-alt me-2"></i><%= t('bills.dates') %>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="charges-tab" data-bs-toggle="tab" data-bs-target="#charges" type="button" role="tab" aria-controls="charges" aria-selected="false">
+              <i class="fas fa-money-bill-wave me-2"></i><%= t('bills.charges') %>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="status-tab" data-bs-toggle="tab" data-bs-target="#status" type="button" role="tab" aria-controls="status" aria-selected="false">
+              <i class="fas fa-tag me-2"></i><%= t('common.status') %>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">
+              <i class="fas fa-sticky-note me-2"></i><%= t('common.notes') %>
+            </button>
+          </li>
+        </ul>
+        
+        <!-- Tab content -->
+        <div class="tab-content p-2" id="billFormTabContent">
+          <!-- Dates tab -->
+          <div class="tab-pane fade show active" id="dates" role="tabpanel" aria-labelledby="dates-tab">
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <%= form.label :billing_date, t('bills.billing_date'), class: "form-label" %>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar"></i>
+                    </span>
+                    <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-group">
+                  <%= form.label :billing_period_start, t('bills.billing_period_start'), class: "form-label" %>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar-alt"></i>
+                    </span>
+                    <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-group">
+                  <%= form.label :billing_period_end, t('common.to'), class: "form-label" %>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar-alt"></i>
+                    </span>
+                    <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-group">
+                  <%= form.label :due_date, t('bills.due_date'), class: "form-label" %>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-calendar-check"></i>
+                    </span>
+                    <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :billing_period_start, t('bills.billing_period_start'), class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-calendar-alt"></i>
-                </span>
-                <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
+          <!-- Charges tab -->
+          <div class="tab-pane fade" id="charges" role="tabpanel" aria-labelledby="charges-tab">
+            <!-- Main charges -->
+            <div class="charges-card bg-light rounded p-3 mb-3">
+              <h5 class="charges-title border-bottom pb-2 mb-3">
+                <i class="fas fa-home text-primary me-2"></i>
+                <%= t('bills.main_charges') %>
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <%= form.label :room_fee, t('bills.monthly_rent'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-money-bill-wave text-success"></i>
+                      </span>
+                      <%= form.number_field :room_fee, class: "form-control", min: 0, id: "room_fee" %>
+                      <span class="input-group-text">VND</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <%= form.label :other_fees, t('bills.additional_charges'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-plus-circle text-danger"></i>
+                      </span>
+                      <%= form.number_field :other_fees, value: 0, class: "form-control", min: 0 %>
+                      <span class="input-group-text">VND</span>
+                    </div>
+                    <small class="form-text text-muted"><%= t('bills.additional_charges_hint') %></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Utility charges -->
+            <div class="charges-card bg-light rounded p-3">
+              <h5 class="charges-title border-bottom pb-2 mb-3">
+                <i class="fas fa-bolt text-warning me-2"></i>
+                <%= t('bills.utility_charges') %>
+              </h5>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <%= form.label :electricity_fee, t('utility_readings.electricity_cost'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-bolt text-warning"></i>
+                      </span>
+                      <%= form.number_field :electricity_fee, class: "form-control", min: 0, id: "electricity_fee" %>
+                      <span class="input-group-text">VND</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <%= form.label :water_fee, t('utility_readings.water_cost'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-tint text-info"></i>
+                      </span>
+                      <%= form.number_field :water_fee, class: "form-control", min: 0, id: "water_fee" %>
+                      <span class="input-group-text">VND</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <%= form.label :service_fee, t('utility_readings.service_charge'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-hand-holding-usd text-success"></i>
+                      </span>
+                      <%= form.number_field :service_fee, class: "form-control", min: 0, id: "service_fee" %>
+                      <span class="input-group-text">VND</span>
+                    </div>
+                    <small class="form-text text-muted"><%= t('utility_readings.service_charge_explanation') %></small>
+                  </div>
+                </div>
+                
+                <div class="col-12">
+                  <div class="form-group">
+                    <%= form.label :utility_amount, t('bills.utility_charges_total'), class: "form-label" %>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <i class="fas fa-calculator text-primary"></i>
+                      </span>
+                      <%= form.number_field :utility_amount, class: "form-control", min: 0, id: "utility_amount", readonly: true %>
+                      <span class="input-group-text">VND</span>
+                      <button type="button" class="btn btn-outline-secondary" id="edit-utilities-btn">
+                        <i class="fas fa-edit"></i> <%= t('common.edit') %>
+                      </button>
+                    </div>
+                    <small class="form-text text-muted"><%= t('utility_readings.total_cost') %></small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :billing_period_end, t('common.to'), class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-calendar-alt"></i>
-                </span>
-                <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <div class="form-group">
-              <%= form.label :room_fee, t('bills.monthly_rent') + " (VND)", class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-money-bill-wave"></i>
-                </span>
-                <%= form.number_field :room_fee, class: "form-control", min: 0, id: "room_fee" %>
-                <span class="input-group-text">VND</span>
+          <!-- Status tab -->
+          <div class="tab-pane fade" id="status" role="tabpanel" aria-labelledby="status-tab">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <%= form.label :status, t('common.status'), class: "form-label" %>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-tag"></i>
+                    </span>
+                    <%= form.select :status, [
+                      [t('bills.unpaid'), "unpaid"], 
+                      [t('bills.partial'), "partial"], 
+                      [t('bills.paid'), "paid"]], 
+                      { selected: "unpaid" }, 
+                      { class: "form-select", id: "bill_status" } 
+                    %>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div class="col-md-6">
+          <!-- Notes tab -->
+          <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
             <div class="form-group">
-              <%= form.label :utility_amount, t('bills.utility_charges') + " (VND)", class: "form-label fw-bold" %>
+              <%= form.label :notes, t('common.notes'), class: "form-label" %>
               <div class="input-group">
                 <span class="input-group-text">
-                  <i class="fas fa-bolt"></i>
+                  <i class="fas fa-sticky-note"></i>
                 </span>
-                <%= form.number_field :utility_amount, class: "form-control", min: 0, id: "utility_amount", readonly: true %>
-                <span class="input-group-text">VND</span>
-                <button type="button" class="btn btn-outline-secondary" id="edit-utilities-btn">
-                  <i class="fas fa-edit"></i> <%= t('common.edit') %>
-                </button>
+                <%= form.text_area :notes, class: "form-control", rows: 5 %>
               </div>
-              <small class="form-text text-muted"><%= t('utility_readings.total_cost') %></small>
+              <small class="form-text text-muted"><%= t('bills.notes_hint') %></small>
             </div>
           </div>
         </div>
-
-        <div class="row mt-4">
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :electricity_fee, t('utility_readings.electricity_cost') + " (VND)", class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-bolt text-warning"></i>
-                </span>
-                <%= form.number_field :electricity_fee, class: "form-control", min: 0, id: "electricity_fee" %>
-                <span class="input-group-text">VND</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :water_fee, t('utility_readings.water_cost') + " (VND)", class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-tint text-info"></i>
-                </span>
-                <%= form.number_field :water_fee, class: "form-control", min: 0, id: "water_fee" %>
-                <span class="input-group-text">VND</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-4">
-            <div class="form-group">
-              <%= form.label :service_fee, t('utility_readings.service_charge') + " (VND)", class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-hand-holding-usd text-success"></i>
-                </span>
-                <%= form.number_field :service_fee, class: "form-control", min: 0, id: "service_fee" %>
-                <span class="input-group-text">VND</span>
-              </div>
-              <small class="form-text text-muted"><%= t('utility_readings.service_charge_explanation') %></small>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group mb-4">
-          <%= form.label :other_fees, t('bills.additional_charges') + " (VND)", class: "form-label fw-bold" %>
-          <div class="input-group">
-            <span class="input-group-text">
-              <i class="fas fa-plus-circle"></i>
-            </span>
-            <%= form.number_field :other_fees, value: 0, class: "form-control", min: 0 %>
-            <span class="input-group-text">VND</span>
-          </div>
-          <small class="form-text text-muted"><%= t('bills.additional_charges_hint') %></small>
-        </div>
-
-        <div class="form-group mb-4">
-          <%= form.label :notes, t('common.notes'), class: "form-label fw-bold" %>
-          <div class="input-group">
-            <span class="input-group-text">
-              <i class="fas fa-sticky-note"></i>
-            </span>
-            <%= form.text_area :notes, class: "form-control", rows: 3 %>
-          </div>
-          <small class="form-text text-muted"><%= t('bills.notes_hint') %></small>
-        </div>
-
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <div class="form-group">
-              <%= form.label :due_date, t('bills.due_date'), class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-calendar-check"></i>
-                </span>
-                <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="form-group">
-              <%= form.label :status, t('common.status'), class: "form-label fw-bold" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-tag"></i>
-                </span>
-                <%= form.select :status, [
-                  [t('bills.unpaid'), "unpaid"], 
-                  [t('bills.partial'), "partial"], 
-                  [t('bills.paid'), "paid"]], 
-                  { selected: "unpaid" }, 
-                  { class: "form-select" } 
-                %>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-actions text-end">
+        
+        <!-- Form actions -->
+        <div class="form-actions d-flex justify-content-end gap-2 mt-4">
           <%= link_to bills_path, class: "btn btn-light me-2" do %>
             <%= t('common.cancel') %>
           <% end %>
@@ -274,10 +351,21 @@
         </div>
       <% end %>
     </div>
+  </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Bootstrap tabs
+  const triggerTabList = [].slice.call(document.querySelectorAll('#billFormTabs button'))
+  triggerTabList.forEach(function(triggerEl) {
+    const tabTrigger = new bootstrap.Tab(triggerEl)
+    triggerEl.addEventListener('click', function(event) {
+      event.preventDefault()
+      tabTrigger.show()
+    })
+  })
+
   const roomAssignmentSelector = document.getElementById('room_assignment_selector');
   const roomFeeInput = document.getElementById('room_fee');
   const utilityAmountInput = document.getElementById('utility_amount');
@@ -544,6 +632,65 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     readingsTableBody.appendChild(viewAllRow);
   }
+  
+  // Handle status changes for payment date field
+  const billStatusSelect = document.getElementById('bill_status');
+  if (billStatusSelect) {
+    billStatusSelect.addEventListener('change', function() {
+      const paymentDateContainer = document.querySelector('.payment-date-field');
+      
+      if (billStatusSelect.value === 'paid') {
+        if (!paymentDateContainer) {
+          const statusTabContent = document.getElementById('status');
+          const row = statusTabContent.querySelector('.row');
+          
+          const newCol = document.createElement('div');
+          newCol.className = 'col-md-6 payment-date-field';
+          newCol.innerHTML = `
+            <div class="form-group">
+              <label for="bill_payment_date" class="form-label">${'<%= t("bills.payment_date") %>'}</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-money-bill-wave"></i>
+                </span>
+                <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}" name="bill[payment_date]" id="bill_payment_date">
+              </div>
+            </div>
+          `;
+          
+          row.appendChild(newCol);
+        }
+      } else {
+        if (paymentDateContainer) {
+          paymentDateContainer.remove();
+        }
+      }
+    });
+  }
+  
+  // Re-calculate utility total when individual fees change
+  const updateUtilityTotal = function() {
+    const electricityFeeInput = document.getElementById('electricity_fee');
+    const waterFeeInput = document.getElementById('water_fee');
+    const serviceFeeInput = document.getElementById('service_fee');
+    
+    const electricity = parseFloat(electricityFeeInput.value) || 0;
+    const water = parseFloat(waterFeeInput.value) || 0;
+    const service = parseFloat(serviceFeeInput.value) || 0;
+    
+    utilityAmountInput.value = electricity + water + service;
+  };
+  
+  // Add event listeners to utility fee inputs
+  const electricityFeeInput = document.getElementById('electricity_fee');
+  const waterFeeInput = document.getElementById('water_fee');
+  const serviceFeeInput = document.getElementById('service_fee');
+  
+  if (electricityFeeInput && waterFeeInput && serviceFeeInput) {
+    electricityFeeInput.addEventListener('change', updateUtilityTotal);
+    waterFeeInput.addEventListener('change', updateUtilityTotal);
+    serviceFeeInput.addEventListener('change', updateUtilityTotal);
+  }
 });
 </script>
 
@@ -558,6 +705,17 @@ document.addEventListener('DOMContentLoaded', function() {
     overflow: hidden;
   }
   
+  .bill-icon-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: rgba(108, 92, 231, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  
   .card-header {
     padding: 1.25rem 1.5rem;
     background-color: #fff;
@@ -565,7 +723,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   .card-title {
-    margin-bottom: 0.25rem;
     font-weight: 600;
   }
   
@@ -589,37 +746,34 @@ document.addEventListener('DOMContentLoaded', function() {
     margin-top: 0.5rem;
   }
   
-  .btn-primary {
-    background-color: #6c5ce7;
-    border-color: #6c5ce7;
+  .charges-title {
+    font-size: 1rem;
+    color: #495057;
   }
   
-  .btn-primary:hover {
-    background-color: #5d4fd6;
-    border-color: #5d4fd6;
+  .nav-tabs .nav-link {
+    color: #495057;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    padding: 0.75rem 1rem;
   }
   
-  .form-static-display {
-    padding: 0.5rem;
-    border-radius: 4px;
-    background-color: #f8f9fa;
+  .nav-tabs .nav-link.active {
+    color: #6c5ce7;
+    background-color: transparent;
+    border-bottom: 2px solid #6c5ce7;
   }
   
-  .table {
-    margin-bottom: 0;
+  .nav-tabs .nav-link:hover {
+    border-color: transparent;
+    border-bottom: 2px solid #e2e2e2;
   }
   
-  .table th {
-    font-weight: 600;
+  .nav-tabs .nav-link.active:hover {
+    border-bottom: 2px solid #6c5ce7;
   }
   
-  .empty-state i {
-    font-size: 3rem;
-    color: #dee2e6;
-    margin-bottom: 1rem;
-  }
-  
-  /* Utility Reading Table Styles */
   .utilities-table {
     table-layout: fixed;
     width: 100%;

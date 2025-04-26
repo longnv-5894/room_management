@@ -5,97 +5,163 @@
   </div>
 </div>
 
-<div class="form-container">
-  <%= form_with(model: @room_assignment, local: true) do |form| %>
-    <% if @room_assignment.errors.any? %>
-      <div class="alert alert-danger">
-        <h2><%= pluralize(@room_assignment.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
-        <ul>
-          <% @room_assignment.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
-          <% end %>
-        </ul>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <div class="d-flex align-items-center">
+      <div class="me-3">
+        <i class="fas fa-exchange-alt text-primary"></i>
+      </div>
+      <div>
+        <h2 class="card-title mb-0"><%= t('room_assignments.edit') %></h2>
+        <p class="card-subtitle text-muted mb-0"><%= t('room_assignments.edit_single_note') %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <%= form_with(model: @room_assignment, local: true) do |form| %>
+      <% if @room_assignment.errors.any? %>
+        <div class="alert alert-danger">
+          <h2><%= pluralize(@room_assignment.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
+          <ul>
+            <% @room_assignment.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :room_id, t('room_assignments.room'), class: "form-label" %>
+            <div class="d-flex align-items-center">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-door-open"></i>
+                </span>
+                <div class="form-control">
+                  <strong><%= @room_assignment.room.number %></strong>
+                  <% if @room_assignment.room.building %>
+                    <small class="text-muted ms-1">(<%= @room_assignment.room.building.name %>)</small>
+                  <% end %>
+                </div>
+                <%= form.hidden_field :room_id %>
+              </div>
+              <div class="ms-2">
+                <span class="badge bg-info">
+                  <i class="fas fa-info-circle me-1"></i> <%= t('room_assignments.fixed_room') %>
+                </span>
+              </div>
+            </div>
+            <small class="form-text text-muted mt-1">
+              <i class="fas fa-info-circle me-1"></i> <%= t('room_assignments.cannot_change_room') %>
+            </small>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :tenant_id, t('room_assignments.tenant'), class: "form-label" %>
+            <div class="d-flex align-items-center">
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
+                <div class="form-control">
+                  <strong><%= @room_assignment.tenant.name %></strong>
+                </div>
+                <%= form.hidden_field :tenant_id %>
+              </div>
+              <div class="ms-2">
+                <span class="badge bg-info">
+                  <i class="fas fa-info-circle me-1"></i> <%= t('room_assignments.fixed_tenant') %>
+                </span>
+              </div>
+            </div>
+            <small class="form-text text-muted mt-1">
+              <i class="fas fa-info-circle me-1"></i> <%= t('room_assignments.cannot_change_tenant') %>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :start_date, t('room_assignments.start_date'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+              </span>
+              <%= form.date_field :start_date, class: "form-control", required: true %>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :end_date, t('room_assignments.end_date'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-calendar-check"></i>
+              </span>
+              <%= form.date_field :end_date, class: "form-control" %>
+            </div>
+            <small class="form-text text-muted">
+              <i class="fas fa-info-circle me-1"></i> <%= t('common.optional') %>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :deposit_amount, t('room_assignments.deposit_amount') + " (VND)", class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-money-bill-wave text-success"></i>
+              </span>
+              <%= form.number_field :deposit_amount, class: "form-control", min: 0 %>
+              <span class="input-group-text">VND</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :active, t('room_assignments.status'), class: "form-label" %>
+            <div class="form-check p-0 mt-2">
+              <div class="form-check form-switch">
+                <%= form.check_box :active, class: "form-check-input" %>
+                <%= form.label :active, t('room_assignments.active'), class: "form-check-label" %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-3">
+        <div class="col-12">
+          <div class="form-group">
+            <%= form.label :notes, t('common.notes'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-sticky-note"></i>
+              </span>
+              <%= form.text_area :notes, class: "form-control", rows: 3 %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-4 d-flex justify-content-end">
+        <%= link_to t('common.cancel'), room_assignment_path(@room_assignment), class: "btn btn-light me-2" %>
+        <%= form.submit t('common.update'), class: "btn btn-primary px-4" %>
       </div>
     <% end %>
-
-    <div class="form-group">
-      <%= form.label :room_id, t('room_assignments.room'), class: "form-label" %>
-      <div class="d-flex align-items-center">
-        <%= form.collection_select :room_id, @available_rooms, :id, :number, 
-                                { prompt: t('room_assignments.select_room', default: 'Select a room') }, 
-                                { class: "form-select", id: "room_assignment_room_id", required: true } %>
-        <div id="room-status-indicator" class="ms-2 d-none">
-          <span class="badge bg-info">
-            <i class="fas fa-users me-1"></i> <span id="tenant-count">0</span> <%= t('tenants.tenant', count: 0) %>
-          </span>
-        </div>
-      </div>
-      <small id="room-status-help" class="form-text text-muted mt-1 d-none">
-        <%= t('room_assignments.add_to_occupied') %>
-      </small>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :tenant_id, t('room_assignments.tenant'), class: "form-label" %>
-      <div class="d-flex align-items-center mb-2">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="show-all-tenants">
-          <label class="form-check-label text-muted" for="show-all-tenants">
-            <%= t('room_assignments.show_all_tenants') %>
-          </label>
-        </div>
-      </div>
-      <div class="d-flex align-items-center">
-        <%= form.collection_select :tenant_id, @available_tenants, :id, :name, 
-                                { prompt: t('room_assignments.select_tenant', default: 'Select a tenant') }, 
-                                { class: "form-select", id: "tenant-select", required: true } %>
-        <div id="tenant-badge" class="ms-2">
-          <span class="badge bg-success">
-            <i class="fas fa-check-circle me-1"></i> <%= t('room_assignments.unassigned_only') %>
-          </span>
-        </div>
-      </div>
-      <small class="form-text text-muted mt-1">
-        <i class="fas fa-info-circle"></i> 
-        <%= t('room_assignments.edit_single_note') %>
-      </small>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :start_date, t('room_assignments.start_date'), class: "form-label" %>
-      <%= form.date_field :start_date, class: "form-control", required: true %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :end_date, t('room_assignments.end_date'), class: "form-label" %>
-      <%= form.date_field :end_date, class: "form-control" %>
-      <small class="form-text text-muted">
-        <%= t('common.optional') %>
-      </small>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :deposit_amount, t('room_assignments.deposit_amount') + " (VND)", class: "form-label" %>
-      <%= form.number_field :deposit_amount, class: "form-control", min: 0 %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :active, t('room_assignments.status'), class: "form-label" %>
-      <div class="form-check">
-        <%= form.check_box :active, class: "form-check-input" %>
-        <%= form.label :active, t('room_assignments.active'), class: "form-check-label" %>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :notes, t('common.notes'), class: "form-label" %>
-      <%= form.text_area :notes, class: "form-control", rows: 3 %>
-    </div>
-
-    <div class="form-actions">
-      <%= form.submit t('common.update'), class: "btn btn-primary" %>
-    </div>
-  <% end %>
+  </div>
 </div>
 
 <script>

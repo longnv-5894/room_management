@@ -6,50 +6,112 @@
   </div>
 </div>
 
-<div class="form-container">
-  <%= form_with(model: @tenant, local: true) do |form| %>
-    <% if @tenant.errors.any? %>
-      <div class="alert alert-danger">
-        <h2><%= pluralize(@tenant.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
-        <ul>
-          <% @tenant.errors.full_messages.each do |message| %>
-            <li><%= message %></li>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <div class="d-flex align-items-center">
+      <div class="me-3">
+        <i class="fas fa-user-edit text-primary"></i>
+      </div>
+      <div>
+        <h2 class="card-title mb-0"><%= t('tenants.update') %></h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <%= form_with(model: @tenant, local: true) do |form| %>
+      <% if @tenant.errors.any? %>
+        <div class="alert alert-danger">
+          <h2><%= pluralize(@tenant.errors.count, "error") %> <%= t('common.form_error') %>:</h2>
+          <ul>
+            <% @tenant.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :name, t('tenants.name'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-user"></i>
+              </span>
+              <%= form.text_field :name, class: "form-control", required: true %>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :phone, t('tenants.phone'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-phone"></i>
+              </span>
+              <%= form.telephone_field :phone, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :email, t('tenants.email'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <%= form.email_field :email, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :id_number, t('tenants.id_number'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-id-card"></i>
+              </span>
+              <%= form.text_field :id_number, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :move_in_date, t('tenants.move_in_date'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+              </span>
+              <%= form.date_field :move_in_date, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-4 d-flex justify-content-between">
+        <div>
+          <% unless @tenant.room_assignments.exists? %>
+            <%= link_to tenant_path(@tenant), 
+                data: { turbo_method: :delete, turbo_confirm: t('tenants.confirm_delete') }, 
+                class: "btn btn-danger" do %>
+              <i class="fas fa-trash-alt me-1"></i> <%= t('common.delete') %>
+            <% end %>
           <% end %>
-        </ul>
+        </div>
+        <div>
+          <%= link_to t('common.cancel'), @tenant, class: "btn btn-light me-2" %>
+          <%= form.submit t('common.update'), class: "btn btn-primary px-4" %>
+        </div>
       </div>
     <% end %>
-
-    <div class="form-group">
-      <%= form.label :name, t('tenants.name'), class: "form-label" %>
-      <%= form.text_field :name, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :phone, t('tenants.phone'), class: "form-label" %>
-      <%= form.telephone_field :phone, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :email, t('tenants.email'), class: "form-label" %>
-      <%= form.email_field :email, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :id_number, t('tenants.id_number'), class: "form-label" %>
-      <%= form.text_field :id_number, class: "form-control" %>
-    </div>
-
-    <div class="form-group">
-      <%= form.label :move_in_date, t('tenants.move_in_date'), class: "form-label" %>
-      <%= form.date_field :move_in_date, class: "form-control" %>
-    </div>
-
-    <div class="form-actions">
-      <%= form.submit t('common.update'), class: "btn btn-primary" %>
-      
-      <% unless @tenant.room_assignments.exists? %>
-        <%= link_to t('common.delete'), @tenant, method: :delete, data: { confirm: t('tenants.confirm_delete') }, class: "btn btn-danger" %>
-      <% end %>
-    </div>
-  <% end %>
+  </div>
 </div>

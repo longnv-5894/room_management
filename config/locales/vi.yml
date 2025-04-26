@@ -376,6 +376,7 @@ vi:
     title: "Chi phí vận hành"
     new: "Thêm chi phí mới"
     edit_title: "Sửa chi phí"
+    update: "Cập chi phí"
     expense_details: "Chi tiết chi phí"
     expenses_list: "Danh sách chi phí"
     category: "Hạng mục"

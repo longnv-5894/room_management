@@ -1,19 +1,129 @@
 <div class="page-header">
   <h1 class="header-title"><%= t('operating_expenses.edit_title') %></h1>
   <div class="header-actions">
+    <%= link_to t('common.view'), operating_expense_path(@operating_expense), class: "btn btn-outline me-2" %>
     <%= link_to t('common.back'), operating_expenses_path, class: "btn btn-outline" %>
   </div>
 </div>
 
-<div class="row">
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><%= t('operating_expenses.expense_details') %></h2>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <div class="d-flex align-items-center">
+      <div class="me-3">
+        <i class="fas fa-file-invoice-dollar text-primary"></i>
       </div>
-      <div class="card-body">
-        <%= render 'form', operating_expense: @operating_expense %>
+      <div>
+        <h2 class="card-title mb-0"><%= t('operating_expenses.update') %></h2>
       </div>
     </div>
+  </div>
+
+  <div class="card-body">
+    <%= form_with(model: [@building, @operating_expense].compact, class: "expense-form") do |form| %>
+      <% if @operating_expense.errors.any? %>
+        <div class="alert alert-danger">
+          <h4 class="h5"><%= pluralize(@operating_expense.errors.count, "error") %> <%= t('common.form_error') %>:</h4>
+          <ul class="mb-0">
+            <% @operating_expense.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :category, t('operating_expenses.category'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-tag"></i>
+              </span>
+              <%= form.select :category, 
+                           options_for_select(OperatingExpense.categories_for_select, @operating_expense.category),
+                           { include_blank: t('operating_expenses.select_category') },
+                           class: "form-select", required: true %>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :expense_date, t('operating_expenses.expense_date'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+              </span>
+              <%= form.date_field :expense_date, class: "form-control", required: true %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :amount, t('operating_expenses.amount'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-money-bill-wave text-success"></i>
+              </span>
+              <%= form.number_field :amount, class: "form-control", min: 0, step: 1000, required: true %>
+              <span class="input-group-text">VND</span>
+            </div>
+          </div>
+        </div>
+        
+        <% unless @building %>
+          <div class="col-md-6">
+            <div class="form-group">
+              <%= form.label :building_id, t('operating_expenses.building'), class: "form-label" %>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-building"></i>
+                </span>
+                <%= form.collection_select :building_id, 
+                                      Building.order(:name), :id, :name, 
+                                      { include_blank: t('operating_expenses.no_building') }, 
+                                      { class: "form-select" } %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="row mt-3">
+        <div class="col-12">
+          <div class="form-group">
+            <%= form.label :notes, t('operating_expenses.notes'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-sticky-note"></i>
+              </span>
+              <%= form.text_area :notes, class: "form-control", rows: 3 %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions mt-4 d-flex justify-content-between">
+        <div>
+          <%= button_to operating_expense_path(@operating_expense), 
+                      method: :delete,
+                      data: { turbo_confirm: t('operating_expenses.confirm_delete') }, 
+                      class: "btn btn-danger" do %>
+            <i class="fas fa-trash-alt me-1"></i> <%= t('common.delete') %>
+          <% end %>
+        </div>
+        <div>
+          <% if @building %>
+            <%= link_to t('common.cancel'), building_operating_expenses_path(@building), class: "btn btn-light me-2" %>
+          <% else %>
+            <%= link_to t('common.cancel'), operating_expenses_path, class: "btn btn-light me-2" %>
+          <% end %>
+          <%= form.submit t('common.update'), class: "btn btn-primary px-4" %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>

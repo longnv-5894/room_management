@@ -9,7 +9,18 @@
   </div>
 
   <!-- Filter section with consistent styling -->
-  <div class="card mb-4">
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-white">
+      <div class="d-flex align-items-center">
+        <div class="me-3">
+          <i class="fas fa-filter text-primary"></i>
+        </div>
+        <div>
+          <h2 class="card-title mb-0"><%= t('room_assignments.filters') %></h2>
+        </div>
+      </div>
+    </div>
+    
     <div class="card-body">
       <%= form_with url: room_assignments_path, method: :get, class: "search-form", id: "room-assignments-filter-form" do |form| %>
         <div class="filter-container">
@@ -78,7 +89,7 @@
             </button>
             
             <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
-              <%= link_to room_assignments_path, class: "btn btn-outline-secondary filter-clear-btn" do %>
+              <%= link_to room_assignments_path, class: "btn btn-outline filter-clear-btn" do %>
                 <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
               <% end %>
             <% end %>
@@ -88,7 +99,27 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card shadow-sm">
+    <div class="card-header bg-white">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="me-3">
+            <i class="fas fa-exchange-alt text-primary"></i>
+          </div>
+          <div>
+            <h2 class="card-title mb-0"><%= t('room_assignments.title') %></h2>
+          </div>
+        </div>
+        <% if @room_assignments.any? %>
+          <div>
+            <span class="badge bg-primary">
+              <%= t('common.total', count: @room_assignments.count, default: "Total: #{@room_assignments.count}") %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
     <div class="card-body p-0">
       <% if @room_assignments.any? %>
         <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
@@ -139,7 +170,7 @@
                 <th><%= t('room_assignments.end_date') %></th>
                 <th><%= t('room_assignments.status') %></th>
                 <th><%= t('room_assignments.deposit_amount') %></th>
-                <th class="text-end"><%= t('common.actions') %></th>
+                <th class="text-center"><%= t('common.actions') %></th>
               </tr>
             </thead>
             <tbody>
@@ -157,11 +188,11 @@
                   </td>
                   <td>
                     <% if assignment.active? %>
-                      <span class="badge bg-success-subtle text-success px-2 py-1">
+                      <span class="status-badge status-active">
                         <%= t("room_assignments.active") %>
                       </span>
                     <% else %>
-                      <span class="badge bg-danger-subtle text-danger px-2 py-1">
+                      <span class="status-badge status-inactive">
                         <%= t("room_assignments.inactive") %>
                       </span>
                     <% end %>
@@ -170,19 +201,18 @@
                     <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
                   </td>
                   <td>
-                    <div class="d-flex justify-content-end gap-1">
-                      <%= link_to room_assignment_path(assignment), class: "btn btn-sm btn-outline-secondary", title: t('common.view'), data: { bs_toggle: "tooltip" } do %>
+                    <div class="d-flex justify-content-center gap-1">
+                      <%= link_to room_assignment_path(assignment), class: "btn btn-sm btn-outline", title: t('common.view'), data: { bs_toggle: "tooltip" } do %>
                         <i class="fas fa-eye"></i>
                       <% end %>
                       
                       <% if assignment.active? %>
-                        <%= link_to edit_room_assignment_path(assignment), class: "btn btn-sm btn-outline-primary", title: t('common.edit'), data: { bs_toggle: "tooltip" } do %>
+                        <%= link_to edit_room_assignment_path(assignment), class: "btn btn-sm btn-outline", title: t('common.edit'), data: { bs_toggle: "tooltip" } do %>
                           <i class="fas fa-edit"></i>
                         <% end %>
                         
                         <%= link_to end_room_assignment_path(assignment), 
-                            method: :patch, 
-                            data: { confirm: t('room_assignments.confirm_end'), bs_toggle: "tooltip" }, 
+                            data: { turbo_method: :patch, turbo_confirm: t('room_assignments.confirm_end'), bs_toggle: "tooltip" }, 
                             title: t('room_assignments.end'),
                             class: "btn btn-sm btn-outline-danger" do %>
                           <i class="fas fa-times"></i>
@@ -196,12 +226,22 @@
           </table>
         </div>
       <% else %>
-        <div class="empty-state p-4 text-center">
+        <div class="empty-state p-5 text-center">
+          <div class="empty-state-icon mb-3">
+            <i class="fas fa-exchange-alt"></i>
+          </div>
           <% if params[:room_id].present? || params[:building_id].present? || params[:tenant_id].present? || params[:status].present? || params[:start_date_from].present? || params[:start_date_to].present? %>
-            <p class="text-muted mb-3"><%= t('room_assignments.no_assignments_with_filter', default: 'No assignments match your filter criteria.') %></p>
-            <%= link_to t('common.clear_filters', default: 'Clear all filters'), room_assignments_path, class: "btn btn-primary" %>
+            <h3 class="empty-state-title h5 mb-2"><%= t('room_assignments.no_assignments_with_filter', default: 'No assignments match your filter criteria') %></h3>
+            <p class="text-muted mb-3"><%= t('common.try_different_filters', default: 'Try different filters or clear all filters to see all assignments.') %></p>
+            <%= link_to room_assignments_path, class: "btn btn-primary" do %>
+              <i class="fas fa-times me-1"></i><%= t('common.clear_filters', default: 'Clear all filters') %>
+            <% end %>
           <% else %>
-            <p class="text-muted mb-0"><%= t('room_assignments.no_assignments') %></p>
+            <h3 class="empty-state-title h5 mb-2"><%= t('room_assignments.no_assignments_found', default: 'No assignments found') %></h3>
+            <p class="text-muted mb-3"><%= t('room_assignments.no_assignments') %></p>
+            <%= link_to new_room_assignment_path, class: "btn btn-primary" do %>
+              <i class="fas fa-plus me-1"></i> <%= t('room_assignments.new') %>
+            <% end %>
           <% end %>
         </div>
       <% end %>
@@ -286,6 +326,22 @@
     margin-right: 5px;
     margin-top: 5px;
   }
+  
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+  }
+  
+  .empty-state-icon {
+    font-size: 48px;
+    color: #dee2e6;
+    margin-bottom: 20px;
+  }
+  
+  .empty-state-title {
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
 </style>
 
 <script>
@@ -328,6 +384,12 @@
 
   // Run on page load to handle initial state
   document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
     // Set up initial filter if building is already selected
     const buildingFilter = document.getElementById('building-filter');
     if (buildingFilter && buildingFilter.value) {

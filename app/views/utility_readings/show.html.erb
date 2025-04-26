@@ -2,7 +2,6 @@
 <div class="page-header">
   <h1 class="header-title"><%= t('utility_readings.view_title') %>: <%= t('rooms.title') %> <%= @utility_reading.room.number %></h1>
   <div class="header-actions">
-    <%= link_to t('common.edit'), edit_utility_reading_path(@utility_reading), class: "btn btn-outline" %>
     <%= link_to t('common.back'), utility_readings_path, class: "btn btn-outline" %>
   </div>
 </div>
@@ -183,7 +182,7 @@
         <div class="me-2">
           <i class="fas fa-file-invoice-dollar text-primary"></i>
         </div>
-        <h2 class="card-title mb-0"><%= t('utility_readings.related_bills') %></h2>
+        <h2 class="card-title mb-0"><%= t('bills.related') %></h2>
       </div>
       <div class="card-body">
         <% if @related_bills && @related_bills.any? %>
@@ -209,7 +208,7 @@
         <% else %>
           <div class="text-muted text-center py-3">
             <i class="fas fa-info-circle mb-2 d-block"></i>
-            <%= t('utility_readings.no_related_bills') %>
+            <%= t('bills.no_related_bills') %>
           </div>
         <% end %>
       </div>
@@ -217,36 +216,27 @@
     
     <!-- Quick actions card -->
     <div class="card">
-      <div class="card-header d-flex align-items-center">
-        <div class="me-2">
-          <i class="fas fa-bolt text-primary"></i>
-        </div>
-        <h2 class="card-title mb-0"><%= t('common.quick_actions') %></h2>
+      <div class="card-header">
+        <h2 class="card-title"><%= t('common.actions') %></h2>
       </div>
       <div class="card-body">
-        <div class="quick-actions d-grid gap-2">
-          <%= link_to new_utility_reading_path(room_id: @utility_reading.room_id), class: "btn btn-outline-primary" do %>
-            <i class="fas fa-plus-circle me-2"></i> <%= t('utility_readings.add_new_reading') %>
-          <% end %>
-          
-          <%= link_to utility_readings_path(room_id: @utility_reading.room_id), class: "btn btn-outline-secondary" do %>
-            <i class="fas fa-history me-2"></i> <%= t('utility_readings.view_history') %>
-          <% end %>
-          
-          <% if @utility_reading.related_bills.empty? %>
-            <%= link_to new_bill_path(utility_reading_id: @utility_reading.id), class: "btn btn-outline-success" do %>
-              <i class="fas fa-file-invoice-dollar me-2"></i> <%= t('utility_readings.create_bill') %>
+        <div class="action-buttons-container">
+          <!-- Primary actions -->
+          <div class="action-group mb-3">            
+            <%= link_to edit_utility_reading_path(@utility_reading), class: "btn btn-outline w-100" do %>
+              <i class="fas fa-edit me-2"></i> <%= t('common.edit') %>
             <% end %>
-          <% end %>
+          </div>
           
-          <!-- Danger zone with delete action -->
+
+          <!-- Danger zone with confirmation -->
           <div class="danger-zone mt-4 pt-3 border-top border-danger">
             <p class="text-muted small mb-2"><i class="fas fa-exclamation-triangle text-danger me-1"></i> <%= t('utility_readings.danger_zone_warning') %></p>
             
             <%= button_to utility_reading_path(@utility_reading), 
-                      method: :delete, 
-                      data: { turbo_confirm: t('common.confirm_delete') },
-                      class: "btn btn-outline-danger w-100" do %>
+                        method: :delete,
+                        data: { turbo_confirm: t('common.confirm_delete') }, 
+                        class: "btn btn-outline-danger w-100" do %>
               <i class="fas fa-trash-alt me-2"></i> <%= t('common.delete') %>
             <% end %>
           </div>

@@ -1363,3 +1363,147 @@ body {
 .card-header i.fas {
   font-size: 18px;
 }
+
+/* Building rows horizontal layout */
+.building-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.building-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  border: 1px solid #eee;
+}
+
+.building-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.building-info {
+  flex: 2;
+}
+
+.building-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.building-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.building-address {
+  color: #70757a;
+  font-size: 14px;
+}
+
+.building-stats {
+  display: flex;
+  gap: 30px;
+  flex: 1;
+  justify-content: center;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.building-stats .stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.building-stats .stat-label {
+  font-size: 13px;
+  color: #70757a;
+}
+
+.building-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Responsive adjustments for building rows */
+@media (max-width: 768px) {
+  .building-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .building-info, .building-stats, .building-actions {
+    width: 100%;
+  }
+  
+  .building-stats {
+    justify-content: space-evenly;
+  }
+  
+  .building-actions {
+    justify-content: center;
+  }
+}
+
+/* Financial overview cards styling */
+.financial-overview-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.financial-card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.financial-card h5 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.financial-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .financial-overview-cards {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+  
+  .financial-card {
+    padding: 15px 10px;
+  }
+  
+  .financial-card h3 {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .financial-overview-cards {
+    grid-template-columns: 1fr;
+  }
+}

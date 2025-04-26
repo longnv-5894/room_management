@@ -363,6 +363,7 @@ en:
     title: "Operating Expenses"
     new: "New Operating Expense"
     edit_title: "Edit Operating Expense"
+    update: "Update Operating Expense"
     expense_details: "Expense Details"
     expenses_list: "Expenses List"
     category: "Category"

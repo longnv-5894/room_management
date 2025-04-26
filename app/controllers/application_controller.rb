@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  # Allow all browsers to access the application
+  # Previously: allow_browser versions: :modern
+  
   include SessionsHelper
   
   before_action :set_locale
