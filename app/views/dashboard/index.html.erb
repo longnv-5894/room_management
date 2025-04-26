@@ -39,9 +39,8 @@
       </div>
       <div class="stat-content">
         <span class="stat-value">
-          <h3 class="<%= @monthly_profit >= 0 ? 'text-success' : 'text-danger' %>">
-            <%= number_to_currency(@monthly_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
-          </h3>
+          <%= number_to_currency(@monthly_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
+        </span>
         <span class="stat-label"><%= t('revenues.monthly_profit') %></span>
       </div>
     </div>
@@ -50,64 +49,89 @@
   <div class="dashboard-sections">
     <!-- Buildings Section -->
     <div class="dashboard-section">
-      <div class="section-header">
-        <h2 class="section-title"><%= t('buildings.all_buildings') %></h2>
-        <%= link_to new_building_path, class: "btn btn-sm btn-primary" do %>
-          <i class="fas fa-plus"></i> <%= t('buildings.add_building') %>
-        <% end %>
+      <div class="page-header">
+        <h1 class="header-title"><%= t('buildings.all_buildings') %></h1>
+        <div class="header-actions">
+          <%= link_to new_building_path, class: "btn btn-primary" do %>
+            <i class="fas fa-plus"></i> <%= t('buildings.add_building') %>
+          <% end %>
+        </div>
       </div>
+
       <div class="section-content">
-        <% if @buildings.any? %>
-          <div class="row row-cols-1 row-cols-md-3 g-4">
-            <% @buildings.each do |building| %>
-              <div class="col">
-                <div class="card h-100">
-                  <div class="card-body">
-                    <h5 class="card-title d-flex justify-content-between align-items-center">
-                      <%= link_to building.name, building_path(building), class: "text-decoration-none" %>
-                      <span class="badge bg-<%= building.status == 'active' ? 'success' : 'warning' %>">
-                        <%= t("buildings.statuses.#{building.status}") %>
-                      </span>
-                    </h5>
-                    <h6 class="card-subtitle mb-2 text-muted"><%= building.address %></h6>
-                    
-                    <div class="row g-3 mt-3">
-                      <div class="col-6">
-                        <div class="stat-box">
-                          <div class="stat-value"><%= building.total_rooms %></div>
-                          <div class="stat-label"><%= t('buildings.total_rooms') %></div>
-                        </div>
-                      </div>
-                      <div class="col-6">
-                        <div class="stat-box">
-                          <div class="stat-value"><%= number_to_percentage(building.occupancy_rate, precision: 0) %></div>
-                          <div class="stat-label"><%= t('buildings.occupancy') %></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-footer">
-                    <%= link_to building_path(building), class: "btn btn-sm btn-outline-primary w-100" do %>
-                      <i class="fas fa-eye"></i> <%= t('common.view') %>
-                    <% end %>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-          <div class="view-all mt-3">
-            <%= link_to buildings_path, class: 'btn btn-outline' do %>
-              <%= t('common.view_all') %> <i class="fas fa-arrow-right ms-1"></i>
-            <% end %>
-          </div>
-        <% else %>
+        <% if @buildings.empty? %>
           <div class="empty-state">
             <div class="empty-state-icon">
               <i class="fas fa-building"></i>
             </div>
+            <h3><%= t('buildings.no_buildings') %></h3>
             <p><%= t('buildings.no_buildings_description') %></p>
-            <%= link_to new_building_path, class: 'btn btn-primary' do %>
+            <%= link_to new_building_path, class: "btn btn-primary" do %>
               <i class="fas fa-plus"></i> <%= t('buildings.add_building') %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="building-cards">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+              <% @buildings.each do |building| %>
+                <div class="col">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title mb-0">
+                          <%= link_to building.name, building_path(building), class: "text-decoration-none" %>
+                        </h5>
+                        <span class="status-badge status-<%= building.status %>">
+                          <%= t("buildings.statuses.#{building.status}") %>
+                        </span>
+                      </div>
+                      <h6 class="card-subtitle mb-3 text-muted"><%= building.address %></h6>
+                      
+                      <div class="row g-3 mt-3">
+                        <div class="col-6">
+                          <div class="stat-box text-center">
+                            <div class="stat-value"><%= building.total_rooms %></div>
+                            <div class="stat-label"><%= t('buildings.total_rooms') %></div>
+                          </div>
+                        </div>
+                        <div class="col-6">
+                          <div class="stat-box text-center">
+                            <div class="stat-value"><%= number_to_percentage(building.occupancy_rate, precision: 0) %></div>
+                            <div class="stat-label"><%= t('buildings.occupancy') %></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="card-footer">
+                      <div class="d-flex gap-2">
+                        <%= link_to building_path(building), class: "btn btn-sm btn-outline-primary flex-grow-1" do %>
+                          <i class="fas fa-eye"></i> <%= t('common.view') %>
+                        <% end %>
+                        <%= link_to edit_building_path(building), class: "btn btn-sm btn-outline-secondary flex-grow-1" do %>
+                          <i class="fas fa-edit"></i> <%= t('common.edit') %>
+                        <% end %>
+                        <%= link_to building_path(building), 
+                            data: { turbo_method: :delete, turbo_confirm: t('buildings.confirm_delete') },
+                            class: "btn btn-sm btn-outline-danger flex-grow-1" do %>
+                          <i class="fas fa-trash-alt"></i>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-center mt-4">
+            <% if @pagy %>
+              <%== pagy_bootstrap_nav(@pagy) %>
+            <% end %>
+          </div>
+          
+          <div class="d-flex justify-content-center mt-4">
+            <%= link_to buildings_path, class: "btn btn-outline" do %>
+              <%= t('common.view_all') %> <i class="fas fa-arrow-right ms-1"></i>
             <% end %>
           </div>
         <% end %>
