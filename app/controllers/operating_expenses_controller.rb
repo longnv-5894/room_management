@@ -15,21 +15,24 @@ class OperatingExpensesController < ApplicationController
       @operating_expenses = @building.operating_expenses.for_month(@year, @month).order(expense_date: :desc)
       @total_amount = @operating_expenses.sum(:amount)
       
-      # Group expenses by category for reporting
-      @expenses_by_category = @operating_expenses.group(:category).sum(:amount)
+      # Group expenses by category for reporting - use a separate base query to avoid inheriting ORDER BY
+      @expenses_by_category = OperatingExpense.unscoped.for_month(@year, @month)
+                                         .where(building_id: @building.id)
+                                         .group(:category)
+                                         .sum(:amount)
       
       render 'building_expenses'
     else
       @operating_expenses = OperatingExpense.for_month(@year, @month).order(expense_date: :desc)
       @total_amount = @operating_expenses.sum(:amount)
       
-      # Group expenses by category for reporting
-      @expenses_by_category = OperatingExpense.for_month(@year, @month)
+      # Group expenses by category for reporting - use unscoped to avoid inheriting any default scopes
+      @expenses_by_category = OperatingExpense.unscoped.for_month(@year, @month)
                                          .group(:category)
                                          .sum(:amount)
       
-      # Group expenses by building for reporting
-      @expenses_by_building = OperatingExpense.for_month(@year, @month)
+      # Group expenses by building for reporting - use unscoped to avoid inheriting any default scopes
+      @expenses_by_building = OperatingExpense.unscoped.for_month(@year, @month)
                                          .joins('LEFT JOIN buildings ON operating_expenses.building_id = buildings.id')
                                          .group('COALESCE(buildings.name, \'General\')')
                                          .sum(:amount)

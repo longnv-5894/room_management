@@ -152,7 +152,7 @@
     </div>
   <% else %>
     <div class="table-responsive">
-      <table class="table table-hover table-striped mb-0">
+      <table class="table table-hover table-striped data-table mb-0">
         <thead>
           <tr>
             <th><%= t('rooms.number') %></th>
@@ -172,7 +172,7 @@
               <td><%= number_to_currency(room.monthly_rent) %></td>
               <td><%= room.area.present? ? "#{room.area} m²" : t('common.none') %></td>
               <td>
-                <span class="badge bg-<%= room.status == 'occupied' ? 'success' : (room.status == 'maintenance' ? 'warning' : 'primary') %>">
+                <span class="status-badge <%= room.status == 'occupied' ? 'status-paid' : (room.status == 'maintenance' ? 'status-partial' : '') %>">
                   <%= t("rooms.statuses.#{room.status}") %>
                 </span>
               </td>
@@ -184,11 +184,11 @@
                 <% end %>
               </td>
               <td>
-                <div class="btn-group btn-group-sm">
-                  <%= link_to room_path(room), class: "btn btn-outline-primary" do %>
+                <div class="action-links">
+                  <%= link_to room_path(room), class: "btn btn-sm btn-outline-primary" do %>
                     <i class="fas fa-eye"></i>
                   <% end %>
-                  <%= link_to edit_room_path(room), class: "btn btn-outline-secondary" do %>
+                  <%= link_to edit_room_path(room), class: "btn btn-sm btn-outline-secondary" do %>
                     <i class="fas fa-edit"></i>
                   <% end %>
                 </div>
@@ -219,24 +219,24 @@
   
   <% if @operating_expenses.empty? %>
     <div class="card-body text-center py-5">
-      <div class="empty-state-icon mb-3">
-        <i class="fas fa-file-invoice-dollar"></i>
+      <div class="empty-state">
+        <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
+        <h5><%= t('operating_expenses.no_expenses') %></h5>
+        <p class="text-muted"><%= t('operating_expenses.no_expenses_in_building') %></p>
+        <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
+          <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
+        <% end %>
       </div>
-      <h5><%= t('operating_expenses.no_expenses') %></h5>
-      <p class="text-muted"><%= t('operating_expenses.no_expenses_in_building') %></p>
-      <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
-        <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
-      <% end %>
     </div>
   <% else %>
     <div class="table-responsive">
-      <table class="table table-hover table-striped mb-0">
+      <table class="table table-hover table-striped data-table mb-0">
         <thead>
           <tr>
             <th><%= t('operating_expenses.date') %></th>
             <th><%= t('operating_expenses.category') %></th>
             <th><%= t('operating_expenses.amount') %></th>
-            <th><%= t('operating_expenses.notes') %></th>
+            <th><%= t('operating_expenses.description') %></th>
             <th><%= t('common.actions') %></th>
           </tr>
         </thead>
@@ -244,18 +244,21 @@
           <% @operating_expenses.each do |expense| %>
             <tr>
               <td><%= l expense.expense_date %></td>
-              <td><%= expense.category_name %></td>
-              <td><%= number_to_currency(expense.amount) %></td>
-              <td><%= truncate(expense.description, length: 30) if expense.description.present? %></td>
               <td>
-                <div class="btn-group btn-group-sm">
-                  <%= link_to edit_operating_expense_path(expense), class: "btn btn-outline-secondary" do %>
+                <span class="category-badge">
+                  <%= t("operating_expenses.categories.#{expense.category}") rescue expense.category %>
+                </span>
+              </td>
+              <td class="currency-amount"><%= number_to_currency(expense.amount) %></td>
+              <td><%= truncate(expense.description, length: 40) if expense.description.present? %></td>
+              <td>
+                <div class="action-links">
+                  <%= link_to edit_operating_expense_path(expense), class: "btn btn-sm btn-outline-secondary" do %>
                     <i class="fas fa-edit"></i>
                   <% end %>
                   <%= link_to operating_expense_path(expense), 
-                          method: :delete, 
                           data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
-                          class: "btn btn-outline-danger" do %>
+                          class: "btn btn-sm btn-outline-danger" do %>
                     <i class="fas fa-trash-alt"></i>
                   <% end %>
                 </div>
