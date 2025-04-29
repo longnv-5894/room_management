@@ -1,8 +1,13 @@
 class Building < ApplicationRecord
   belongs_to :user
+  belongs_to :country, optional: true
+  belongs_to :city, optional: true
+  belongs_to :district, optional: true
+  belongs_to :ward, optional: true
   has_many :rooms, dependent: :destroy
   
   validates :name, presence: true
+  # We're keeping address validation temporarily until data migration is complete
   validates :address, presence: true
   
   # Building status options
@@ -13,6 +18,17 @@ class Building < ApplicationRecord
   # Return translated statuses for select options
   def self.statuses_for_select
     STATUSES.map { |key| [I18n.t("buildings.statuses.#{key}"), key] }
+  end
+  
+  # Return full address combining all components
+  def full_address
+    components = []
+    components << street_address if street_address.present?
+    components << ward.name if ward.present?
+    components << district.name if district.present?
+    components << city.name if city.present?
+    components << country.name if country.present?
+    components.compact.join(', ')
   end
   
   # Return total number of rooms

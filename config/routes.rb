@@ -31,6 +31,13 @@ Rails.application.routes.draw do
   # Language switching route
   get '/switch_language/:locale', to: 'languages#switch', as: :switch_language
 
+  # Location API routes for cascading dropdowns
+  namespace :api do
+    get '/cities/:country_id', to: 'locations#cities', as: :cities
+    get '/districts/:city_id', to: 'locations#districts', as: :districts
+    get '/wards/:district_id', to: 'locations#wards', as: :wards
+  end
+
   # Resource routes
   resources :buildings do
     resources :rooms, only: [:index, :new, :create]

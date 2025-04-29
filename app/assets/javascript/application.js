@@ -10,6 +10,11 @@
 import * as bootstrap from 'bootstrap'
 window.bootstrap = bootstrap
 
+// jQuery is already included from CDN in the layout
+// window.$ and window.jQuery are already defined
+
+// Select2 is already included from CDN in the layout
+
 // Initialize all dropdowns
 document.addEventListener('DOMContentLoaded', function() {
   // Initialize all dropdowns

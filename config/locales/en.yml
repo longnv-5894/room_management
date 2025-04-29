@@ -71,6 +71,9 @@ en:
     optional: "Optional"
     view_all: "View All"
     danger_zone: "Danger Zone"
+    total: "Total: %{count}"
+    loading: "Loading..."
+    confirm_delete: "Are you sure you want to delete this?"
   
   # Navigation
   nav:
@@ -159,6 +162,17 @@ en:
     add: "Add Room"
     room_details: "Room Details"
     rent: "Monthly Rent"
+    edit_subtitle: "Update room information"
+    number_placeholder: "Enter room number"
+    floor_placeholder: "Enter floor number"
+    area_placeholder: "Enter room area"
+    rent_placeholder: "Enter monthly rent"
+    number_hint: "Unique identifier for the room"
+    floor_hint: "Floor where this room is located"
+    area_hint: "Room area in square meters"
+    rent_hint: "Monthly rental fee for this room"
+    status_hint: "Current status of the room"
+    select_building: "Select a building"
     statuses:
       available: "Available"
       occupied: "Occupied"
@@ -301,6 +315,9 @@ en:
     tenant:
       one: "tenant"
       other: "tenants"
+    kwh: "kWh"
+    cubic_meter: "m³"
+    danger_zone_warning: "Deleting a utility reading will remove all associated usage data"
     
   # Bills
   bills:
@@ -357,6 +374,14 @@ en:
     automatic_calculation_note: "Total amount is automatically calculated based on the values above"
     danger_zone_warning: "Deleting a bill cannot be undone"
     create_bill: "Create Bill"
+    from: "from"
+    to: "to"
+    loading: "Loading..."
+    view_all: "View All"
+    view_all_for_room: "View All Utility Readings for Room"
+    important_dates: "Important Dates"
+    tenants: "Tenants"
+    representative_tenant: "representative"
     
   # Operating Expenses
   operating_expenses:

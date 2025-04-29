@@ -46,6 +46,10 @@ vi:
     apply_filters: "Áp dụng bộ lọc"
     clear: "Xóa bộ lọc"
     optional: "Tùy chọn"
+    view_all: "Xem tất cả"
+    danger_zone: "Khu vực nguy hiểm"
+    total: "Tổng cộng: %{count}"
+    confirm_delete: "Bạn có chắc muốn xóa mục này không?"
   
   # Navigation
   nav:
@@ -141,6 +145,14 @@ vi:
     new_in_building: "Thêm phòng mới trong %{building}"
     no_building: "Không thuộc tòa nhà"
     no_rooms_in_building: "Tòa nhà này chưa có phòng nào."
+    add: "Thêm phòng"
+    room_details: "Chi tiết phòng"
+    rent: "Tiền thuê hàng tháng"
+    statuses:
+      available: "Sẵn sàng"
+      occupied: "Đã thuê"
+      maintenance: "Bảo trì"
+    select_building: "Chọn tòa nhà"
     
   # Tenants
   tenants:
@@ -281,6 +293,7 @@ vi:
       other: "người thuê"
     kwh: "kWh"
     cubic_meter: "m³"
+    danger_zone_warning: "Việc xóa chỉ số tiện ích sẽ xóa tất cả dữ liệu sử dụng liên quan"
     
   # Utility Prices
   utility_prices:
@@ -370,6 +383,8 @@ vi:
     danger_zone_warning: "Việc xóa hóa đơn không thể hoàn tác"
     create_bill: "Tạo hóa đơn"
     important_dates: "Ngày quan trọng"
+    tenants: "Người thuê"
+    representative_tenant: "đại diện"
     
   # Operating Expenses
   operating_expenses:
@@ -416,6 +431,7 @@ vi:
     no_expenses_this_month: "Không có chi phí nào được ghi nhận trong tháng này."
     expenses_by_building: "Chi phí theo tòa nhà"
     notes: "Ghi chú"
+    update_subtitle: "Cập nhật thông tin chi phí vận hành"
       
   # Revenues
   revenues:
@@ -492,6 +508,19 @@ vi:
     update_success: "Cập nhật hồ sơ thành công."
     update_error: "Có lỗi khi cập nhật hồ sơ."
     age: "%{count} tuổi"
+    new:
+      create_account: "Tạo tài khoản"
+      signup_subtitle: "Tạo tài khoản mới"
+      name: "Họ tên"
+      name_placeholder: "Nhập họ tên đầy đủ của bạn"
+      email: "Địa chỉ email"
+      password: "Mật khẩu"
+      password_hint: "Sử dụng ít nhất 8 ký tự kết hợp chữ và số"
+      confirm_password: "Xác nhận mật khẩu"
+      create: "Tạo tài khoản"
+      have_account: "Bạn đã có tài khoản?"
+      login: "Đăng nhập"
+      or_create_with_social: "Hoặc tạo tài khoản bằng"
     genders:
       male: "Nam"
       female: "Nữ"

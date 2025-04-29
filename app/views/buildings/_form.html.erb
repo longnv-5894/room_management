@@ -22,9 +22,56 @@
     </div>
   </div>
   
-  <div class="mb-3">
-    <%= form.label :address, t('buildings.address'), class: "form-label" %>
-    <%= form.text_field :address, class: "form-control", required: true %>
+  <!-- Location fields -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0"><%= t('buildings.location') %></h5>
+    </div>
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <%= form.label :country_id, t('buildings.country'), class: "form-label" %>
+          <%= form.collection_select :country_id, @countries, :id, :name, 
+                                    { include_blank: t('common.select_option') }, 
+                                    { class: "form-select location-select" } %>
+        </div>
+        
+        <div class="col-md-6">
+          <%= form.label :city_id, t('buildings.city'), class: "form-label" %>
+          <%= form.collection_select :city_id, @cities || [], :id, :name, 
+                                    { include_blank: t('common.select_option') }, 
+                                    { class: "form-select location-select", disabled: @cities.blank? } %>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <%= form.label :district_id, t('buildings.district'), class: "form-label" %>
+          <%= form.collection_select :district_id, @districts || [], :id, :name, 
+                                    { include_blank: t('common.select_option') }, 
+                                    { class: "form-select location-select", disabled: @districts.blank? } %>
+        </div>
+        
+        <div class="col-md-6">
+          <%= form.label :ward_id, t('buildings.ward'), class: "form-label" %>
+          <%= form.collection_select :ward_id, @wards || [], :id, :name, 
+                                    { include_blank: t('common.select_option') }, 
+                                    { class: "form-select location-select", disabled: @wards.blank? } %>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <%= form.label :street_address, t('buildings.street_address'), class: "form-label" %>
+        <%= form.text_field :street_address, class: "form-control" %>
+      </div>
+      
+      <!-- Keep the original address field temporarily during transition -->
+      <div class="mb-3">
+        <%= form.label :address, t('buildings.full_address'), class: "form-label" %>
+        <%= form.text_field :address, class: "form-control", required: true %>
+        <small class="text-muted"><%= t('buildings.address_legacy_note') %></small>
+      </div>
+    </div>
   </div>
   
   <div class="mb-3">

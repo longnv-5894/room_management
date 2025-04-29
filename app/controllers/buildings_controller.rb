@@ -1,6 +1,7 @@
 class BuildingsController < ApplicationController
   before_action :require_login
   before_action :set_building, only: [:show, :edit, :update, :destroy]
+  before_action :set_location_collections, only: [:new, :edit, :create, :update]
 
   def index
     @buildings = current_user.buildings.order(created_at: :desc)
@@ -72,9 +73,40 @@ class BuildingsController < ApplicationController
     redirect_to buildings_path
   end
 
+  def set_location_collections
+    @countries = Country.order(:name)
+    # If country is selected, filter cities by country
+    if params[:country_id].present?
+      @cities = City.where(country_id: params[:country_id]).order(:name)
+    elsif @building&.country_id.present?
+      @cities = City.where(country_id: @building.country_id).order(:name)
+    else
+      @cities = City.none
+    end
+    
+    # If city is selected, filter districts by city
+    if params[:city_id].present?
+      @districts = District.where(city_id: params[:city_id]).order(:name)
+    elsif @building&.city_id.present?
+      @districts = District.where(city_id: @building.city_id).order(:name)
+    else
+      @districts = District.none
+    end
+    
+    # If district is selected, filter wards by district
+    if params[:district_id].present?
+      @wards = Ward.where(district_id: params[:district_id]).order(:name)
+    elsif @building&.district_id.present?
+      @wards = Ward.where(district_id: @building.district_id).order(:name)
+    else
+      @wards = Ward.none
+    end
+  end
+
   def building_params
     params.require(:building).permit(:name, :address, :description, :num_floors, 
-                                    :year_built, :total_area, :status)
+                                    :year_built, :total_area, :status,
+                                    :country_id, :city_id, :district_id, :ward_id, :street_address)
   end
 
   def require_login

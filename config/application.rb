@@ -41,7 +41,7 @@ module RoomMagement
     
     # Configure i18n for multiple languages
     config.i18n.available_locales = [:en, :vi]
-    config.i18n.default_locale = :en
+    config.i18n.default_locale = :vi
     config.i18n.fallbacks = true
   end
 end

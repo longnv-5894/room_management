@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_25_072739) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_28_024420) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -71,7 +71,42 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_072739) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "country_id"
+    t.bigint "city_id"
+    t.bigint "district_id"
+    t.bigint "ward_id"
+    t.string "street_address"
+    t.index ["city_id"], name: "index_buildings_on_city_id"
+    t.index ["country_id"], name: "index_buildings_on_country_id"
+    t.index ["district_id"], name: "index_buildings_on_district_id"
     t.index ["user_id"], name: "index_buildings_on_user_id"
+    t.index ["ward_id"], name: "index_buildings_on_ward_id"
+  end
+
+  create_table "cities", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "country_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["country_id"], name: "index_cities_on_country_id"
+    t.index ["name", "country_id"], name: "index_cities_on_name_and_country_id", unique: true
+  end
+
+  create_table "countries", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_countries_on_code", unique: true
+  end
+
+  create_table "districts", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "city_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["city_id"], name: "index_districts_on_city_id"
+    t.index ["name", "city_id"], name: "index_districts_on_name_and_city_id", unique: true
   end
 
   create_table "operating_expenses", force: :cascade do |t|
@@ -175,14 +210,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_25_072739) do
     t.index ["tenant_id"], name: "index_vehicles_on_tenant_id"
   end
 
+  create_table "wards", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "district_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["district_id"], name: "index_wards_on_district_id"
+    t.index ["name", "district_id"], name: "index_wards_on_name_and_district_id", unique: true
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "bills", "room_assignments"
+  add_foreign_key "buildings", "cities"
+  add_foreign_key "buildings", "countries"
+  add_foreign_key "buildings", "districts"
   add_foreign_key "buildings", "users"
+  add_foreign_key "buildings", "wards"
+  add_foreign_key "cities", "countries"
+  add_foreign_key "districts", "cities"
   add_foreign_key "operating_expenses", "buildings"
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
   add_foreign_key "rooms", "buildings"
   add_foreign_key "utility_readings", "rooms"
   add_foreign_key "vehicles", "tenants"
+  add_foreign_key "wards", "districts"
 end

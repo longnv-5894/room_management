@@ -1,6 +1,9 @@
 # This file contains seed data for the room management system
 # based on typical rental information for April 2025
 
+# Load locations data first (countries, cities, districts, wards)
+require_relative 'seeds/locations'
+
 # Clear existing data
 puts "Clearing existing data..."
 Vehicle.destroy_all
@@ -14,6 +17,8 @@ UtilityPrice.destroy_all
 Building.destroy_all
 User.destroy_all
 
+# Note: We don't clear location data here as it's handled in the locations seed file
+
 # Create admin user
 puts "Creating admin user..."
 user = User.create!(
@@ -25,11 +30,24 @@ user = User.create!(
 
 # Create buildings
 puts "Creating buildings..."
+# Get Vietnam and some cities/districts/wards for our seed data
+vietnam = Country.find_by(name: "Việt Nam") # Updated to use Vietnamese name
+hcmc = City.find_by(name: "Thành phố Hồ Chí Minh") # Updated to use Vietnamese name
+district_1 = District.find_by(name: "Quận 1", city: hcmc) # Updated to use Vietnamese name
+district_3 = District.find_by(name: "Quận 3", city: hcmc) # Updated to use Vietnamese name
+district_5 = District.find_by(name: "Quận 5", city: hcmc) # Updated to use Vietnamese name
+ben_nghe = Ward.find_by(name: "Bến Nghé", district: district_1) # Updated to use Vietnamese name
+
 buildings = [
   { 
     name: 'Building A', 
-    address: '123 Nguyen Hue St., District 1, HCMC', 
-    description: 'Modern 3-floor apartment complex with convenient location near city center',
+    address: '123 Nguyễn Huệ, Quận 1, TP.HCM', # Updated to use Vietnamese address
+    street_address: '123 Nguyễn Huệ',
+    country: vietnam,
+    city: hcmc,
+    district: district_1,
+    ward: ben_nghe,
+    description: 'Khu chung cư 3 tầng hiện đại với vị trí thuận tiện gần trung tâm thành phố',
     num_floors: 3,
     year_built: 2021,
     total_area: 800.0,
@@ -38,8 +56,12 @@ buildings = [
   },
   { 
     name: 'Building B', 
-    address: '456 Le Loi St., District 3, HCMC', 
-    description: 'Budget-friendly rooms in quiet neighborhood',
+    address: '456 Lê Lợi, Quận 3, TP.HCM', # Updated to use Vietnamese address
+    street_address: '456 Lê Lợi',
+    country: vietnam,
+    city: hcmc,
+    district: district_3,
+    description: 'Phòng trọ giá cả phải chăng trong khu dân cư yên tĩnh',
     num_floors: 2,
     year_built: 2019,
     total_area: 500.0,
@@ -48,8 +70,12 @@ buildings = [
   },
   { 
     name: 'Building C', 
-    address: '789 Tran Hung Dao St., District 5, HCMC', 
-    description: 'Newly renovated building with modern amenities',
+    address: '789 Trần Hưng Đạo, Quận 5, TP.HCM', # Updated to use Vietnamese address
+    street_address: '789 Trần Hưng Đạo',
+    country: vietnam,
+    city: hcmc,
+    district: district_5,
+    description: 'Tòa nhà mới được cải tạo với tiện nghi hiện đại',
     num_floors: 4,
     year_built: 2018,
     total_area: 1200.0,
