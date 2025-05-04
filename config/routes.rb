@@ -7,7 +7,7 @@ Rails.application.routes.draw do
   # get "buildings/edit"
   # get "buildings/update"
   # get "buildings/destroy"
-  
+
   # Remove the auto-generated utility prices routes
   # get "utility_prices/index"
   # get "utility_prices/new"
@@ -57,6 +57,7 @@ Rails.application.routes.draw do
   resources :room_assignments do
     member do
       patch :end
+      patch :make_representative
     end
   end
   resources :utility_readings
@@ -68,6 +69,18 @@ Rails.application.routes.draw do
     end
   end
   resources :operating_expenses
+
+  # Contracts routes with additional actions for document management
+  resources :contracts do
+    member do
+      get :download       # Route to download the contract document
+      post :generate_pdf  # Route to generate the contract document as PDF from HTML template
+      get :generate_pdf   # Also allow GET requests for the generate_pdf action
+    end
+    collection do
+      get :room_assignment_details # Route to get room assignment details for autofill
+    end
+  end
 
   # Revenues route
   get '/revenues', to: 'revenues#index', as: :revenues

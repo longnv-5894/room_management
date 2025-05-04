@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <title><%= content_for(:title) || t('auth.login') %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="<%= content_for(:meta_description) || t('meta.description', default: 'Room Management System') %>">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, type: "module" %>
+    
+    <style>
+      body {
+        background-color: #f5f5f8;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+      }
+      
+      .auth-card {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        margin: 0 auto;
+      }
+      
+      .auth-icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #f0ecff;
+        color: #6c5ce7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-size: 24px;
+      }
+      
+      .auth-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+      
+      .auth-subtitle {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 24px;
+      }
+      
+      .input-group-text {
+        border-radius: 6px 0 0 6px;
+        border-color: #e2e8f0;
+      }
+      
+      .form-control {
+        border-radius: 0 6px 6px 0;
+        border-color: #e2e8f0;
+        padding: 10px 15px;
+        height: auto;
+      }
+      
+      .form-control:focus {
+        box-shadow: none;
+        border-color: #6c5ce7;
+      }
+      
+      .form-check-input:checked {
+        background-color: #6c5ce7;
+        border-color: #6c5ce7;
+      }
+      
+      .form-label {
+        font-weight: 500;
+        font-size: 14px;
+        color: #333;
+      }
+      
+      .btn-primary {
+        background-color: #6c5ce7;
+        border-color: #6c5ce7;
+        font-weight: 500;
+        border-radius: 6px;
+      }
+      
+      .btn-primary:hover {
+        background-color: #5a4bd1;
+        border-color: #5a4bd1;
+      }
+      
+      .text-primary {
+        color: #6c5ce7 !important;
+      }
+      
+      a.text-primary:hover {
+        color: #5a4bd1 !important;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container py-4">
+      <% flash.each do |message_type, message| %>
+        <div class="flash flash-<%= message_type %> mb-4">
+          <%= message %>
+        </div>
+      <% end %>
+      
+      <%= yield %>
+      
+      <div class="mt-4 text-center">
+        <div class="language-options">
+          <%= link_to "English", switch_language_path(locale: 'en'), class: "mx-2 text-decoration-none #{'fw-bold' if I18n.locale == :en}" %>
+          <%= link_to "Tiếng Việt", switch_language_path(locale: 'vi'), class: "mx-2 text-decoration-none #{'fw-bold' if I18n.locale == :vi}" %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

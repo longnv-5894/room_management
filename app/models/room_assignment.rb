@@ -2,36 +2,74 @@ class RoomAssignment < ApplicationRecord
   belongs_to :room
   belongs_to :tenant
   has_many :bills
-  
+  has_many :contracts
+
   validates :start_date, presence: true
   validate :end_date_after_start_date, if: -> { end_date.present? }
-  # Removed validation that prevented multiple active assignments for a room
-  
+  validate :only_one_representative_per_room, if: -> { is_representative_tenant? && active? }
+
   before_save :update_room_status
-  
+  before_save :ensure_only_representative_has_deposit
+
   # Used for displaying in select dropdowns
   def display_name
-    "Room #{room.number} - #{tenant.name}"
+    "Room #{room.number} - #{tenant.name}#{is_representative_tenant ? ' (Representative)' : ''}"
   end
-  
+
+  # Make this tenant the representative for their room
+  def make_representative!
+    return if is_representative_tenant?
+
+    RoomAssignment.transaction do
+      # Find the current representative tenant for this room
+      previous_representative = room.room_assignments
+                                   .where(active: true, is_representative_tenant: true)
+                                   .first
+
+      # Get the deposit amount from the previous representative
+      previous_deposit = previous_representative&.deposit_amount
+
+      # Remove representative status from any other tenant in this room
+      # and clear their deposit amount (handled by the before_save callback)
+      room.room_assignments
+          .where(active: true, is_representative_tenant: true)
+          .update_all(is_representative_tenant: false)
+
+      # Set this tenant as the representative and transfer the deposit
+      self.deposit_amount = previous_deposit
+      update!(is_representative_tenant: true)
+    end
+  end
+
+  # Check if the tenant is a representative for contract creation
+  def is_representative_tenant?
+    is_representative_tenant
+  end
+
   private
-  
+
   def end_date_after_start_date
     if end_date <= start_date
       errors.add(:end_date, "must be after the start date")
     end
   end
-  
-  # This validation has been removed to allow multiple tenants per room
-  # def no_active_assignment_for_room
-  #   other_assignments = room.room_assignments.where(active: true)
-  #   other_assignments = other_assignments.where.not(id: id) if persisted?
-  #   
-  #   if other_assignments.exists?
-  #     errors.add(:room_id, "already has an active tenant")
-  #   end
-  # end
-  
+
+  def only_one_representative_per_room
+    other_representatives = room.room_assignments
+                              .where(active: true, is_representative_tenant: true)
+                              .where.not(id: id)
+
+    if other_representatives.exists?
+      errors.add(:is_representative_tenant, "There can only be one representative tenant per room")
+    end
+  end
+
+  def ensure_only_representative_has_deposit
+    if !is_representative_tenant? && deposit_amount.present? && deposit_amount > 0
+      self.deposit_amount = nil
+    end
+  end
+
   def update_room_status
     if active?
       room.update(status: 'occupied')

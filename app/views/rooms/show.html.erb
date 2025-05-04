@@ -163,18 +163,29 @@
       </div>
       <div class="card-body">
         <% if @current_tenants.present? %>
-          <% @current_tenants.each do |tenant| %>
+          <% room_assignments = @room.room_assignments.where(active: true).includes(:tenant) %>
+          <% room_assignments.each do |assignment| %>
             <div class="detail-item">
               <div class="d-flex align-items-center">
                 <div class="avatar-placeholder avatar-small me-3">
-                  <%= tenant.name.first.upcase %>
+                  <%= assignment.tenant.name.first.upcase %>
                 </div>
                 <div class="flex-grow-1">
-                  <div class="detail-value"><%= tenant.name %></div>
-                  <div class="text-muted small"><%= tenant.phone %></div>
+                  <div class="detail-value">
+                    <%= assignment.tenant.name %>
+                    <% if assignment.is_representative_tenant? %>
+                      <span class="badge bg-primary ms-2"><%= t('room_assignments.representative') %></span>
+                    <% end %>
+                  </div>
+                  <div class="text-muted small"><%= assignment.tenant.phone %></div>
                 </div>
-                <div>
-                  <%= link_to tenant_path(tenant), class: "btn btn-sm btn-icon" do %>
+                <div class="d-flex">
+                  <% unless assignment.is_representative_tenant? %>
+                    <%= button_to make_representative_room_assignment_path(assignment), method: :patch, class: "btn btn-sm btn-outline-primary me-2", title: t('room_assignments.make_representative'), form: { data: { turbo_confirm: t('room_assignments.confirm_make_representative', name: assignment.tenant.name) } } do %>
+                      <i class="fas fa-crown"></i>
+                    <% end %>
+                  <% end %>
+                  <%= link_to tenant_path(assignment.tenant), class: "btn btn-sm btn-icon" do %>
                     <i class="fas fa-eye"></i>
                   <% end %>
                 </div>
@@ -218,6 +229,23 @@
                 <%= number_to_currency(@room.monthly_rent / @current_tenants.count, precision: 0, delimiter: ',', unit: 'VND ') %>
               </div>
             </div>
+            
+            <% representative_assignment = @room.room_assignments.find_by(active: true, is_representative_tenant: true) %>
+            <% if representative_assignment %>
+              <div class="detail-item">
+                <div class="detail-label"><%= t('room_assignments.representative_tenant') %></div>
+                <div class="detail-value">
+                  <%= representative_assignment.tenant.name %>
+                </div>
+              </div>
+              
+              <div class="detail-item">
+                <div class="detail-label"><%= t('room_assignments.deposit_amount') %></div>
+                <div class="detail-value highlight-price">
+                  <%= number_to_currency(representative_assignment.deposit_amount || 0, precision: 0, delimiter: ',', unit: 'VND ') %>
+                </div>
+              </div>
+            <% end %>
           </div>
         <% else %>
           <div class="empty-state">

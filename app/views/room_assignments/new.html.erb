@@ -112,7 +112,7 @@
               <span class="input-group-text">
                 <i class="fas fa-money-bill-wave text-success"></i>
               </span>
-              <%= form.number_field :deposit_amount, class: "form-control", min: 0 %>
+              <%= form.text_field :deposit_amount, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
               <span class="input-group-text">VND</span>
             </div>
           </div>

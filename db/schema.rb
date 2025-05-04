@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_28_024420) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_30_140236) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -92,6 +92,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_024420) do
     t.index ["name", "country_id"], name: "index_cities_on_name_and_country_id", unique: true
   end
 
+  create_table "contracts", force: :cascade do |t|
+    t.bigint "room_assignment_id", null: false
+    t.string "contract_number"
+    t.date "start_date"
+    t.date "end_date"
+    t.decimal "rent_amount"
+    t.decimal "deposit_amount"
+    t.string "status"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "payment_due_day"
+    t.index ["room_assignment_id"], name: "index_contracts_on_room_assignment_id"
+  end
+
   create_table "countries", force: :cascade do |t|
     t.string "name", null: false
     t.string "code", null: false
@@ -130,8 +145,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_024420) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "notes"
+    t.boolean "is_representative_tenant", default: false
     t.index ["room_id", "tenant_id", "active"], name: "unique_active_room_assignments", unique: true, where: "(active = true)"
     t.index ["room_id"], name: "index_room_assignments_on_room_id"
+    t.index ["room_id"], name: "index_room_assignments_on_room_representative", unique: true, where: "((active = true) AND (is_representative_tenant = true))"
     t.index ["tenant_id"], name: "index_room_assignments_on_tenant_id"
   end
 
@@ -228,6 +245,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_28_024420) do
   add_foreign_key "buildings", "users"
   add_foreign_key "buildings", "wards"
   add_foreign_key "cities", "countries"
+  add_foreign_key "contracts", "room_assignments"
   add_foreign_key "districts", "cities"
   add_foreign_key "operating_expenses", "buildings"
   add_foreign_key "room_assignments", "rooms"

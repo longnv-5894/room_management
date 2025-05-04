@@ -1,0 +1,17 @@
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><%= t('contracts.edit') %></h1>
+    <%= link_to contract_path(@contract), class: 'btn btn-secondary' do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+  </div>
+
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary"><%= t('contracts.edit') %> #<%= @contract.contract_number %></h6>
+    </div>
+    <div class="card-body">
+      <%= render 'form' %>
+    </div>
+  </div>
+</div>

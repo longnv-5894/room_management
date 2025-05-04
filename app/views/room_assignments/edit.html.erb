@@ -123,7 +123,7 @@
               <span class="input-group-text">
                 <i class="fas fa-money-bill-wave text-success"></i>
               </span>
-              <%= form.number_field :deposit_amount, class: "form-control", min: 0 %>
+              <%= form.text_field :deposit_amount, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
               <span class="input-group-text">VND</span>
             </div>
           </div>
@@ -138,6 +138,19 @@
                 <%= form.label :active, t('room_assignments.active'), class: "form-check-label" %>
               </div>
             </div>
+          </div>
+          
+          <div class="form-group mt-3">
+            <%= form.label :is_representative_tenant, t('room_assignments.representative_tenant'), class: "form-label" %>
+            <div class="form-check p-0 mt-2">
+              <div class="form-check form-switch">
+                <%= form.check_box :is_representative_tenant, class: "form-check-input" %>
+                <%= form.label :is_representative_tenant, t('room_assignments.is_representative_tenant'), class: "form-check-label" %>
+              </div>
+            </div>
+            <small class="form-text text-muted">
+              <i class="fas fa-info-circle me-1"></i> <%= t('room_assignments.deposit_only_for_representative') %>
+            </small>
           </div>
         </div>
       </div>

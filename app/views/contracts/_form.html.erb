@@ -1,0 +1,250 @@
+<%= form_with(model: @contract, local: true) do |form| %>
+  <% if @contract.errors.any? %>
+    <div class="alert alert-danger shadow-sm">
+      <h5><i class="fas fa-exclamation-triangle"></i> <%= pluralize(@contract.errors.count, t('common.form_error')) %>:</h5>
+      <ul class="mb-0 pl-3">
+        <% @contract.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Room and Tenant Information -->
+  <div class="card border-primary mb-4">
+    <div class="card-header bg-white border-primary">
+      <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.room_and_tenant') %></h6>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <%= form.collection_select :room_assignment_id, @room_assignments, :id, :display_name, 
+                                  { include_blank: t('room_assignments.select_room') }, 
+                                  { class: "form-control", required: true, id: "contract_room_assignment_id" } %>
+        <small class="form-text text-muted">
+          <i class="fas fa-info-circle"></i> <%= t('contracts.representative_tenant_help') %>
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Date Range Section -->
+    <div class="col-md-6">
+      <div class="card border-primary mb-4">
+        <div class="card-header bg-white border-primary">
+          <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.date_range') %></h6>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <%= form.label :start_date, t('contracts.start_date') %>
+            <%= form.date_field :start_date, class: "form-control", required: true, id: "contract_start_date" %>
+          </div>
+          
+          <div class="form-group mb-0">
+            <%= form.label :end_date, t('contracts.end_date') %>
+            <%= form.date_field :end_date, class: "form-control", required: true %>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Payment Details Section -->
+    <div class="col-md-6">
+      <div class="card border-primary mb-4">
+        <div class="card-header bg-white border-primary">
+          <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.payment_details') %></h6>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <%= form.label :rent_amount, t('contracts.rent_amount') %>
+            <%= form.text_field :rent_amount, class: "form-control number-format", 
+                           required: true, id: "contract_rent_amount",
+                           inputmode: "numeric", pattern: "[0-9,]*" %>
+          </div>
+          
+          <div class="form-group mb-0">
+            <%= form.label :deposit_amount, t('contracts.deposit_amount') %>
+            <%= form.text_field :deposit_amount, class: "form-control number-format", 
+                           required: true, id: "contract_deposit_amount",
+                           inputmode: "numeric", pattern: "[0-9,]*" %>
+            <small class="form-text text-muted">
+              <i class="fas fa-info-circle"></i> <%= t('contracts.deposit_info') %>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Payment Schedule Section -->
+    <div class="col-md-6">
+      <div class="card border-primary mb-4">
+        <div class="card-header bg-white border-primary">
+          <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.payment_schedule') %></h6>
+        </div>
+        <div class="card-body">
+          <div class="form-group mb-0">
+            <%= form.label :payment_due_day, t('contracts.payment_due_day') %>
+            <%= form.number_field :payment_due_day, class: "form-control", min: 1, max: 31, value: 5 %>
+            <small class="form-text text-muted">
+              <i class="fas fa-info-circle"></i> <%= t('contracts.payment_due_day_help') %>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Status Section -->
+    <div class="col-md-6">
+      <div class="card border-primary mb-4">
+        <div class="card-header bg-white border-primary">
+          <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.status') %></h6>
+        </div>
+        <div class="card-body">
+          <div class="form-group mb-0">
+            <%= form.select :status, 
+                          options_for_select([
+                            [t('contracts.statuses.draft'), "draft"], 
+                            [t('contracts.statuses.active'), "active"], 
+                            [t('contracts.statuses.expired'), "expired"], 
+                            [t('contracts.statuses.terminated'), "terminated"]
+                          ], @contract.status || "draft"), 
+                          {}, { class: "form-control" } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @contract.persisted? && !@contract.document.attached? %>
+    <!-- Document Section -->
+    <div class="card border-primary mb-4">
+      <div class="card-header bg-white border-primary">
+        <h6 class="mb-0 font-weight-bold text-primary"><%= t('contracts.document') %></h6>
+      </div>
+      <div class="card-body">
+        <div class="form-group mb-0">
+          <%= form.label :document, t('contracts.upload_document') %>
+          <%= form.file_field :document, class: "form-control" %>
+          <small class="form-text text-muted">
+            <i class="fas fa-info-circle"></i> <%= t('contracts.upload_document_help') %>
+          </small>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="d-flex justify-content-between mt-4">
+    <div>
+      <%= form.submit (@contract.new_record? ? t('contracts.create_contract') : t('common.update')), class: "btn btn-primary" %>
+    </div>
+    <div>
+      <%= link_to contracts_path, class: "btn btn-secondary" do %>
+        <i class="fas fa-times"></i> <%= t('common.cancel') %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize number formatting for all number-format fields
+    const numberFormatFields = document.querySelectorAll('.number-format');
+    numberFormatFields.forEach(function(field) {
+      // Format on initial load
+      if (field.value) {
+        field.value = formatNumberWithCommas(field.value);
+      }
+      
+      // Format on input
+      field.addEventListener('input', function(e) {
+        const value = e.target.value.replace(/,/g, '');
+        if (!isNaN(value)) {
+          e.target.value = formatNumberWithCommas(value);
+        }
+      });
+      
+      // Handle focus - remove commas for editing
+      field.addEventListener('focus', function(e) {
+        const value = e.target.value.replace(/,/g, '');
+        e.target.value = value;
+      });
+      
+      // Format on blur
+      field.addEventListener('blur', function(e) {
+        const value = e.target.value.replace(/,/g, '');
+        if (!isNaN(value)) {
+          e.target.value = formatNumberWithCommas(value);
+        }
+      });
+    });
+    
+    // Format number with commas
+    function formatNumberWithCommas(number) {
+      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+    
+    const roomAssignmentSelect = document.getElementById('contract_room_assignment_id');
+    
+    if (roomAssignmentSelect) {
+      roomAssignmentSelect.addEventListener('change', function() {
+        const selectedRoomAssignmentId = this.value;
+        
+        if (selectedRoomAssignmentId) {
+          // Show loading indicator
+          const rentField = document.getElementById('contract_rent_amount');
+          const depositField = document.getElementById('contract_deposit_amount');
+          const startDateField = document.getElementById('contract_start_date');
+          
+          rentField.placeholder = '<%= t('common.loading') %>';
+          depositField.placeholder = '<%= t('common.loading') %>';
+          
+          // Fetch room assignment details
+          fetch(`/contracts/room_assignment_details?id=${selectedRoomAssignmentId}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Autofill form fields
+              if (data.rent_amount) {
+                rentField.value = formatNumberWithCommas(data.rent_amount);
+              }
+              
+              if (data.deposit_amount) {
+                depositField.value = formatNumberWithCommas(data.deposit_amount);
+              }
+              
+              if (data.start_date) {
+                startDateField.value = data.start_date.substring(0, 10); // Format as YYYY-MM-DD
+              }
+              
+              // Set default end date to one year from start date if start date exists
+              if (data.start_date) {
+                const startDate = new Date(data.start_date);
+                const endDate = new Date(startDate);
+                endDate.setFullYear(endDate.getFullYear() + 1);
+                
+                const endDateField = document.getElementById('contract_end_date');
+                const formattedEndDate = endDate.toISOString().substring(0, 10);
+                endDateField.value = formattedEndDate;
+              }
+              
+              // Clear loading placeholders
+              rentField.placeholder = '';
+              depositField.placeholder = '';
+            })
+            .catch(error => {
+              console.error('Error fetching room assignment details:', error);
+              rentField.placeholder = '';
+              depositField.placeholder = '';
+              alert('<%= t('contracts.load_error') %>');
+            });
+        }
+      });
+    }
+  });
+</script>

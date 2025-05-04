@@ -40,7 +40,15 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Document generation and manipulation
+gem "docx", require: false
+gem "sablon", require: false
+gem "caracal", require: false
+
 gem 'pg'
+
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary' # Provides the binary for PDF generation
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

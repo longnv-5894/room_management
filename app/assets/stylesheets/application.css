@@ -173,8 +173,35 @@ body {
   box-shadow: 0 6px 15px rgba(108, 92, 231, 0.2);
 }
 
-.btn-icon {
+/* Icon spacing in buttons */
+.btn i, .btn svg {
+  margin-right: 8px;
+}
+
+.btn i:last-child:not(:first-child), 
+.btn svg:last-child:not(:first-child) {
+  margin-right: 0;
   margin-left: 8px;
+}
+
+/* For icon-only buttons */
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.btn-icon.btn-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.btn-icon i, .btn-icon svg {
+  margin: 0;
 }
 
 /* Additional elements */
@@ -638,6 +665,37 @@ body {
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(108, 92, 231, 0.2);
+}
+
+/* Icon spacing in buttons */
+.btn i, .btn svg {
+  margin-right: 8px;
+}
+
+.btn i:last-child:not(:first-child), 
+.btn svg:last-child:not(:first-child) {
+  margin-right: 0;
+  margin-left: 8px;
+}
+
+/* For icon-only buttons */
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.btn-icon.btn-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.btn-icon i, .btn-icon svg {
+  margin: 0;
 }
 
 /* Success button styling */
@@ -1506,4 +1564,58 @@ body {
   .financial-overview-cards {
     grid-template-columns: 1fr;
   }
+}
+
+/* Authentication styles */
+.auth-background {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.auth-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 30px;
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
+}
+
+.auth-form {
+  margin-bottom: 20px;
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.auth-link {
+  color: #6c5ce7;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.language-options {
+  margin-top: 20px;
+}
+
+.language-options a {
+  color: #6c5ce7;
+}
+
+.language-options a.fw-bold {
+  color: #5649c9;
 }

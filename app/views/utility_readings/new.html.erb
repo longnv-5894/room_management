@@ -132,7 +132,7 @@
               <div class="form-group mb-3 mt-4">
                 <label class="form-label"><%= t('utility_readings.total_service_charge') %></label>
                 <div class="input-group">
-                  <%= form.number_field :service_charge, id: "total-service-charge", class: "form-control", min: 0, step: 1 %>
+                  <%= form.text_field :service_charge, id: "total-service-charge", class: "form-control number-format", min: 0, step: 1, inputmode: "numeric", pattern: "[0-9,]*" %>
                   <span class="input-group-text">₫</span>
                 </div>
                 <small class="form-text text-muted">

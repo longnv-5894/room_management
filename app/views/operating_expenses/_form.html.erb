@@ -29,7 +29,7 @@
     <%= form.label :amount, t('operating_expenses.amount'), class: "form-label" %>
     <div class="input-group">
       <span class="input-group-text">VND</span>
-      <%= form.number_field :amount, class: "form-control", min: 0, step: 0.01 %>
+      <%= form.text_field :amount, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
     </div>
   </div>
   

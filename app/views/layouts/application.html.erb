@@ -974,6 +974,15 @@
               <% end %>
             </li>
             <li>
+              <%= link_to contracts_path, 
+                  class: "nav-link #{controller_name == 'contracts' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'contracts' ? "page" : nil) do %>
+                <i class="fas fa-file-contract me-2"></i>
+                <%= t('nav.contracts') %>
+              <% end %>
+            </li>
+            <li>
               <%= link_to vehicles_path, 
                   class: "nav-link #{controller_name == 'vehicles' ? 'active' : ''}", 
                   role: "menuitem",

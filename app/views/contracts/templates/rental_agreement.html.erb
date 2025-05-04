@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HỢP ĐỒNG THUÊ NHÀ | RENTAL AGREEMENT</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 13pt;
+      line-height: 1.6;
+      margin: 25mm 20mm 20mm 20mm;
+      color: #000;
+    }
+    .contract-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .republic {
+      font-size: 12pt;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .independence {
+      font-size: 12pt;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+    .contract-title {
+      font-size: 18pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .contract-number {
+      font-size: 14pt;
+      margin-bottom: 30px;
+    }
+    .section-title {
+      font-weight: bold;
+      font-size: 13pt;
+      text-transform: uppercase;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+    .indent {
+      margin-left: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+    table.parties-table td {
+      padding: 6px;
+      vertical-align: top;
+    }
+    table.parties-table td:first-child {
+      width: 200px;
+    }
+    .signature-section {
+      margin-top: 60px;
+      page-break-inside: avoid;
+    }
+    .signature-box {
+      width: 45%;
+      float: left;
+      text-align: center;
+      margin-right: 5%;
+    }
+    .signature-box.tenant {
+      margin-right: 0;
+      margin-left: 5%;
+    }
+    .signature-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .signature-name {
+      font-weight: bold;
+      margin-top: 70px;
+    }
+    p {
+      text-align: justify;
+      margin: 8px 0;
+    }
+    .clearfix::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+    .term-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      border: 1px solid #000;
+    }
+    .term-table th, .term-table td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: left;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 10pt;
+      text-align: center;
+    }
+    .page-break {
+      page-break-after: always;
+    }
+    ol {
+      margin-top: 0;
+      padding-left: 25px;
+    }
+    ul {
+      margin-top: 0;
+      padding-left: 25px;
+    }
+    .article {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contract-header">
+    <div class="republic">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+    <div class="independence">Độc lập - Tự do - Hạnh phúc</div>
+    <div class="contract-title">HỢP ĐỒNG THUÊ NHÀ</div>
+    <div class="contract-number">Số: <%= so_hop_dong %></div>
+  </div>
+
+  <p>
+    Hôm nay, ngày <%= ngay_lam_hop_dong %>, tại <%= dia_chi_phong %>, chúng tôi gồm:
+  </p>
+
+  <div class="section-title">I. BÊN CHO THUÊ (BÊN A):</div>
+  <table class="parties-table">
+    <tr>
+      <td>Ông/Bà:</td>
+      <td><strong><%= ten_chu_nha %></strong></td>
+    </tr>
+    <tr>
+      <td>Địa chỉ thường trú:</td>
+      <td><%= dia_chi_chu_nha %></td>
+    </tr>
+    <tr>
+      <td>Điện thoại:</td>
+      <td><%= sdt_chu_nha %></td>
+    </tr>
+  </table>
+
+  <div class="section-title">II. BÊN THUÊ (BÊN B):</div>
+  <table class="parties-table">
+    <tr>
+      <td>Ông/Bà:</td>
+      <td><strong><%= ten_nguoi_thue %></strong></td>
+    </tr>
+    <tr>
+      <td>CMND/CCCD số:</td>
+      <td><%= cmnd_nguoi_thue %></td>
+    </tr>
+    <tr>
+      <td>Điện thoại:</td>
+      <td><%= sdt_nguoi_thue %></td>
+    </tr>
+    <tr>
+      <td>Địa chỉ thường trú:</td>
+      <td><%= dia_chi_nguoi_thue %></td>
+    </tr>
+  </table>
+
+  <p>
+    Sau khi bàn bạc, thỏa thuận, hai bên nhất trí ký hợp đồng thuê nhà với các điều khoản sau đây:
+  </p>
+
+  <div class="section-title">ĐIỀU 1: ĐỐI TƯỢNG THUÊ</div>
+  <p>
+    Bên A đồng ý cho Bên B thuê 01 (một) phòng (Phòng số <%= so_phong %>) tại tòa nhà <%= ten_toa_nha %>, địa chỉ tại <%= dia_chi_phong %>, với diện tích sử dụng là <%= dien_tich %> m².
+  </p>
+
+  <div class="section-title">ĐIỀU 2: GIÁ CẢ & PHƯƠNG THỨC THANH TOÁN</div>
+  <ol>
+    <li>
+      <strong>Giá thuê phòng:</strong> <%= tien_thue %> VND/tháng (<%= tien_thue_bang_chu %>).
+    </li>
+    <li>
+      <strong>Tiền đặt cọc:</strong> <%= tien_coc %> VND (<%= tien_coc_bang_chu %>). Tiền đặt cọc được hoàn trả lại cho Bên B khi kết thúc hợp đồng, với điều kiện Bên B không vi phạm điều khoản nào của hợp đồng.
+    </li>
+    <li>
+      <strong>Phương thức thanh toán:</strong> Bên B thanh toán tiền thuê nhà định kỳ hàng tháng vào ngày <%= ngay_tra_tien %> của mỗi tháng, bằng tiền mặt và có biên nhận.
+    </li>
+    <li>
+      <strong>Các khoản phí khác:</strong> Ngoài tiền thuê nhà, Bên B phải thanh toán chi phí sử dụng điện, nước, internet và các dịch vụ khác (nếu có) theo thực tế sử dụng.
+    </li>
+  </ol>
+
+  <div class="section-title">ĐIỀU 3: THỜI HẠN THUÊ</div>
+  <p>
+    Thời hạn thuê phòng là <%= (end_date.to_date - start_date.to_date).to_i / 30 %> tháng, kể từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.
+  </p>
+
+  <div class="section-title">ĐIỀU 4: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
+  <ol>
+    <li>Giao phòng đúng thời hạn và trong tình trạng sử dụng tốt cho Bên B.</li>
+    <li>Đảm bảo quyền sử dụng phòng một cách hợp pháp cho Bên B trong suốt thời gian thuê.</li>
+    <li>Chịu trách nhiệm sửa chữa những hư hỏng không phải do lỗi của Bên B.</li>
+    <li>Thông báo trước cho Bên B ít nhất 30 ngày nếu có thay đổi về giá thuê.</li>
+  </ol>
+
+  <div class="section-title">ĐIỀU 5: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
+  <ol>
+    <li>Sử dụng phòng đúng mục đích để ở, không được tự ý cải tạo, sửa chữa phòng khi chưa được sự đồng ý của Bên A.</li>
+    <li>Thanh toán đầy đủ, đúng hạn tiền thuê nhà và các chi phí khác theo quy định.</li>
+    <li>Giữ gìn vệ sinh, an ninh trật tự trong khu vực phòng trọ.</li>
+    <li>Bồi thường thiệt hại nếu làm hư hỏng tài sản của Bên A.</li>
+    <li>Không được chuyển nhượng hợp đồng hoặc cho người khác thuê lại mà không có sự đồng ý của Bên A.</li>
+    <li>Trả phòng cho Bên A khi hết hạn hợp đồng trong tình trạng tốt như khi nhận.</li>
+  </ol>
+
+  <div class="page-break"></div>
+
+  <div class="section-title">ĐIỀU 6: CHẤM DỨT HỢP ĐỒNG</div>
+  <ol>
+    <li>Hợp đồng đương nhiên chấm dứt khi hết thời hạn thuê.</li>
+    <li>Trường hợp một bên muốn chấm dứt hợp đồng trước thời hạn phải thông báo bằng văn bản cho bên kia biết trước ít nhất 30 ngày và phải được sự đồng ý của bên kia.</li>
+    <li>Bên A có quyền đơn phương chấm dứt hợp đồng và yêu cầu bồi thường thiệt hại nếu Bên B vi phạm các nghĩa vụ sau:
+      <ul>
+        <li>Không trả tiền thuê phòng đúng hạn theo thỏa thuận.</li>
+        <li>Sử dụng phòng không đúng mục đích.</li>
+        <li>Cố ý làm hư hỏng phòng.</li>
+        <li>Vi phạm quy định về an ninh, trật tự, vệ sinh môi trường.</li>
+      </ul>
+    </li>
+    <li>Bên B có quyền đơn phương chấm dứt hợp đồng nếu Bên A không thực hiện đúng nghĩa vụ giao phòng hoặc phòng không đảm bảo an toàn cho việc sử dụng.</li>
+  </ol>
+
+  <div class="section-title">ĐIỀU 7: ĐIỀU KHOẢN CHUNG</div>
+  <ol>
+    <li>Hai bên cam kết thực hiện đúng và đầy đủ các điều khoản của hợp đồng.</li>
+    <li>Trong quá trình thực hiện hợp đồng, nếu có vấn đề phát sinh, hai bên sẽ cùng nhau bàn bạc, giải quyết trên tinh thần hợp tác, tôn trọng lẫn nhau.</li>
+    <li>Mọi sửa đổi, bổ sung hợp đồng phải được lập thành văn bản có chữ ký của hai bên.</li>
+    <li>Trong trường hợp không thể thương lượng được, tranh chấp sẽ được đưa ra Tòa án có thẩm quyền để giải quyết.</li>
+    <li>Hợp đồng này có hiệu lực kể từ ngày ký và được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản để thực hiện.</li>
+  </ol>
+
+  <div class="signature-section clearfix">
+    <div class="signature-box">
+      <div class="signature-title">BÊN CHO THUÊ</div>
+      <div>(Ký, ghi rõ họ tên)</div>
+      <div class="signature-name"><%= ten_chu_nha %></div>
+    </div>
+    <div class="signature-box tenant">
+      <div class="signature-title">BÊN THUÊ</div>
+      <div>(Ký, ghi rõ họ tên)</div>
+      <div class="signature-name"><%= ten_nguoi_thue %></div>
+    </div>
+  </div>
+</body>
+</html>

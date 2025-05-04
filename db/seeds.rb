@@ -10,6 +10,7 @@ Vehicle.destroy_all
 OperatingExpense.destroy_all
 Bill.destroy_all
 UtilityReading.destroy_all
+Contract.destroy_all  # Add this line to destroy contracts first
 RoomAssignment.destroy_all
 Room.destroy_all
 Tenant.destroy_all
@@ -39,8 +40,8 @@ district_5 = District.find_by(name: "Quận 5", city: hcmc) # Updated to use Vie
 ben_nghe = Ward.find_by(name: "Bến Nghé", district: district_1) # Updated to use Vietnamese name
 
 buildings = [
-  { 
-    name: 'Building A', 
+  {
+    name: 'Building A',
     address: '123 Nguyễn Huệ, Quận 1, TP.HCM', # Updated to use Vietnamese address
     street_address: '123 Nguyễn Huệ',
     country: vietnam,
@@ -54,8 +55,8 @@ buildings = [
     status: 'active',
     user: user
   },
-  { 
-    name: 'Building B', 
+  {
+    name: 'Building B',
     address: '456 Lê Lợi, Quận 3, TP.HCM', # Updated to use Vietnamese address
     street_address: '456 Lê Lợi',
     country: vietnam,
@@ -68,8 +69,8 @@ buildings = [
     status: 'active',
     user: user
   },
-  { 
-    name: 'Building C', 
+  {
+    name: 'Building C',
     address: '789 Trần Hưng Đạo, Quận 5, TP.HCM', # Updated to use Vietnamese address
     street_address: '789 Trần Hưng Đạo',
     country: vietnam,
@@ -101,7 +102,7 @@ rooms = [
   { number: '301', floor: 3, area: 25.0, monthly_rent: 2900000, status: 'occupied', building: created_buildings[0] },
   { number: '302', floor: 3, area: 30.0, monthly_rent: 3400000, status: 'occupied', building: created_buildings[0] },
   { number: '303', floor: 3, area: 20.0, monthly_rent: 2400000, status: 'maintenance', building: created_buildings[0] },
-  
+
   # Building B rooms
   { number: '101', floor: 1, area: 22.0, monthly_rent: 2200000, status: 'occupied', building: created_buildings[1] },
   { number: '102', floor: 1, area: 25.0, monthly_rent: 2500000, status: 'occupied', building: created_buildings[1] },
@@ -139,26 +140,44 @@ end
 
 # Create room assignments
 puts "Creating room assignments..."
-room_assignments = [
-  # Building A assignments
-  { room: created_rooms[0], tenant: created_tenants[0], start_date: '2024-01-15', deposit_amount: 2500000, active: true },
-  { room: created_rooms[1], tenant: created_tenants[1], start_date: '2024-02-01', deposit_amount: 3000000, active: true },
-  { room: created_rooms[2], tenant: created_tenants[2], start_date: '2024-02-15', deposit_amount: 2000000, active: true },
-  { room: created_rooms[3], tenant: created_tenants[3], start_date: '2024-03-01', deposit_amount: 2700000, active: true },
-  { room: created_rooms[4], tenant: created_tenants[4], start_date: '2024-03-15', deposit_amount: 3200000, active: true },
-  { room: created_rooms[6], tenant: created_tenants[5], start_date: '2024-04-01', deposit_amount: 2900000, active: true },
-  { room: created_rooms[7], tenant: created_tenants[6], start_date: '2024-01-05', deposit_amount: 3400000, active: true },
-  # Add multiple tenants to some rooms
-  { room: created_rooms[0], tenant: created_tenants[8], start_date: '2024-03-10', deposit_amount: 1250000, active: true },  # Second tenant in room 101
-  { room: created_rooms[0], tenant: created_tenants[9], start_date: '2024-02-20', deposit_amount: 1250000, active: true },  # Third tenant in room 101
-  { room: created_rooms[1], tenant: created_tenants[10], start_date: '2024-01-20', deposit_amount: 1500000, active: true }, # Second tenant in room 102
-  { room: created_rooms[4], tenant: created_tenants[11], start_date: '2024-03-05', deposit_amount: 1600000, active: true }, # Second tenant in room 202
-  
-  # Building B assignments
-  { room: created_rooms[9], tenant: created_tenants[7], start_date: '2024-02-10', deposit_amount: 2200000, active: true },
-  { room: created_rooms[10], tenant: created_tenants[8], start_date: '2024-03-10', deposit_amount: 2500000, active: true },
-  { room: created_rooms[12], tenant: created_tenants[9], start_date: '2024-02-20', deposit_amount: 2300000, active: true }
-]
+room_assignments = []
+
+# For each occupied room, create assignments
+occupied_rooms = created_rooms.select { |room| room.status == 'occupied' }
+
+occupied_rooms.each_with_index do |room, index|
+  # Select tenants for this room
+  num_tenants_for_room = [1, 1, 1, 2, 3].sample # Most rooms have 1 tenant, some have 2 or 3
+  room_tenants = created_tenants.sample(num_tenants_for_room)
+
+  room_tenants.each_with_index do |tenant, tenant_index|
+    # First tenant in each room becomes the representative
+    is_representative = (tenant_index == 0)
+
+    # Only representative tenant gets deposit
+    deposit = is_representative ? room.monthly_rent : nil
+
+    # Create the assignment
+    assignment = {
+      room: room,
+      tenant: tenant,
+      start_date: Date.new(2024, 1, 15) + rand(80),
+      deposit_amount: deposit,
+      active: true,
+      is_representative_tenant: is_representative
+    }
+
+    room_assignments << assignment
+
+    # Remove this tenant from available tenants to avoid duplicates
+    created_tenants.delete(tenant)
+
+    # Break if we run out of tenants
+    break if created_tenants.empty?
+  end
+
+  break if created_tenants.empty?
+end
 
 created_assignments = room_assignments.map do |assignment_data|
   RoomAssignment.create!(assignment_data)
@@ -252,10 +271,10 @@ occupied_rooms.each do |room|
 
     # Get all active room assignments for this room
     active_assignments = room.room_assignments.where(active: true)
-    
+
     # Count the number of tenants in this room
     tenant_count = active_assignments.count
-    
+
     if tenant_count > 0
       # Create a bill for each tenant in the room
       active_assignments.each do |assignment|
@@ -266,7 +285,7 @@ occupied_rooms.each do |room|
           room_fee: room.monthly_rent,
           electricity_fee: electricity_fee,
           water_fee: water_fee,
-          service_fee: service_charge * tenant_count, 
+          service_fee: service_charge * tenant_count,
           other_fees: other_fees,
           status: ['unpaid', 'paid'].sample,
           notes: "Electricity: #{electricity_usage.to_f} kWh, Water: #{water_usage.to_f} m³"
@@ -288,8 +307,11 @@ brands = {
 }
 colors = ['Black', 'White', 'Red', 'Blue', 'Silver', 'Grey', 'Green', 'Yellow']
 
+# Get all tenants from database since created_tenants array might be empty at this point
+all_tenants = Tenant.all
+
 # Give approximately 60% of tenants vehicles
-tenant_sample = created_tenants.sample((created_tenants.length * 0.6).to_i)
+tenant_sample = all_tenants.sample((all_tenants.length * 0.6).to_i)
 
 tenant_sample.each do |tenant|
   # Some tenants will have multiple vehicles
@@ -368,10 +390,10 @@ expense_descriptions = {
   created_buildings.each do |building|
     # Create 5-8 expenses per month per building
     expense_count = rand(5..8)
-    
+
     expense_count.times do
       category = expense_categories.sample
-      
+
       OperatingExpense.create!(
         building: building,
         category: category,

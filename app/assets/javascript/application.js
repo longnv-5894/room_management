@@ -10,6 +10,9 @@
 import * as bootstrap from 'bootstrap'
 window.bootstrap = bootstrap
 
+// Import our custom number formatting utilities
+import './number_formatting'
+
 // jQuery is already included from CDN in the layout
 // window.$ and window.jQuery are already defined
 

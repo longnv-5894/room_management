@@ -1,0 +1,212 @@
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"><%= t('contracts.title') %></h1>
+    <div>
+      <%= link_to new_contract_path, class: 'btn btn-sm btn-primary shadow-sm' do %>
+        <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> <%= t('contracts.new') %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Content Row - Counts -->
+  <div class="row mb-4">
+    <!-- Active Contracts Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                <%= t('contracts.active_count') %>
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @contracts.select { |c| c.status == 'active' }.count %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draft Contracts Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                <%= t('contracts.draft_count') %>
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @contracts.select { |c| c.status == 'draft' }.count %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-edit fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expired Contracts Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-secondary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                <%= t('contracts.expired_count') %>
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @contracts.select { |c| c.status == 'expired' }.count %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terminated Contracts Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-danger shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                <%= t('contracts.terminated_count') %>
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @contracts.select { |c| c.status == 'terminated' }.count %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-ban fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contracts Table Card -->
+  <div class="card shadow mb-4">
+    <div class="card-body p-0">
+      <% if @contracts.present? %>
+        <div class="table-responsive">
+          <table class="data-table table table-hover" id="contractsTable">
+            <thead class="table-light">
+              <tr>
+                <th><%= t('contracts.contract_number') %></th>
+                <th><%= t('rooms.number') %></th>
+                <th><%= t('tenants.name') %></th>
+                <th><%= t('contracts.start_date') %></th>
+                <th><%= t('contracts.end_date') %></th>
+                <th><%= t('contracts.status') %></th>
+                <th class="text-center"><%= t('common.actions') %></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @contracts.each do |contract| %>
+                <tr>
+                  <td><%= contract.contract_number %></td>
+                  <td><%= contract.room.number %></td>
+                  <td><%= contract.tenant.name %></td>
+                  <td><%= l(contract.start_date, format: :default) %></td>
+                  <td><%= l(contract.end_date, format: :default) %></td>
+                  <td>
+                    <span class="badge bg-<%= contract.status == 'active' ? 'success' : (contract.status == 'draft' ? 'warning' : (contract.status == 'expired' ? 'secondary' : 'danger')) %>">
+                      <%= t("contracts.statuses.#{contract.status}") %>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-buttons">
+                      <%= link_to contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-primary mx-1', title: t('common.view') do %>
+                        <i class="fas fa-eye"></i>
+                      <% end %>
+                      <%= link_to edit_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-warning mx-1', title: t('common.edit') do %>
+                        <i class="fas fa-edit"></i>
+                      <% end %>
+                      <% if contract.document.attached? %>
+                        <%= link_to download_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-info mx-1', title: t('contracts.download') do %>
+                          <i class="fas fa-download"></i>
+                        <% end %>
+                      <% else %>
+                        <%= link_to generate_pdf_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-secondary mx-1', title: t('contracts.generate_pdf') do %>
+                          <i class="fas fa-file-pdf"></i>
+                        <% end %>
+                      <% end %>
+                      <%= link_to contract_path(contract), 
+                                data: { turbo_method: :delete, turbo_confirm: t('contracts.confirm_delete') }, 
+                                class: 'btn btn-icon btn-sm btn-outline-danger mx-1', title: t('common.delete') do %>
+                        <i class="fas fa-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <p><%= t('contracts.no_contracts') %></p>
+          <%= link_to new_contract_path, class: "btn btn-primary" do %>
+            <i class="fas fa-plus"></i> <%= t('contracts.create_first') %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .action-buttons .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 4px;
+  }
+  .action-buttons .btn-icon i {
+    font-size: 0.875rem;
+  }
+</style>
+
+<script>
+  $(document).ready(function() {
+    $('#contractsTable').DataTable({
+      "order": [[0, "desc"]],
+      "columnDefs": [
+        { "orderable": false, "targets": 6 }
+      ],
+      "pageLength": 10,
+      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "<%= t('common.all') %>"]],
+      "language": {
+        "paginate": {
+          "previous": "&laquo;",
+          "next": "&raquo;"
+        },
+        "lengthMenu": "<%= t('datatable.show') %> _MENU_ <% t('datatable.entries') %>",
+        "info": "<%= t('datatable.showing') %> _START_ <%= t('datatable.to') %> _END_ <%= t('datatable.of') %> _TOTAL_ <%= t('datatable.entries') %>",
+        "search": "<%= t('common.search') %>",
+        "zeroRecords": "<%= t('datatable.no_matching_records') %>",
+        "emptyTable": "<%= t('datatable.no_data') %>"
+      }
+    });
+  });
+</script>

@@ -215,7 +215,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-money-bill-wave text-success"></i>
                       </span>
-                      <%= form.number_field :room_fee, class: "form-control", min: 0, id: "room_fee" %>
+                      <%= form.text_field :room_fee, class: "form-control number-format", min: 0, id: "room_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                     </div>
                   </div>
@@ -228,7 +228,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-plus-circle text-danger"></i>
                       </span>
-                      <%= form.number_field :other_fees, value: 0, class: "form-control", min: 0 %>
+                      <%= form.text_field :other_fees, value: 0, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                     </div>
                     <small class="form-text text-muted"><%= t('bills.additional_charges_hint') %></small>
@@ -251,7 +251,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-bolt text-warning"></i>
                       </span>
-                      <%= form.number_field :electricity_fee, class: "form-control", min: 0, id: "electricity_fee" %>
+                      <%= form.text_field :electricity_fee, class: "form-control number-format", min: 0, id: "electricity_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                     </div>
                   </div>
@@ -264,7 +264,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-tint text-info"></i>
                       </span>
-                      <%= form.number_field :water_fee, class: "form-control", min: 0, id: "water_fee" %>
+                      <%= form.text_field :water_fee, class: "form-control number-format", min: 0, id: "water_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                     </div>
                   </div>
@@ -277,7 +277,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-hand-holding-usd text-success"></i>
                       </span>
-                      <%= form.number_field :service_fee, class: "form-control", min: 0, id: "service_fee" %>
+                      <%= form.text_field :service_fee, class: "form-control number-format", min: 0, id: "service_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                     </div>
                     <small class="form-text text-muted"><%= t('utility_readings.service_charge_explanation') %></small>
@@ -291,7 +291,7 @@
                       <span class="input-group-text">
                         <i class="fas fa-calculator text-primary"></i>
                       </span>
-                      <%= form.number_field :utility_amount, class: "form-control", min: 0, id: "utility_amount", readonly: true %>
+                      <%= form.text_field :utility_amount, class: "form-control number-format", min: 0, id: "utility_amount", readonly: true, inputmode: "numeric", pattern: "[0-9,]*" %>
                       <span class="input-group-text">VND</span>
                       <button type="button" class="btn btn-outline-secondary" id="edit-utilities-btn">
                         <i class="fas fa-edit"></i> <%= t('common.edit') %>

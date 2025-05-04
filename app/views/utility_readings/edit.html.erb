@@ -42,7 +42,7 @@
             <%= form.label :electricity_unit_price, t('utility_readings.electricity_unit_price') %>
             <div class="input-group">
               <span class="input-group-text">VND</span>
-              <%= form.number_field :electricity_unit_price, class: "form-control", min: 0, step: 100 %>
+              <%= form.text_field :electricity_unit_price, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
             </div>
           </div>
           
@@ -50,7 +50,7 @@
             <%= form.label :water_unit_price, t('utility_readings.water_unit_price') %>
             <div class="input-group">
               <span class="input-group-text">VND</span>
-              <%= form.number_field :water_unit_price, class: "form-control", min: 0, step: 100 %>
+              <%= form.text_field :water_unit_price, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
             </div>
           </div>
         </div>
@@ -62,14 +62,14 @@
         <div class="col-md-6">
           <div class="form-group">
             <%= form.label :electricity_reading, t('utility_readings.electricity_reading') %>
-            <%= form.number_field :electricity_reading, class: "form-control", min: 0, step: 1 %>
+            <%= form.text_field :electricity_reading, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9\.]*" %>
           </div>
         </div>
         
         <div class="col-md-6">
           <div class="form-group">
             <%= form.label :water_reading, t('utility_readings.water_reading') %>
-            <%= form.number_field :water_reading, class: "form-control", min: 0, step: 1 %>
+            <%= form.text_field :water_reading, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9\.]*" %>
           </div>
         </div>
       </div>
