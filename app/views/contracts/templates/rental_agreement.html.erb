@@ -2,45 +2,26 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>HỢP ĐỒNG THUÊ NHÀ | RENTAL AGREEMENT</title>
+  <title>HỢP ĐỒNG THUÊ NHÀ</title>
   <style>
     body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 13pt;
-      line-height: 1.6;
-      margin: 25mm 20mm 20mm 20mm;
-      color: #000;
+      font-size: 12pt;
+      line-height: 1.5;
+      margin: 20px;
     }
-    .contract-header {
+    h1, h2 {
       text-align: center;
-      margin-bottom: 30px;
-    }
-    .republic {
-      font-size: 12pt;
-      text-transform: uppercase;
-      margin-bottom: 5px;
       font-weight: bold;
     }
-    .independence {
-      font-size: 12pt;
+    .header {
+      text-align: center;
       margin-bottom: 20px;
-      font-weight: bold;
-    }
-    .contract-title {
-      font-size: 18pt;
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .contract-number {
-      font-size: 14pt;
-      margin-bottom: 30px;
     }
     .section-title {
       font-weight: bold;
-      font-size: 13pt;
-      text-transform: uppercase;
-      margin-top: 25px;
+      text-align: center;
+      margin-top: 15px;
       margin-bottom: 10px;
     }
     .indent {
@@ -49,212 +30,162 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 15px 0;
     }
-    table.parties-table td {
-      padding: 6px;
-      vertical-align: top;
+    td {
+      padding: 5px;
     }
-    table.parties-table td:first-child {
-      width: 200px;
-    }
-    .signature-section {
-      margin-top: 60px;
-      page-break-inside: avoid;
-    }
-    .signature-box {
-      width: 45%;
-      float: left;
-      text-align: center;
-      margin-right: 5%;
-    }
-    .signature-box.tenant {
-      margin-right: 0;
-      margin-left: 5%;
-    }
-    .signature-title {
-      font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-    .signature-name {
-      font-weight: bold;
-      margin-top: 70px;
-    }
-    p {
-      text-align: justify;
-      margin: 8px 0;
-    }
-    .clearfix::after {
-      content: "";
-      clear: both;
-      display: table;
-    }
-    .term-table {
+    .signature-table {
       width: 100%;
-      border-collapse: collapse;
-      margin: 15px 0;
-      border: 1px solid #000;
-    }
-    .term-table th, .term-table td {
-      border: 1px solid #000;
-      padding: 8px;
-      text-align: left;
-    }
-    .footer {
       margin-top: 30px;
-      font-size: 10pt;
+    }
+    .signature-table td {
+      width: 50%;
       text-align: center;
+      vertical-align: top;
+      padding: 10px;
     }
-    .page-break {
-      page-break-after: always;
-    }
-    ol {
-      margin-top: 0;
-      padding-left: 25px;
-    }
-    ul {
-      margin-top: 0;
-      padding-left: 25px;
-    }
-    .article {
-      margin-bottom: 20px;
+    .underline {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
-  <div class="contract-header">
-    <div class="republic">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-    <div class="independence">Độc lập - Tự do - Hạnh phúc</div>
-    <div class="contract-title">HỢP ĐỒNG THUÊ NHÀ</div>
-    <div class="contract-number">Số: <%= so_hop_dong %></div>
+  <div class="header">
+    <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+    <p>Độc lập - Tự do - Hạnh phúc</p>
+    <p>---------o0o---------</p>
+    <p>Hà Nội, ngày...... tháng...... năm......</p>
   </div>
 
-  <p>
-    Hôm nay, ngày <%= ngay_lam_hop_dong %>, tại <%= dia_chi_phong %>, chúng tôi gồm:
-  </p>
+  <h1>HỢP ĐỒNG THUÊ NHÀ</h1>
+  <p>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</p>
+  <p>- Căn cứ vào Luật Thương mại số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</p>
+  <p>- Căn cứ vào nhu cầu và sự thỏa thuận của các bên tham gia Hợp đồng;</p>
 
-  <div class="section-title">I. BÊN CHO THUÊ (BÊN A):</div>
-  <table class="parties-table">
+  <p>Hôm nay, ngày ... tháng ... năm ........., tại số nhà 18 ngõ 139, Nguyễn Ngọc Vũ, Cầu Giấy, Hà Nội chúng tôi gồm:</p>
+
+  <p><strong>BÊN CHO THUÊ: (Sau đây gọi tắt là Bên A)</strong></p>
+  <p>Ông: Nguyễn Việt Long</p>
+  <p>Sinh năm: 1994</p>
+  <p>CMND/CCCD/Hộ chiếu số: 001094008487, do Cục quản lý hành chính về trật tự xã hội cấp ngày 27/12/2021</p>
+  <p>Hộ khẩu thường trú tại: Tổ 5 Trung Hoà, Cầu Giấy, Hà Nội</p>
+
+  <p><strong>BÊN THUÊ: (Sau đây gọi tắt là Bên B)</strong></p>
+  <p>Ông/Bà: <%= tenant_name %></p>
+  <p>Sinh ngày: <%= tenant_birth_date %></p>
+  <p>CMND/CCCD/Hộ chiếu số: <%= tenant_id_number %> do <%= tenant_id_issued_by %> cấp ngày <%= tenant_id_issue_date %></p>
+  <p>Hộ khẩu thường trú tại: <%= tenant_address %></p>
+  <p>Thông tin người ở trú cùng:</p>
+  <p class="indent">1. Ông/Bà: ...................................</p>
+  <p class="indent">Sinh ngày: ...............</p>
+  <p class="indent">CMND/CCCD/Hộ chiếu số: ....................... do............................................................</p>
+  <p class="indent">cấp ngày .............</p>
+  <p class="indent">Hộ khẩu thường trú tại: .......................................................................................................</p>
+
+  <p><em>Sau khi thảo luận, Hai Bên thống nhất đi đến ký kết Hợp đồng thuê nhà ("Hợp Đồng") với các điều khoản và điều kiện dưới đây:</em></p>
+
+  <h2>ĐIỀU 1</h2>
+  <p class="section-title">MỤC ĐÍCH THUÊ</p>
+  <p>1.1 Bên A đồng ý cho Bên B thuê, Bên B đồng ý thuê của Bên A phòng <%= room_number %> tại tầng <%= floor_number %> địa chỉ số 18 ngõ 139, Nguyễn Ngọc Vũ, Cầu Giấy, Hà Nội</p>
+  <p>1.2 Mục đích thuê: Bên B thuê với mục đích cư trú ngắn hạn/dài hạn</p>
+
+  <h2>ĐIỀU 2</h2>
+  <p class="section-title">THỜI HẠN THUÊ, GIA HẠN VÀ CHẤM DỨT HỢP ĐỒNG</p>
+  <p>2.1 Thời hạn thuê là <%= contract_duration %> tháng được tính bắt đầu từ ngày <%= start_date_day %> tháng <%= start_date_month %> năm <%= start_date_year %> đến ngày <%= end_date_day %> tháng <%= end_date_month %> năm <%= end_date_year %>.</p>
+  <p>2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= handover_date %> tháng <%= handover_month %> năm <%= handover_year %>.</p>
+  <p>2.3 Hợp đồng sẽ đương nhiên chấm dứt khi xảy ra các trường hợp sau:</p>
+  <p>1. Hết thời hạn thuê hoặc không được gia hạn theo quy định của Hợp đồng;</p>
+  <p>2. Bên B không thanh toán tiền nhà trong thời hạn chậm nhất 05 ngày tính từ ngày được chủ nhà thông báo hoặc thanh toán không đầy đủ thì bên A có quyền chấm dứt Hợp đồng và buộc bồi thường bất cứ một khoản chi phí nào.</p>
+  <p>2.4 Chấm dứt hợp đồng theo quy định của pháp luật;</p>
+  <p>2.5 Trường hợp bên A chấm dứt Hợp đồng trước thời hạn, bên A phải:</p>
+  <p>+ Thông báo cho bên B biết trước 30 ngày bằng văn bản</p>
+  <p>+ Hoàn trả cho bên B số tiền thuê mà bên B đã trả trước cho khoảng thời gian bên B không sử dụng nhà (nếu có).</p>
+  <p>Trường hợp bên B chấm dứt Hợp đồng trước thời hạn, bên B phải:</p>
+  <p>+ Thông báo cho bên A biết trước 30 ngày bằng văn bản</p>
+  <p>+ Thanh toán các chi phí phát sinh đến ngày bàn giao trả lại nhà</p>
+  <p>+ Được bên A hoàn trả số tiền nhà đã trả trước mà chưa sử dụng trong trường hợp nhà/phòng ở giữ nguyên hiện trạng tại thời điểm bàn giao Mục 2.2 trên đây.</p>
+  <p>2.6 Trường hợp một trong hai bên muốn chấm dứt Hợp đồng trước thời hạn thì Bên A có toàn quyền lấy lại tài sản trước thời hạn.</p>
+  <p>2.7 Việc một trong hai bên không thực hiện, thực hiện không đầy đủ hay thực hiện chậm các nghĩa vụ của mình theo Hợp đồng này sẽ không có là vi phạm các nghĩa vụ đó hay là đối tượng để khiếu nại các nghĩa vụ đó nếu việc không thực hiện hay chậm trễ đó do thiên tai, động đất, chiến tranh và các trường hợp bất khả kháng theo quy định của pháp luật hiện hành.</p>
+
+  <h2>ĐIỀU 3</h2>
+  <p class="section-title">GIÁ THUÊ, ĐẶT CỌC VÀ PHƯƠNG THỨC THANH TOÁN</p>
+  <p>3.1 Giá cho thuê:</p>
+  <p>- Số tiền: 6.500.000đ (Sáu triệu năm trăm nghìn đồng)/ tháng</p>
+  <p>3.2 Tiền đặt cọc:</p>
+  <p>Bên B sẽ giao cho Bên A một khoản tiền là 6.500.000 VNĐ (bằng chữ: Sáu triệu năm trăm nghìn đồng) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực.</p>
+  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là 6.500.000 VNĐ (bằng chữ: Sáu triệu năm trăm nghìn đồng) ngay sau khi ký hợp đồng này. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
+  <p>Nếu Bên B đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho Bên A thì Bên A sẽ không phải hoàn trả lại Bên B số tiền đặt cọc này.</p>
+  <p>Nếu Bên A đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho bên B thì bên A sẽ phải hoàn trả lại Bên B số tiền đặt cọc</p>
+  <p>Vào thời điểm kết thúc Thời Hạn Thuê hoặc kể từ ngày Chấm dứt Hợp Đồng, Bên A sẽ hoàn lại cho Bên B số Tiền Đặt Cọc sau khi đã khấu trừ các khoản tiền chưa phục hồi tài sản (nếu có).</p>
+  <p>3.3 Bên B sẽ thanh toán tiền thuê tài sản cho Bên A 01 lần trong vòng 05 (năm) ngày đầu tiên của mỗi tháng thanh toán. Các lần thanh toán sau sẽ thực hiện vào 01 tháng một lần, mỗi lần thanh toán Bên B sẽ nhận được một giấy biên nhận của Bên A. Việc thanh toán tiền thuê tài sản sẽ do các bên tự thực hiện.</p>
+  <p>3.4 Phương thức thanh toán bằng: Chuyển khoản hoặc tiền mặt</p>
+  <p>3.5 Hợp đồng này chỉ bắt đầu có hiệu lực khi bên A xác nhận đã nhận được số tiền đặt cọc nêu trên và tiền thuê căn hộ tháng đầu tiên của bên B</p>
+
+  <h2>ĐIỀU 4</h2>
+  <p class="section-title">PHÍ DỊCH VỤ</p>
+  <p>4.1 Bên B phải thanh toán chi phí sử dụng hàng tháng với mức giá:</p>
+  <p>Điện: 4.000đ/kW</p>
+  <p>Nước: 30.000đ/m3</p>
+  <p>Dịch vụ: 200.000đ/người</p>
+
+  <h2>ĐIỀU 5</h2>
+  <p class="section-title">QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</p>
+  <p>5.1 Nghĩa vụ của Bên A:</p>
+  <p>- Bàn giao tài sản cho bên thuê trong tình trạng vệ sinh sạch sẽ theo đúng thỏa thuận trong hợp đồng.</p>
+  <p>- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuê.</p>
+  <p>- Cùng với Bên B giải quyết khi được thông báo.</p>
+  <p>- Trả lại số tiền cọc của bên B khi hai bên chấm dứt hợp đồng thuê căn hộ và bên B đã hoàn thành mọi nghĩa vụ thanh toán cũng như đã sửa chữa, bồi thường hư hại (nếu có) trong quá trình sử dụng căn hộ về tài sản căn hộ căn hộ. Bên A trả lại số tiền thuê căn hộ mà bên B đã trả trước trong trường hợp các bên thỏa thuận chấm dứt hợp đồng thuê căn hộ trước thời hạn.</p>
+
+  <p>5.2 Quyền của Bên A:</p>
+  <p>- Nhận đủ tiền thuê tài sản theo đúng kỳ hạn đã thỏa thuận.</p>
+  <p>- Cải tạo, sửa chữa nâng cấp tài sản thuê trong trường hợp cần thiết.</p>
+  <p>- Đơn phương chấm dứt thực hiện hợp đồng thuê khi bên B có một trong các hành vi sau đây:</p>
+  <p>a. Không trả tiền thuê căn hộ theo đúng số tiền và thời gian đã thỏa thuận.</p>
+  <p>b. Sử dụng căn hộ không đúng mục đích như đã thỏa thuận.</p>
+  <p>c. Có hành vi vi phạm pháp luật tại căn hộ cho thuê.</p>
+  <p>d. Cố ý làm hư hỏng căn hộ cho thuê.</p>
+  <p>e. Sửa chữa, cải tạo, đổi căn hộ cho thuế hoặc cho người khác thuê lại căn hộ đang thuê mà không có sự đồng ý của bên A.</p>
+  <p>f. Làm mất trật tự an ninh và môi trường, ảnh hưởng nghiêm trọng đến sinh hoạt của những người xung quanh đã được bên A hoặc tổ trưởng tổ dân phố, lập biên bản đến lần thứ ba mà vẫn không khắc phục.</p>
+
+  <h2>ĐIỀU 6</h2>
+  <p class="section-title">QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</p>
+  <p>6.1 Nghĩa vụ của Bên B:</p>
+  <p>- Sử dụng tài sản đúng mục đích đã thỏa thuận.</p>
+  <p>- Trả đủ tiền thuê tài sản đúng kỳ hạn đã thỏa thuận.</p>
+  <p>- Giữ gìn, sửa chữa những hư hỏng do mình gây ra.</p>
+  <p>- Tôn trọng quy tắc sinh hoạt công cộng.</p>
+  <p>- Bàn giao lại tài sản cho bên A theo đúng thỏa thuận sau khi chấm dứt Hợp đồng.</p>
+  <p>- Phải tự bảo quản tài sản của mình, bảo vệ tài sản chung, giữ gìn vệ sinh chung, an ninh trật tự trong công tác phòng cháy chữa cháy.</p>
+  <p>- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
+  <p>- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
+  <p>- Nếu gây ra những hư hỏng do lỗi chủ quan của Bên B thì Bên B phải chịu trách nhiệm bồi thường thiệt hại theo giá thị trường.</p>
+  <p>- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
+  <p>- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
+  <p>6.2 Quyền của Bên B:</p>
+  <p>- Nhận tài sản thuê theo đúng thỏa thuận.</p>
+  <p>- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuế.</p>
+  <p>- Cùng với Bên A giải quyết khi được thông báo.</p>
+
+  <h2>ĐIỀU 7</h2>
+  <p class="section-title">GIẢI QUYẾT TRANH CHẤP</p>
+  <p>Trong quá trình thực hiện Hợp đồng này, nếu phát sinh tranh chấp, các bên cùng nhau thương lượng giải quyết trên nguyên tắc tôn trọng quyền lợi của nhau; trong trường hợp không thương lượng được thì một trong hai bên có quyền khởi kiện để yêu cầu toà án có thẩm quyền giải quyết theo quy định của pháp luật.</p>
+
+  <h2>ĐIỀU 8</h2>
+  <p class="section-title">CÁC ĐIỀU KHOẢN CHUNG</p>
+  <p>8.1 Hợp đồng này thay thế cho toàn bộ các thỏa thuận miệng, hoặc bằng văn bản trước đó được ký kết giữa hai Bên liên quan đến nội dung Hợp đồng.</p>
+  <p>8.2 Mọi sửa đổi hoặc bổ sung Hợp đồng này phải được lập thành văn bản và được ký bởi đại diện của các Bên tham gia Hợp đồng.</p>
+  <p>8.3 Hiệu lực của từng điều khoản của Hợp đồng mang tính độc lập. Việc một vài điều khoản vô hiệu không làm ảnh hưởng đến hiệu lực của các điều khoản còn lại của Hợp đồng trong trường hợp pháp luật có quy định khác.</p>
+  <p>Hợp Đồng được lập thành 02 (hai) bản có giá trị như nhau, mỗi Bên giữ 01 (một) bản để thực hiện.</p>
+
+  <table class="signature-table">
     <tr>
-      <td>Ông/Bà:</td>
-      <td><strong><%= ten_chu_nha %></strong></td>
+      <td><strong>BÊN CHO THUÊ TÀI SẢN (Bên A)</strong></td>
+      <td><strong>BÊN THUÊ TÀI SẢN (Bên B)</strong></td>
     </tr>
     <tr>
-      <td>Địa chỉ thường trú:</td>
-      <td><%= dia_chi_chu_nha %></td>
-    </tr>
-    <tr>
-      <td>Điện thoại:</td>
-      <td><%= sdt_chu_nha %></td>
+      <td><em>(Ký điền chữ, ghi rõ họ tên)</em></td>
+      <td><em>(Ký điền chữ, ghi rõ họ tên)</em></td>
     </tr>
   </table>
-
-  <div class="section-title">II. BÊN THUÊ (BÊN B):</div>
-  <table class="parties-table">
-    <tr>
-      <td>Ông/Bà:</td>
-      <td><strong><%= ten_nguoi_thue %></strong></td>
-    </tr>
-    <tr>
-      <td>CMND/CCCD số:</td>
-      <td><%= cmnd_nguoi_thue %></td>
-    </tr>
-    <tr>
-      <td>Điện thoại:</td>
-      <td><%= sdt_nguoi_thue %></td>
-    </tr>
-    <tr>
-      <td>Địa chỉ thường trú:</td>
-      <td><%= dia_chi_nguoi_thue %></td>
-    </tr>
-  </table>
-
-  <p>
-    Sau khi bàn bạc, thỏa thuận, hai bên nhất trí ký hợp đồng thuê nhà với các điều khoản sau đây:
-  </p>
-
-  <div class="section-title">ĐIỀU 1: ĐỐI TƯỢNG THUÊ</div>
-  <p>
-    Bên A đồng ý cho Bên B thuê 01 (một) phòng (Phòng số <%= so_phong %>) tại tòa nhà <%= ten_toa_nha %>, địa chỉ tại <%= dia_chi_phong %>, với diện tích sử dụng là <%= dien_tich %> m².
-  </p>
-
-  <div class="section-title">ĐIỀU 2: GIÁ CẢ & PHƯƠNG THỨC THANH TOÁN</div>
-  <ol>
-    <li>
-      <strong>Giá thuê phòng:</strong> <%= tien_thue %> VND/tháng (<%= tien_thue_bang_chu %>).
-    </li>
-    <li>
-      <strong>Tiền đặt cọc:</strong> <%= tien_coc %> VND (<%= tien_coc_bang_chu %>). Tiền đặt cọc được hoàn trả lại cho Bên B khi kết thúc hợp đồng, với điều kiện Bên B không vi phạm điều khoản nào của hợp đồng.
-    </li>
-    <li>
-      <strong>Phương thức thanh toán:</strong> Bên B thanh toán tiền thuê nhà định kỳ hàng tháng vào ngày <%= ngay_tra_tien %> của mỗi tháng, bằng tiền mặt và có biên nhận.
-    </li>
-    <li>
-      <strong>Các khoản phí khác:</strong> Ngoài tiền thuê nhà, Bên B phải thanh toán chi phí sử dụng điện, nước, internet và các dịch vụ khác (nếu có) theo thực tế sử dụng.
-    </li>
-  </ol>
-
-  <div class="section-title">ĐIỀU 3: THỜI HẠN THUÊ</div>
-  <p>
-    Thời hạn thuê phòng là <%= (end_date.to_date - start_date.to_date).to_i / 30 %> tháng, kể từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.
-  </p>
-
-  <div class="section-title">ĐIỀU 4: QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</div>
-  <ol>
-    <li>Giao phòng đúng thời hạn và trong tình trạng sử dụng tốt cho Bên B.</li>
-    <li>Đảm bảo quyền sử dụng phòng một cách hợp pháp cho Bên B trong suốt thời gian thuê.</li>
-    <li>Chịu trách nhiệm sửa chữa những hư hỏng không phải do lỗi của Bên B.</li>
-    <li>Thông báo trước cho Bên B ít nhất 30 ngày nếu có thay đổi về giá thuê.</li>
-  </ol>
-
-  <div class="section-title">ĐIỀU 5: QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</div>
-  <ol>
-    <li>Sử dụng phòng đúng mục đích để ở, không được tự ý cải tạo, sửa chữa phòng khi chưa được sự đồng ý của Bên A.</li>
-    <li>Thanh toán đầy đủ, đúng hạn tiền thuê nhà và các chi phí khác theo quy định.</li>
-    <li>Giữ gìn vệ sinh, an ninh trật tự trong khu vực phòng trọ.</li>
-    <li>Bồi thường thiệt hại nếu làm hư hỏng tài sản của Bên A.</li>
-    <li>Không được chuyển nhượng hợp đồng hoặc cho người khác thuê lại mà không có sự đồng ý của Bên A.</li>
-    <li>Trả phòng cho Bên A khi hết hạn hợp đồng trong tình trạng tốt như khi nhận.</li>
-  </ol>
-
-  <div class="page-break"></div>
-
-  <div class="section-title">ĐIỀU 6: CHẤM DỨT HỢP ĐỒNG</div>
-  <ol>
-    <li>Hợp đồng đương nhiên chấm dứt khi hết thời hạn thuê.</li>
-    <li>Trường hợp một bên muốn chấm dứt hợp đồng trước thời hạn phải thông báo bằng văn bản cho bên kia biết trước ít nhất 30 ngày và phải được sự đồng ý của bên kia.</li>
-    <li>Bên A có quyền đơn phương chấm dứt hợp đồng và yêu cầu bồi thường thiệt hại nếu Bên B vi phạm các nghĩa vụ sau:
-      <ul>
-        <li>Không trả tiền thuê phòng đúng hạn theo thỏa thuận.</li>
-        <li>Sử dụng phòng không đúng mục đích.</li>
-        <li>Cố ý làm hư hỏng phòng.</li>
-        <li>Vi phạm quy định về an ninh, trật tự, vệ sinh môi trường.</li>
-      </ul>
-    </li>
-    <li>Bên B có quyền đơn phương chấm dứt hợp đồng nếu Bên A không thực hiện đúng nghĩa vụ giao phòng hoặc phòng không đảm bảo an toàn cho việc sử dụng.</li>
-  </ol>
-
-  <div class="section-title">ĐIỀU 7: ĐIỀU KHOẢN CHUNG</div>
-  <ol>
-    <li>Hai bên cam kết thực hiện đúng và đầy đủ các điều khoản của hợp đồng.</li>
-    <li>Trong quá trình thực hiện hợp đồng, nếu có vấn đề phát sinh, hai bên sẽ cùng nhau bàn bạc, giải quyết trên tinh thần hợp tác, tôn trọng lẫn nhau.</li>
-    <li>Mọi sửa đổi, bổ sung hợp đồng phải được lập thành văn bản có chữ ký của hai bên.</li>
-    <li>Trong trường hợp không thể thương lượng được, tranh chấp sẽ được đưa ra Tòa án có thẩm quyền để giải quyết.</li>
-    <li>Hợp đồng này có hiệu lực kể từ ngày ký và được lập thành 02 (hai) bản có giá trị pháp lý như nhau, mỗi bên giữ 01 (một) bản để thực hiện.</li>
-  </ol>
-
-  <div class="signature-section clearfix">
-    <div class="signature-box">
-      <div class="signature-title">BÊN CHO THUÊ</div>
-      <div>(Ký, ghi rõ họ tên)</div>
-      <div class="signature-name"><%= ten_chu_nha %></div>
-    </div>
-    <div class="signature-box tenant">
-      <div class="signature-title">BÊN THUÊ</div>
-      <div>(Ký, ghi rõ họ tên)</div>
-      <div class="signature-name"><%= ten_nguoi_thue %></div>
-    </div>
-  </div>
 </body>
 </html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bill PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= wicked_pdf_stylesheet_link_tag "application" %>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #444;
+    }
+    .bill-info {
+      margin-bottom: 20px;
+    }
+    .bill-info table {
+      width: 100%;
+    }
+    .bill-info td {
+      padding: 5px;
+    }
+    .bill-details {
+      margin-bottom: 20px;
+    }
+    .bill-details table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .bill-details th, .bill-details td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .bill-details th {
+      background-color: #f2f2f2;
+    }
+    .bill-total {
+      margin-top: 20px;
+      text-align: right;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 10px;
+      color: #777;
+      text-align: center;
+      border-top: 1px solid #ddd;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <%= yield %>
+</body>
+</html>

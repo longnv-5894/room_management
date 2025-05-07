@@ -8,6 +8,7 @@ class Bill < ApplicationRecord
   enum :status, { unpaid: 'unpaid', partial: 'partial', paid: 'paid' }, prefix: true
   
   before_save :calculate_total
+  before_validation :apply_payment_schedule, on: :create
   
   def tenant
     room_assignment.tenant
@@ -15,6 +16,31 @@ class Bill < ApplicationRecord
   
   def room
     room_assignment.room
+  end
+  
+  # Check if room fee should be included in this month's bill
+  def should_include_room_fee?
+    # Get the room fee frequency directly from room_assignment
+    room_fee_frequency = room_assignment.effective_room_fee_frequency
+    
+    # Get the month number (1-12) in the year
+    month_in_year = billing_date.month
+    
+    # Room fee should be included if the month is divisible by the frequency
+    # Example: For quarterly payments (frequency=3), months 3,6,9,12 would return true
+    month_in_year % room_fee_frequency == 0
+  end
+  
+  # Check if utility fee should be included in this month's bill
+  def should_include_utility_fee?
+    # Get the utility fee frequency directly from room_assignment
+    utility_fee_frequency = room_assignment.effective_utility_fee_frequency
+    
+    # Get the month number (1-12) in the year
+    month_in_year = billing_date.month
+    
+    # Utility fee should be included if the month is divisible by the frequency
+    month_in_year % utility_fee_frequency == 0
   end
   
   def mark_as_paid
@@ -78,6 +104,21 @@ class Bill < ApplicationRecord
   def calculate_total
     service_fee_value = respond_to?(:service_fee) ? service_fee : 0
     self.total_amount = room_fee + electricity_fee + water_fee + service_fee_value + other_fees
+  end
+  
+  # Apply payment schedule rules to determine which fees to include in this bill
+  def apply_payment_schedule
+    # Zero out the room fee if it shouldn't be included this month
+    unless should_include_room_fee?
+      self.room_fee = 0
+    end
+    
+    # Zero out utility fees if they shouldn't be included this month
+    unless should_include_utility_fee?
+      self.electricity_fee = 0
+      self.water_fee = 0
+      self.service_fee = 0 if respond_to?(:service_fee)
+    end
   end
   
   # Mark all bills for other tenants in the same room for the same period as paid

@@ -59,14 +59,14 @@
             <%= form.label :rent_amount, t('contracts.rent_amount') %>
             <%= form.text_field :rent_amount, class: "form-control number-format", 
                            required: true, id: "contract_rent_amount",
-                           inputmode: "numeric", pattern: "[0-9,]*" %>
+                           inputmode: "numeric", pattern: "[0-9.,]*" %>
           </div>
           
           <div class="form-group mb-0">
             <%= form.label :deposit_amount, t('contracts.deposit_amount') %>
             <%= form.text_field :deposit_amount, class: "form-control number-format", 
                            required: true, id: "contract_deposit_amount",
-                           inputmode: "numeric", pattern: "[0-9,]*" %>
+                           inputmode: "numeric", pattern: "[0-9.,]*" %>
             <small class="form-text text-muted">
               <i class="fas fa-info-circle"></i> <%= t('contracts.deposit_info') %>
             </small>
@@ -154,35 +154,42 @@
     numberFormatFields.forEach(function(field) {
       // Format on initial load
       if (field.value) {
-        field.value = formatNumberWithCommas(field.value);
+        field.value = formatNumberWithDots(field.value);
       }
       
       // Format on input
       field.addEventListener('input', function(e) {
-        const value = e.target.value.replace(/,/g, '');
+        // Remove all dots and possibly replace commas with dots for calculation
+        const value = e.target.value.replace(/\./g, '').replace(/,/g, '.');
         if (!isNaN(value)) {
-          e.target.value = formatNumberWithCommas(value);
+          e.target.value = formatNumberWithDots(value);
         }
       });
       
-      // Handle focus - remove commas for editing
+      // Handle focus - remove dots for editing
       field.addEventListener('focus', function(e) {
-        const value = e.target.value.replace(/,/g, '');
+        const value = e.target.value.replace(/\./g, '');
         e.target.value = value;
       });
       
       // Format on blur
       field.addEventListener('blur', function(e) {
-        const value = e.target.value.replace(/,/g, '');
+        // Remove all dots and possibly replace commas with dots for calculation
+        const value = e.target.value.replace(/\./g, '').replace(/,/g, '.');
         if (!isNaN(value)) {
-          e.target.value = formatNumberWithCommas(value);
+          e.target.value = formatNumberWithDots(value);
         }
       });
     });
     
-    // Format number with commas
-    function formatNumberWithCommas(number) {
-      return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    // Format number with dots as thousands separators (for European/Vietnamese format)
+    function formatNumberWithDots(number) {
+      // Convert to string and split by decimal point if any
+      const parts = number.toString().split('.');
+      // Format the integer part with dots as thousands separators
+      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      // Join back with comma as decimal separator if there was a decimal part
+      return parts.length > 1 ? parts[0] + "," + parts[1] : parts[0];
     }
     
     const roomAssignmentSelect = document.getElementById('contract_room_assignment_id');
@@ -211,11 +218,11 @@
             .then(data => {
               // Autofill form fields
               if (data.rent_amount) {
-                rentField.value = formatNumberWithCommas(data.rent_amount);
+                rentField.value = formatNumberWithDots(data.rent_amount);
               }
               
               if (data.deposit_amount) {
-                depositField.value = formatNumberWithCommas(data.deposit_amount);
+                depositField.value = formatNumberWithDots(data.deposit_amount);
               }
               
               if (data.start_date) {

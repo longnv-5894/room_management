@@ -29,6 +29,7 @@ vi:
     save: "Lưu"
     update: "Cập nhật"
     cancel: "Hủy"
+    create: "Tạo mới"
     confirm: "Bạn có chắc không?"
     search: "Tìm kiếm"
     status: "Trạng thái"
@@ -250,6 +251,17 @@ vi:
     fixed_tenant: "Người thuê cố định" 
     cannot_change_room: "Không thể thay đổi phòng trong lần chỉnh sửa này"
     cannot_change_tenant: "Không thể thay đổi người thuê trong lần chỉnh sửa này"
+    room_fee_frequency: "Tần suất tiền phòng"
+    utility_fee_frequency: "Tần suất tiền tiện ích"
+    room_fee_frequency_help: "Tần suất tính tiền phòng. Mặc định là hàng tháng."
+    utility_fee_frequency_help: "Tần suất tính tiền tiện ích. Có thể khác với tiền phòng."
+    payment_schedule: "Lịch thanh toán"
+    # Adding the keys from payment_schedules
+    room_fee: "Tiền phòng"
+    utilities: "Tiện ích"
+    monthly: "Hàng tháng"
+    every_n_months: "Mỗi %{count} tháng"
+    frequency_unit: "tháng"
     
   # Utility Readings
   utility_readings:
@@ -373,8 +385,8 @@ vi:
     notes_hint: "Nhập bất kỳ ghi chú hoặc thông tin bổ sung nào cho hóa đơn này"
     generate: "Tạo hóa đơn"
     loading: "Đang tải..."
-    from: "từ"
-    to: "đến"
+    from: "Từ"
+    to: "Đến"
     apply: "Áp dụng"
     related: "Hóa đơn liên quan"
     no_related_bills: "Không tìm thấy hóa đơn liên quan cho chỉ số tiện ích này."
@@ -500,7 +512,6 @@ vi:
       bicycle: "Xe đạp"
       scooter: "Xe tay ga"
       other: "Khác"
-
   # Users
   users:
     profile: "Hồ sơ"

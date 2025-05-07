@@ -1,0 +1,98 @@
+<div style="margin: 0 auto; width: 90%; font-family: Arial, sans-serif; font-size: 14px;">
+  <h2 style="text-align: center; font-size: 20px; margin-bottom: 5px; color: #2c5282;"><%= t('bills.room_payment_notice', default: 'THÔNG BÁO THANH TOÁN TIỀN PHÒNG') %></h2>
+  <p style="text-align: center; margin-top: 5px; color: #4a5568;"><strong><%= t('bills.month_year', month: l(@bill.billing_date, format: '%m'), year: l(@bill.billing_date, format: '%Y'), default: "THÁNG #{@bill.billing_date.strftime('%m')} NĂM #{@bill.billing_date.strftime('%Y')}") %></strong></p>
+
+  <table style="width: 100%; margin-top: 20px; border-spacing: 0;">
+    <tr>
+      <td style="width: 20%; color: #4a5568;"><%= t('bills.tenants', default: 'Người thuê') %>:</td>
+      <td style="width: 30%;"><strong><%= @tenant.name %></strong></td>
+      <td style="width: 20%; color: #4a5568;"><%= t('bills.phone', default: 'Điện thoại') %>:</td>
+      <td style="width: 30%;"><%= @tenant.phone %></td>
+    </tr>
+    <tr>
+      <td style="color: #4a5568;"><%= t('bills.room_number', default: 'Phòng số') %>:</td>
+      <td colspan="3"><strong><%= @room.number %></strong></td>
+    </tr>
+  </table>
+
+  <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+    <tr style="background-color: #2c5282; color: white;">
+      <th style="border: 1px solid #2c5282; padding: 8px; text-align: center; width: 5%;">#</th>
+      <th style="border: 1px solid #2c5282; padding: 8px; text-align: left; width: 25%;"><%= t('bills.item', default: 'Hạng mục') %></th>
+      <th style="border: 1px solid #2c5282; padding: 8px; text-align: left; width: 50%;"><%= t('bills.details', default: 'Chi tiết') %></th>
+      <th style="border: 1px solid #2c5282; padding: 8px; text-align: right; width: 20%;"><%= t('bills.amount', default: 'Số tiền') %></th>
+    </tr>
+    <tr style="background-color: #f8fafc;">
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: center;">1</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; color: #2c5282;"><%= t('rooms.room', default: 'Tiền phòng') %></td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px;"></td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; color: #2d3748;"><%= number_to_currency(@bill.room_fee, precision: 0, delimiter: ',', unit: '') %> đ</td>
+    </tr>
+    <% if @bill.electricity_fee && @bill.electricity_fee > 0 %>
+    <tr>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: center;">2</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; color: #dd6b20;">Điện</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px;">
+        <% if @utility_readings.any? %>
+          <% reading = @utility_readings.first %>
+          <% prev_reading = reading.previous_reading %>
+          <% if prev_reading %>
+            <span style="color: #dd6b20;">( <%= reading.electricity_reading %> - <%= prev_reading.electricity_reading %> ) = <%= reading.electricity_usage %> kWh</span> × <%= number_to_currency(reading.electricity_unit_price, precision: 0, delimiter: ',', unit: '') %>đ
+          <% end %>
+        <% end %>
+      </td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; color: #2d3748;"><%= number_to_currency(@bill.electricity_fee, precision: 0, delimiter: ',', unit: '') %> đ</td>
+    </tr>
+    <% end %>
+    <% if @bill.water_fee && @bill.water_fee > 0 %>
+    <tr style="background-color: #f8fafc;">
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: center;">3</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; color: #3182ce;">Nước</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px;">
+        <% if @utility_readings.any? %>
+          <% reading = @utility_readings.first %>
+          <% prev_reading = reading.previous_reading %>
+          <% if prev_reading %>
+            <span style="color: #3182ce;">( <%= reading.water_reading %> - <%= prev_reading.water_reading %> ) = <%= reading.water_usage %> m³</span> × <%= number_to_currency(reading.water_unit_price, precision: 0, delimiter: ',', unit: '') %>đ
+          <% end %>
+        <% end %>
+      </td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; color: #2d3748;"><%= number_to_currency(@bill.water_fee, precision: 0, delimiter: ',', unit: '') %> đ</td>
+    </tr>
+    <% end %>
+    <% if @bill.service_fee && @bill.service_fee > 0 %>
+    <tr>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: center;">4</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; color: #805ad5;"><%= t('utility_readings.service_charge', default: 'Phí dịch vụ') %></td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px;">
+        <span style="color: #805ad5;"><%= number_to_currency(@bill.service_fee/@room_assignments.count, precision: 0, delimiter: ',', unit: '') %>đ</span> × <%= @room_assignments.count %> <%= t('tenants.person', default: 'người') %>
+      </td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; color: #2d3748;"><%= number_to_currency(@bill.service_fee, precision: 0, delimiter: ',', unit: '') %> đ</td>
+    </tr>
+    <% end %>
+    <tr style="background-color: #ebf8ff;">
+      <td colspan="3" style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; font-weight: bold; color: #2c5282;"><%= t('bills.total', default: 'Tổng cộng') %>:</td>
+      <td style="border: 1px solid #cbd5e0; padding: 8px; text-align: right; font-weight: bold; color: #e53e3e;"><%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
+    </tr>
+  </table>
+
+  <div style="margin-top: 20px; background-color: #f0fff4; padding: 15px; border-radius: 6px; border-left: 4px solid #38a169;">
+    <p style="margin-top: 0; margin-bottom: 10px; color: #2f855a; font-weight: bold;"><%= t('bills.payment_summary', default: 'Tổng hợp thanh toán') %>:</p>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="padding: 4px; color: #4a5568;"><%= t('bills.previous_month_debt', default: 'Nợ tháng trước') %>:</td>
+        <td style="text-align: right; padding: 4px; color: #2d3748;"><%= number_to_currency(0, precision: 0, delimiter: ',', unit: '') %> đ</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px; font-weight: bold; color: #2c5282;"><%= t('bills.grand_total', default: 'Tổng phải trả') %>:</td>
+        <td style="text-align: right; padding: 4px; font-weight: bold; color: #e53e3e;"><%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <p style="margin-bottom: 5px; color: #4a5568;"><%= t('bills.notes', default: 'Ghi chú') %>:</p>
+    <div style="border-bottom: 1px dashed #cbd5e0; padding: 10px;"></div>
+    <div style="border-bottom: 1px dashed #cbd5e0; padding: 10px;"></div>
+  </div>
+</div>

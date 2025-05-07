@@ -86,6 +86,19 @@ class RoomAssignmentsController < ApplicationController
     @available_tenants = Tenant.left_joins(:room_assignments)
                               .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
                               .distinct
+
+    # Set default payment frequencies
+    @room_assignment.room_fee_frequency = 1
+    @room_assignment.utility_fee_frequency = 1
+    
+    # Common payment frequency options for dropdowns
+    @payment_frequency_options = [
+      [1, "#{t('room_assignments.monthly')} (1 #{t('room_assignments.frequency_unit')})"],
+      [2, "#{t('room_assignments.every_n_months', count: 2)} (2 #{t('room_assignments.frequency_unit')})"],
+      [3, "#{t('room_assignments.every_n_months', count: 3)} (3 #{t('room_assignments.frequency_unit')})"],
+      [6, "#{t('room_assignments.every_n_months', count: 6)} (6 #{t('room_assignments.frequency_unit')})"],
+      [12, "#{t('room_assignments.every_n_months', count: 12)} (12 #{t('room_assignments.frequency_unit')})"]
+    ]
   end
 
   def create
@@ -95,6 +108,8 @@ class RoomAssignmentsController < ApplicationController
     start_date = params[:room_assignment][:start_date]
     deposit_amount = params[:room_assignment][:deposit_amount]
     notes = params[:room_assignment][:notes]
+    room_fee_frequency = params[:room_assignment][:room_fee_frequency]
+    utility_fee_frequency = params[:room_assignment][:utility_fee_frequency]
 
     # If no tenants selected, return to form with error
     if tenant_ids.empty?
@@ -105,6 +120,13 @@ class RoomAssignmentsController < ApplicationController
       @available_tenants = Tenant.left_joins(:room_assignments)
                                 .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
                                 .distinct
+      @payment_frequency_options = [
+        [1, "#{t('room_assignments.monthly')} (1 #{t('room_assignments.frequency_unit')})"],
+        [2, "#{t('room_assignments.every_n_months', count: 2)} (2 #{t('room_assignments.frequency_unit')})"],
+        [3, "#{t('room_assignments.every_n_months', count: 3)} (3 #{t('room_assignments.frequency_unit')})"],
+        [6, "#{t('room_assignments.every_n_months', count: 6)} (6 #{t('room_assignments.frequency_unit')})"],
+        [12, "#{t('room_assignments.every_n_months', count: 12)} (12 #{t('room_assignments.frequency_unit')})"]
+      ]
 
       return render :new, status: :unprocessable_entity
     end
@@ -127,7 +149,10 @@ class RoomAssignmentsController < ApplicationController
         notes: notes,
         active: true,
         # First tenant becomes the representative
-        is_representative_tenant: (index == 0 && is_first_tenant)
+        is_representative_tenant: (index == 0 && is_first_tenant),
+        # Only set payment frequencies for the representative tenant
+        room_fee_frequency: (index == 0 && is_first_tenant) ? room_fee_frequency : 1,
+        utility_fee_frequency: (index == 0 && is_first_tenant) ? utility_fee_frequency : 1
       )
 
       if room_assignment.save
@@ -160,6 +185,13 @@ class RoomAssignmentsController < ApplicationController
       @available_tenants = Tenant.left_joins(:room_assignments)
                                 .where('room_assignments.id IS NULL OR room_assignments.active = ?', false)
                                 .distinct
+      @payment_frequency_options = [
+        [1, "#{t('room_assignments.monthly')} (1 #{t('room_assignments.frequency_unit')})"],
+        [2, "#{t('room_assignments.every_n_months', count: 2)} (2 #{t('room_assignments.frequency_unit')})"],
+        [3, "#{t('room_assignments.every_n_months', count: 3)} (3 #{t('room_assignments.frequency_unit')})"],
+        [6, "#{t('room_assignments.every_n_months', count: 6)} (6 #{t('room_assignments.frequency_unit')})"],
+        [12, "#{t('room_assignments.every_n_months', count: 12)} (12 #{t('room_assignments.frequency_unit')})"]
+      ]
 
       render :new, status: :unprocessable_entity
     end
@@ -169,6 +201,13 @@ class RoomAssignmentsController < ApplicationController
     @available_rooms = Room.where(status: 'available')
     @available_rooms = @available_rooms.or(Room.where(id: @room_assignment.room_id))
     @available_tenants = Tenant.all
+    @payment_frequency_options = [
+      [1, "#{t('room_assignments.monthly')} (1 #{t('room_assignments.frequency_unit')})"],
+      [2, "#{t('room_assignments.every_n_months', count: 2)} (2 #{t('room_assignments.frequency_unit')})"],
+      [3, "#{t('room_assignments.every_n_months', count: 3)} (3 #{t('room_assignments.frequency_unit')})"],
+      [6, "#{t('room_assignments.every_n_months', count: 6)} (6 #{t('room_assignments.frequency_unit')})"],
+      [12, "#{t('room_assignments.every_n_months', count: 12)} (12 #{t('room_assignments.frequency_unit')})"]
+    ]
   end
 
   def update
@@ -179,6 +218,13 @@ class RoomAssignmentsController < ApplicationController
       @available_rooms = Room.where(status: 'available')
       @available_rooms = @available_rooms.or(Room.where(id: @room_assignment.room_id))
       @available_tenants = Tenant.all
+      @payment_frequency_options = [
+        [1, "#{t('room_assignments.monthly')} (1 #{t('room_assignments.frequency_unit')})"],
+        [2, "#{t('room_assignments.every_n_months', count: 2)} (2 #{t('room_assignments.frequency_unit')})"],
+        [3, "#{t('room_assignments.every_n_months', count: 3)} (3 #{t('room_assignments.frequency_unit')})"],
+        [6, "#{t('room_assignments.every_n_months', count: 6)} (6 #{t('room_assignments.frequency_unit')})"],
+        [12, "#{t('room_assignments.every_n_months', count: 12)} (12 #{t('room_assignments.frequency_unit')})"]
+      ]
       render :edit, status: :unprocessable_entity
     end
   end
@@ -226,7 +272,8 @@ class RoomAssignmentsController < ApplicationController
 
   def room_assignment_params
     params.require(:room_assignment).permit(:room_id, :tenant_id, :start_date,
-                                            :end_date, :deposit_amount, :active, :is_representative_tenant)
+                                           :end_date, :deposit_amount, :active, :is_representative_tenant,
+                                           :room_fee_frequency, :utility_fee_frequency)
   end
 
   def require_login

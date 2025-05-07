@@ -8,8 +8,12 @@ class RoomAssignment < ApplicationRecord
   validate :end_date_after_start_date, if: -> { end_date.present? }
   validate :only_one_representative_per_room, if: -> { is_representative_tenant? && active? }
 
+  validates :room_fee_frequency, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :utility_fee_frequency, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
   before_save :update_room_status
   before_save :ensure_only_representative_has_deposit
+  before_validation :set_default_payment_frequencies
 
   # Used for displaying in select dropdowns
   def display_name
@@ -46,7 +50,34 @@ class RoomAssignment < ApplicationRecord
     is_representative_tenant
   end
 
+  # Get the effective room fee frequency to use
+  def effective_room_fee_frequency
+    room_fee_frequency || 1
+  end
+
+  # Get the effective utility fee frequency to use
+  def effective_utility_fee_frequency
+    utility_fee_frequency || 1
+  end
+
+  # Get payment frequency description for display
+  def payment_frequency_description
+    room_freq = effective_room_fee_frequency
+    utility_freq = effective_utility_fee_frequency
+
+    room_fee_text = room_freq == 1 ? "monthly" : "every #{room_freq} months"
+    utility_fee_text = utility_freq == 1 ? "monthly" : "every #{utility_freq} months"
+    
+    "Room fees: #{room_fee_text}, Utility fees: #{utility_fee_text}"
+  end
+
   private
+
+  def set_default_payment_frequencies
+    # Set default frequencies if they're nil
+    self.room_fee_frequency ||= 1
+    self.utility_fee_frequency ||= 1
+  end
 
   def end_date_after_start_date
     if end_date <= start_date

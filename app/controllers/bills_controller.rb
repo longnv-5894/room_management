@@ -92,6 +92,28 @@ class BillsController < ApplicationController
 
     # Get utility readings for this bill's period
     @utility_readings = @bill.relevant_utility_readings
+    
+    respond_to do |format|
+      format.html
+      format.pdf do
+        # Explicitly specify HTML format to bypass locale-specific lookup
+        html = render_to_string(
+          partial: 'bill_pdf',
+          formats: [:html],
+          handlers: [:erb],
+          locals: { bill: @bill, tenant: @tenant, room: @room, utility_readings: @utility_readings, room_assignments: @room_assignments },
+          layout: false
+        )
+        
+        pdf = WickedPdf.new.pdf_from_string(
+          html,
+          page_size: 'A4',
+          encoding: 'UTF-8'
+        )
+        
+        send_data pdf, filename: "bill_#{@bill.id}.pdf", type: 'application/pdf', disposition: 'inline'
+      end
+    end
   end
 
   def new

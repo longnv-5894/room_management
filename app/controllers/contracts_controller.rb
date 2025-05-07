@@ -85,6 +85,15 @@ class ContractsController < ApplicationController
   end
 
   def contract_params
+    # Clean up the parameters for numerical values
+    if params[:contract][:rent_amount].present?
+      params[:contract][:rent_amount] = params[:contract][:rent_amount].gsub('.', '').gsub(',', '.')
+    end
+    
+    if params[:contract][:deposit_amount].present?
+      params[:contract][:deposit_amount] = params[:contract][:deposit_amount].gsub('.', '').gsub(',', '.')
+    end
+    
     params.require(:contract).permit(
       :room_assignment_id, :contract_number, :start_date, :end_date,
       :rent_amount, :deposit_amount, :payment_due_day, :status, :document

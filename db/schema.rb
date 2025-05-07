@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_04_30_140236) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_07_151419) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -146,6 +146,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_30_140236) do
     t.datetime "updated_at", null: false
     t.text "notes"
     t.boolean "is_representative_tenant", default: false
+    t.integer "room_fee_frequency", default: 1
+    t.integer "utility_fee_frequency", default: 1
     t.index ["room_id", "tenant_id", "active"], name: "unique_active_room_assignments", unique: true, where: "(active = true)"
     t.index ["room_id"], name: "index_room_assignments_on_room_id"
     t.index ["room_id"], name: "index_room_assignments_on_room_representative", unique: true, where: "((active = true) AND (is_representative_tenant = true))"

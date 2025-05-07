@@ -270,6 +270,20 @@ en:
     deposit_only_for_representative: "Deposit amount can only be set for the representative tenant."
     change_representative: "Change Representative"
     representative_badge: "Representative"
+    fixed_room: "Fixed Room"
+    fixed_tenant: "Fixed Tenant" 
+    cannot_change_room: "Cannot change room in this edit"
+    cannot_change_tenant: "Cannot change tenant in this edit"
+    room_fee_frequency: "Room Fee Frequency"
+    utility_fee_frequency: "Utility Fee Frequency"
+    room_fee_frequency_help: "Frequency for room fee payments. Defaults to monthly."
+    utility_fee_frequency_help: "Frequency for utility payments. Can be different from room fee."
+    payment_schedule: "Payment Schedule"
+    room_fee: "Room Fee"
+    utilities: "Utilities"
+    monthly: "Monthly"
+    every_n_months: "Every %{count} months"
+    frequency_unit: "month"
     
   # Utility Readings
   utility_readings:

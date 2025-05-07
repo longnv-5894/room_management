@@ -1,9 +1,6 @@
 <div class="page-header">
   <h1 class="header-title"><%= t('room_assignments.details') %></h1>
   <div class="header-actions">
-    <% if @room_assignment.active? %>
-      <%= link_to t('room_assignments.end'), end_room_assignment_path(@room_assignment), method: :patch, data: { confirm: t('room_assignments.confirm_end') }, class: "btn btn-danger" %>
-    <% end %>
     <%= link_to t('common.back') + " " + t('room_assignments.title').downcase, room_assignments_path, class: "btn btn-outline" %>
   </div>
 </div>
@@ -55,6 +52,38 @@
             <div class="detail-label"><%= t('room_assignments.deposit_amount') %>:</div>
             <div class="detail-value">
               <%= number_to_currency(@room_assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </div>
+          </div>
+          
+          <div class="detail-row">
+            <div class="detail-label"><%= t('room_assignments.payment_schedule') %>:</div>
+            <div class="detail-value">
+              <table class="table table-borderless table-sm">
+                <tbody>
+                  <tr>
+                    <td><strong><%= t('room_assignments.room_fee') %></strong></td>
+                    <td>
+                      <% if @room_assignment.room_fee_frequency == 1 %>
+                        <%= t('room_assignments.monthly') %> (1 <%= t('room_assignments.frequency_unit') %>)
+                      <% else %>
+                        <%= t('room_assignments.every_n_months', count: @room_assignment.room_fee_frequency) %> 
+                        (<%= @room_assignment.room_fee_frequency %> <%= t('room_assignments.frequency_unit') %>)
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong><%= t('room_assignments.utilities') %></strong></td>
+                    <td>
+                      <% if @room_assignment.utility_fee_frequency == 1 %>
+                        <%= t('room_assignments.monthly') %> (1 <%= t('room_assignments.frequency_unit') %>)
+                      <% else %>
+                        <%= t('room_assignments.every_n_months', count: @room_assignment.utility_fee_frequency) %>
+                        (<%= @room_assignment.utility_fee_frequency %> <%= t('room_assignments.frequency_unit') %>)
+                      <% end %>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
           

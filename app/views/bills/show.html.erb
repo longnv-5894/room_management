@@ -282,9 +282,10 @@
         <div class="action-buttons-container">
           <!-- Primary actions -->
           <div class="action-group mb-3">
-            <button class="btn btn-primary w-100 mb-2" onclick="window.print(); return false;">
-              <i class="fas fa-print me-2"></i> <%= t('bills.print_bill') %>
-            </button>
+            
+            <%= link_to bill_path(@bill, format: :pdf), class: "btn btn-info w-100 mb-2", target: "_blank" do %>
+              <i class="fas fa-file-pdf me-2"></i> <%= t('bills.download_pdf') %>
+            <% end %>
             
             <%= link_to edit_bill_path(@bill), class: "btn btn-outline w-100" do %>
               <i class="fas fa-edit me-2"></i> <%= t('common.edit') %>

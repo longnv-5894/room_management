@@ -33,6 +33,14 @@ class Contract < ApplicationRecord
     formatted_rent = number_with_delimiter(rent_amount || 0)
     formatted_deposit = number_with_delimiter(deposit_amount || 0)
 
+    # Get payment schedule information directly from room_assignment
+    room_payment_frequency = room_assignment.effective_room_fee_frequency
+    utility_payment_frequency = room_assignment.effective_utility_fee_frequency
+    
+    # Create payment schedule text
+    room_payment_text = room_payment_frequency == 1 ? "hàng tháng" : "mỗi #{room_payment_frequency} tháng"
+    utility_payment_text = utility_payment_frequency == 1 ? "hàng tháng" : "mỗi #{utility_payment_frequency} tháng"
+
     # Create a hash of data to be inserted into the template
     data = {
       contract_number: contract_number,
@@ -66,7 +74,13 @@ class Contract < ApplicationRecord
       tien_thue_bang_chu: number_to_words(rent_amount || 0),
       tien_coc: formatted_deposit,
       tien_coc_bang_chu: number_to_words(deposit_amount || 0),
-      ngay_tra_tien: payment_due_day || 5
+      ngay_tra_tien: payment_due_day || 5,
+      
+      # Payment schedule information
+      room_payment_frequency: room_payment_frequency,
+      utility_payment_frequency: utility_payment_frequency,
+      room_payment_text: room_payment_text,
+      utility_payment_text: utility_payment_text
     }
 
     begin

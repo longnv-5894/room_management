@@ -1,19 +1,4 @@
 Rails.application.routes.draw do
-  # Remove the auto-generated buildings routes
-  # get "buildings/index"
-  # get "buildings/show"
-  # get "buildings/new"
-  # get "buildings/create"
-  # get "buildings/edit"
-  # get "buildings/update"
-  # get "buildings/destroy"
-
-  # Remove the auto-generated utility prices routes
-  # get "utility_prices/index"
-  # get "utility_prices/new"
-  # get "utility_prices/create"
-  # get "utility_prices/edit"
-  # get "utility_prices/update"
 
   # Authentication routes
   get    '/login',   to: 'sessions#new'
