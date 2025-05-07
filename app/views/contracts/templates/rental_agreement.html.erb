@@ -6,127 +6,197 @@
   <style>
     body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 12pt;
+      font-size: 14pt;
       line-height: 1.5;
-      margin: 20px;
-    }
-    h1, h2 {
-      text-align: center;
-      font-weight: bold;
+      color: #000000;
+      margin: 0;
+      padding: 0;
+      text-align: justify;
     }
     .header {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 12pt;
+      width: 100%;
+    }
+    .national-title {
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 14pt;
+      margin: 0 auto;
+      text-align: center;
+      width: 100%;
+    }
+    .independence-freedom {
+      font-weight: normal;
+      margin: 0 auto;
+      font-size: 14pt;
+      text-align: center;
+      width: 100%;
+    }
+    .separator {
+      margin: 6pt auto;
+      font-weight: normal;
+      text-align: center;
+      width: 100%;
+    }
+    .date-section {
+      text-align: right;
+      width: 100%;
+      margin: 24pt 0;
+    }
+    .location-date {
+      margin: 0;
+      font-style: normal;
+    }
+    h1 {
+      text-align: center;
+      font-weight: bold;
+      font-size: 18pt;
+      text-transform: uppercase;
+      margin-top: 12pt;
+      margin-bottom: 12pt;
+    }
+    .contract-number {
+      text-align: center;
+      margin-bottom: 12pt;
+      font-style: normal;
+    }
+    .legal-basis {
+      margin-bottom: 6pt;
+      font-style: italic;
+    }
+    .legal-link {
+      color: #0000FF;
+    }
+    h2 {
+      text-align: center;
+      font-weight: bold;
+      font-size: 14pt;
+      margin-top: 12pt;
+      margin-bottom: 6pt;
     }
     .section-title {
       font-weight: bold;
       text-align: center;
-      margin-top: 15px;
-      margin-bottom: 10px;
+      margin-top: 12pt;
+      margin-bottom: 6pt;
+      text-transform: uppercase;
     }
     .indent {
-      margin-left: 20px;
+      margin-left: 24pt;
+      text-indent: 12pt;
+    }
+    p {
+      text-align: justify;
+      margin: 6pt 0;
     }
     table {
       width: 100%;
       border-collapse: collapse;
     }
     td {
-      padding: 5px;
+      padding: 6pt;
+      vertical-align: top;
     }
     .signature-table {
       width: 100%;
-      margin-top: 30px;
+      margin-top: 36pt;
     }
     .signature-table td {
       width: 50%;
       text-align: center;
       vertical-align: top;
-      padding: 10px;
+      padding: 12pt;
     }
-    .underline {
-      text-decoration: underline;
+    .signature-space {
+      height: 72pt;
+    }
+    .party-title {
+      font-weight: bold;
+    }
+    .italic {
+      font-style: italic;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <p>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
-    <p>Độc lập - Tự do - Hạnh phúc</p>
-    <p>---------o0o---------</p>
-    <p>Hà Nội, ngày...... tháng...... năm......</p>
+    <p class="national-title">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+    <p class="independence-freedom">Độc lập - Tự do - Hạnh phúc</p>
+    <p class="separator">---------o0o---------</p>
   </div>
+  
+  <p class="date-section location-date">Hà Nội, ngày <%= today.day %> tháng <%= today.month %> năm <%= today.year %></p>
 
   <h1>HỢP ĐỒNG THUÊ NHÀ</h1>
-  <p>- Căn cứ Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</p>
-  <p>- Căn cứ vào Luật Thương mại số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</p>
-  <p>- Căn cứ vào nhu cầu và sự thỏa thuận của các bên tham gia Hợp đồng;</p>
+  <p class="contract-number">Số: <%= contract_number %></p>
+  <p class="legal-basis">- Căn cứ <span class="legal-link">Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</span></p>
+  <p class="legal-basis">- Căn cứ vào <span class="legal-link">Luật Thương mại số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</span></p>
+  <p class="legal-basis">- Căn cứ vào nhu cầu và sự thỏa thuận của các bên tham gia Hợp đồng;</p>
 
-  <p>Hôm nay, ngày ... tháng ... năm ........., tại số nhà 18 ngõ 139, Nguyễn Ngọc Vũ, Cầu Giấy, Hà Nội chúng tôi gồm:</p>
+  <p>Hôm nay, ngày <%= today.day %> tháng <%= today.month %> năm <%= today.year %>, tại <%= dia_chi_phong %> chúng tôi gồm:</p>
 
-  <p><strong>BÊN CHO THUÊ: (Sau đây gọi tắt là Bên A)</strong></p>
-  <p>Ông: Nguyễn Việt Long</p>
-  <p>Sinh năm: 1994</p>
-  <p>CMND/CCCD/Hộ chiếu số: 001094008487, do Cục quản lý hành chính về trật tự xã hội cấp ngày 27/12/2021</p>
-  <p>Hộ khẩu thường trú tại: Tổ 5 Trung Hoà, Cầu Giấy, Hà Nội</p>
+  <p class="party-title">BÊN CHO THUÊ: (Sau đây gọi tắt là Bên A)</p>
+  <p>Ông/Bà: <%= ten_chu_nha %></p>
+  <p>Điện thoại: <%= sdt_chu_nha %></p>
+  <p>Địa chỉ: <%= dia_chi_chu_nha %></p>
 
-  <p><strong>BÊN THUÊ: (Sau đây gọi tắt là Bên B)</strong></p>
-  <p>Ông/Bà: <%= tenant_name %></p>
-  <p>Sinh ngày: <%= tenant_birth_date %></p>
-  <p>CMND/CCCD/Hộ chiếu số: <%= tenant_id_number %> do <%= tenant_id_issued_by %> cấp ngày <%= tenant_id_issue_date %></p>
-  <p>Hộ khẩu thường trú tại: <%= tenant_address %></p>
+  <p class="party-title">BÊN THUÊ: (Sau đây gọi tắt là Bên B)</p>
+  <p>Ông/Bà: <%= ten_nguoi_thue %></p>
+  <p>CMND/CCCD/Hộ chiếu số: <%= cmnd_nguoi_thue %></p>
+  <p>Điện thoại: <%= sdt_nguoi_thue %></p>
+  <p>Địa chỉ thường trú: <%= dia_chi_nguoi_thue %></p>
   <p>Thông tin người ở trú cùng:</p>
-  <p class="indent">1. Ông/Bà: ...................................</p>
+  <p class="indent">1. Ông/Bà: .........................</p>
   <p class="indent">Sinh ngày: ...............</p>
-  <p class="indent">CMND/CCCD/Hộ chiếu số: ....................... do............................................................</p>
+  <p class="indent">CMND/CCCD/Hộ chiếu số: ....................... do..............................................</p>
   <p class="indent">cấp ngày .............</p>
-  <p class="indent">Hộ khẩu thường trú tại: .......................................................................................................</p>
+  <p class="indent">Hộ khẩu thường trú tại: ...............................................................................</p>
 
-  <p><em>Sau khi thảo luận, Hai Bên thống nhất đi đến ký kết Hợp đồng thuê nhà ("Hợp Đồng") với các điều khoản và điều kiện dưới đây:</em></p>
+  <p class="italic">Sau khi thảo luận, Hai Bên thống nhất đi đến ký kết Hợp đồng thuê nhà ("Hợp Đồng") với các điều khoản và điều kiện dưới đây:</p>
 
   <h2>ĐIỀU 1</h2>
   <p class="section-title">MỤC ĐÍCH THUÊ</p>
-  <p>1.1 Bên A đồng ý cho Bên B thuê, Bên B đồng ý thuê của Bên A phòng <%= room_number %> tại tầng <%= floor_number %> địa chỉ số 18 ngõ 139, Nguyễn Ngọc Vũ, Cầu Giấy, Hà Nội</p>
+  <p>1.1 Bên A đồng ý cho Bên B thuê, Bên B đồng ý thuê của Bên A phòng <%= so_phong %> tại <%= ten_toa_nha %>, địa chỉ <%= dia_chi_phong %></p>
   <p>1.2 Mục đích thuê: Bên B thuê với mục đích cư trú ngắn hạn/dài hạn</p>
 
   <h2>ĐIỀU 2</h2>
   <p class="section-title">THỜI HẠN THUÊ, GIA HẠN VÀ CHẤM DỨT HỢP ĐỒNG</p>
-  <p>2.1 Thời hạn thuê là <%= contract_duration %> tháng được tính bắt đầu từ ngày <%= start_date_day %> tháng <%= start_date_month %> năm <%= start_date_year %> đến ngày <%= end_date_day %> tháng <%= end_date_month %> năm <%= end_date_year %>.</p>
-  <p>2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= handover_date %> tháng <%= handover_month %> năm <%= handover_year %>.</p>
+  <% duration_months = ((end_date - start_date).to_i / 30.0).ceil %>
+  <p>2.1 Thời hạn thuê là <%= duration_months %> tháng được tính bắt đầu từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.</p>
+  <p>2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= ngay_bat_dau %>.</p>
   <p>2.3 Hợp đồng sẽ đương nhiên chấm dứt khi xảy ra các trường hợp sau:</p>
   <p>1. Hết thời hạn thuê hoặc không được gia hạn theo quy định của Hợp đồng;</p>
   <p>2. Bên B không thanh toán tiền nhà trong thời hạn chậm nhất 05 ngày tính từ ngày được chủ nhà thông báo hoặc thanh toán không đầy đủ thì bên A có quyền chấm dứt Hợp đồng và buộc bồi thường bất cứ một khoản chi phí nào.</p>
   <p>2.4 Chấm dứt hợp đồng theo quy định của pháp luật;</p>
-  <p>2.5 Trường hợp bên A chấm dứt Hợp đồng trước thời hạn, bên A phải:</p>
+  <p>2.5 Trường hợp bên A chấm dứt Hợp Đồng trước thời hạn, bên A phải:</p>
   <p>+ Thông báo cho bên B biết trước 30 ngày bằng văn bản</p>
   <p>+ Hoàn trả cho bên B số tiền thuê mà bên B đã trả trước cho khoảng thời gian bên B không sử dụng nhà (nếu có).</p>
-  <p>Trường hợp bên B chấm dứt Hợp đồng trước thời hạn, bên B phải:</p>
+  <p>Trường hợp bên B chấm dứt Hợp Đồng trước thời hạn, bên B phải:</p>
   <p>+ Thông báo cho bên A biết trước 30 ngày bằng văn bản</p>
   <p>+ Thanh toán các chi phí phát sinh đến ngày bàn giao trả lại nhà</p>
   <p>+ Được bên A hoàn trả số tiền nhà đã trả trước mà chưa sử dụng trong trường hợp nhà/phòng ở giữ nguyên hiện trạng tại thời điểm bàn giao Mục 2.2 trên đây.</p>
-  <p>2.6 Trường hợp một trong hai bên muốn chấm dứt Hợp đồng trước thời hạn thì Bên A có toàn quyền lấy lại tài sản trước thời hạn.</p>
-  <p>2.7 Việc một trong hai bên không thực hiện, thực hiện không đầy đủ hay thực hiện chậm các nghĩa vụ của mình theo Hợp đồng này sẽ không có là vi phạm các nghĩa vụ đó hay là đối tượng để khiếu nại các nghĩa vụ đó nếu việc không thực hiện hay chậm trễ đó do thiên tai, động đất, chiến tranh và các trường hợp bất khả kháng theo quy định của pháp luật hiện hành.</p>
+  <p>2.6 Trường hợp một trong hai bên muốn chấm dứt Hợp Đồng trước thời hạn thì Bên A có toàn quyền lấy lại tài sản trước thời hạn.</p>
+  <p>2.7 Việc một trong hai bên không thực hiện, thực hiện không đầy đủ hay thực hiện chậm các nghĩa vụ của mình theo Hợp Đồng này sẽ không có là vi phạm các nghĩa vụ đó hay là đối tượng để khiếu nại các nghĩa vụ đó nếu việc không thực hiện hay chậm trễ đó do thiên tai, động đất, chiến tranh và các trường hợp bất khả kháng theo quy định của pháp luật hiện hành.</p>
 
   <h2>ĐIỀU 3</h2>
   <p class="section-title">GIÁ THUÊ, ĐẶT CỌC VÀ PHƯƠNG THỨC THANH TOÁN</p>
   <p>3.1 Giá cho thuê:</p>
-  <p>- Số tiền: 6.500.000đ (Sáu triệu năm trăm nghìn đồng)/ tháng</p>
+  <p>- Số tiền: <%= tien_thue %>đ (<%= tien_thue_bang_chu %>)/ tháng</p>
   <p>3.2 Tiền đặt cọc:</p>
-  <p>Bên B sẽ giao cho Bên A một khoản tiền là 6.500.000 VNĐ (bằng chữ: Sáu triệu năm trăm nghìn đồng) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực.</p>
-  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là 6.500.000 VNĐ (bằng chữ: Sáu triệu năm trăm nghìn đồng) ngay sau khi ký hợp đồng này. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
+  <p>Bên B sẽ giao cho Bên A một khoản tiền là <%= tien_coc %> VNĐ (bằng chữ: <%= tien_coc_bang_chu %>) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp Đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực.</p>
+  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là <%= tien_thue %> VNĐ (bằng chữ: <%= tien_thue_bang_chu %>) ngay sau khi ký hợp đồng này. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
   <p>Nếu Bên B đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho Bên A thì Bên A sẽ không phải hoàn trả lại Bên B số tiền đặt cọc này.</p>
   <p>Nếu Bên A đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho bên B thì bên A sẽ phải hoàn trả lại Bên B số tiền đặt cọc</p>
-  <p>Vào thời điểm kết thúc Thời Hạn Thuê hoặc kể từ ngày Chấm dứt Hợp Đồng, Bên A sẽ hoàn lại cho Bên B số Tiền Đặt Cọc sau khi đã khấu trừ các khoản tiền chưa phục hồi tài sản (nếu có).</p>
-  <p>3.3 Bên B sẽ thanh toán tiền thuê tài sản cho Bên A 01 lần trong vòng 05 (năm) ngày đầu tiên của mỗi tháng thanh toán. Các lần thanh toán sau sẽ thực hiện vào 01 tháng một lần, mỗi lần thanh toán Bên B sẽ nhận được một giấy biên nhận của Bên A. Việc thanh toán tiền thuê tài sản sẽ do các bên tự thực hiện.</p>
   <p>3.4 Phương thức thanh toán bằng: Chuyển khoản hoặc tiền mặt</p>
   <p>3.5 Hợp đồng này chỉ bắt đầu có hiệu lực khi bên A xác nhận đã nhận được số tiền đặt cọc nêu trên và tiền thuê căn hộ tháng đầu tiên của bên B</p>
 
   <h2>ĐIỀU 4</h2>
   <p class="section-title">PHÍ DỊCH VỤ</p>
   <p>4.1 Bên B phải thanh toán chi phí sử dụng hàng tháng với mức giá:</p>
-  <p>Điện: 4.000đ/kW</p>
-  <p>Nước: 30.000đ/m3</p>
-  <p>Dịch vụ: 200.000đ/người</p>
+  <p>Điện: <%= electricity_price %>đ/kW</p>
+  <p>Nước: <%= water_price %>đ/m3</p>
+  <p>Dịch vụ: <%= service_fee %>đ/người</p>
 
   <h2>ĐIỀU 5</h2>
   <p class="section-title">QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</p>
@@ -183,8 +253,12 @@
       <td><strong>BÊN THUÊ TÀI SẢN (Bên B)</strong></td>
     </tr>
     <tr>
-      <td><em>(Ký điền chữ, ghi rõ họ tên)</em></td>
-      <td><em>(Ký điền chữ, ghi rõ họ tên)</em></td>
+      <td><em>(Ký/điểm chỉ, ghi rõ họ tên)</em></td>
+      <td><em>(Ký/điểm chỉ, ghi rõ họ tên)</em></td>
+    </tr>
+    <tr>
+      <td class="signature-space"></td>
+      <td class="signature-space"></td>
     </tr>
   </table>
 </body>

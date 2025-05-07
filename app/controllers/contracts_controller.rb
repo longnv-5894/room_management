@@ -7,6 +7,23 @@ class ContractsController < ApplicationController
   end
 
   def show
+    respond_to do |format|
+      format.html
+      format.pdf do
+        # Generate PDF data directly
+        pdf_data = @contract.generate_pdf
+        if pdf_data
+          send_data pdf_data,
+                    filename: "contract_#{@contract.contract_number}.pdf",
+                    type: "application/pdf",
+                    disposition: "inline"
+        else
+          # If generation fails, redirect to HTML view with an error
+          flash[:alert] = t('contracts.template_not_found')
+          redirect_to contract_path(@contract, format: :html)
+        end
+      end
+    end
   end
 
   def new
@@ -89,11 +106,11 @@ class ContractsController < ApplicationController
     if params[:contract][:rent_amount].present?
       params[:contract][:rent_amount] = params[:contract][:rent_amount].gsub('.', '').gsub(',', '.')
     end
-    
+
     if params[:contract][:deposit_amount].present?
       params[:contract][:deposit_amount] = params[:contract][:deposit_amount].gsub('.', '').gsub(',', '.')
     end
-    
+
     params.require(:contract).permit(
       :room_assignment_id, :contract_number, :start_date, :end_date,
       :rent_amount, :deposit_amount, :payment_due_day, :status, :document

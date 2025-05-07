@@ -25,8 +25,7 @@ class Contract < ApplicationRecord
   before_validation :generate_contract_number, on: :create, if: -> { contract_number.blank? }
 
   # Generate contract using the HTML template and convert to PDF
-  def generate_html_contract
-    require 'tempfile'
+  def generate_pdf
     require 'wicked_pdf'
 
     # Format currency amounts with thousands separators
@@ -36,15 +35,22 @@ class Contract < ApplicationRecord
     # Get payment schedule information directly from room_assignment
     room_payment_frequency = room_assignment.effective_room_fee_frequency
     utility_payment_frequency = room_assignment.effective_utility_fee_frequency
-    
+
     # Create payment schedule text
     room_payment_text = room_payment_frequency == 1 ? "hàng tháng" : "mỗi #{room_payment_frequency} tháng"
     utility_payment_text = utility_payment_frequency == 1 ? "hàng tháng" : "mỗi #{utility_payment_frequency} tháng"
+
+    # Get current utility prices
+    current_price = UtilityPrice.current
+    electricity_price = number_with_delimiter(current_price&.electricity_unit_price || 4000)
+    water_price = number_with_delimiter(current_price&.water_unit_price || 30000)
+    service_fee = number_with_delimiter(current_price&.service_charge || 200000)
 
     # Create a hash of data to be inserted into the template
     data = {
       contract_number: contract_number,
       ngay_lam_hop_dong: Date.today.strftime('%d/%m/%Y'),
+      today: Date.today,
 
       # Bên cho thuê (Landlord info from building)
       ten_chu_nha: room.building.user.name || room.building.name,
@@ -75,17 +81,43 @@ class Contract < ApplicationRecord
       tien_coc: formatted_deposit,
       tien_coc_bang_chu: number_to_words(deposit_amount || 0),
       ngay_tra_tien: payment_due_day || 5,
-      
+
       # Payment schedule information
       room_payment_frequency: room_payment_frequency,
       utility_payment_frequency: utility_payment_frequency,
       room_payment_text: room_payment_text,
-      utility_payment_text: utility_payment_text
+      utility_payment_text: utility_payment_text,
+
+      # Utility rates
+      electricity_price: electricity_price,
+      water_price: water_price,
+      service_fee: service_fee
     }
 
     begin
-      # Get the template content
-      template_path = Rails.root.join('app', 'views', 'contracts', 'templates', 'rental_agreement.html.erb')
+      # Get the template content - try different path methods to find the template
+      template_path = nil
+      possible_paths = [
+        Rails.root.join('app', 'views', 'contracts', 'templates', 'rental_agreement.html.erb'),
+        Rails.root.join('app/views/contracts/templates/rental_agreement.html.erb'),
+        File.join(Rails.root, 'app', 'views', 'contracts', 'templates', 'rental_agreement.html.erb')
+      ]
+      
+      # Try to find the template at one of the possible paths
+      possible_paths.each do |path|
+        if File.exist?(path)
+          template_path = path
+          break
+        end
+      end
+      
+      # If template path is still nil, log an error
+      unless template_path
+        Rails.logger.error "Template not found at any of these locations: #{possible_paths.join(', ')}"
+        return nil
+      end
+      
+      # Read the template content
       template_content = File.read(template_path)
 
       # Create a renderer with the template
@@ -94,39 +126,52 @@ class Contract < ApplicationRecord
       # Bind the data to the template
       html_content = renderer.result(OpenStruct.new(data).instance_eval { binding })
 
-      # Setup WickedPDF
-      pdf = WickedPdf.new.pdf_from_string(
+      # Setup WickedPDF and return the PDF data
+      WickedPdf.new.pdf_from_string(
         html_content,
         page_size: 'A4',
-        margin: { top: 10, bottom: 10, left: 10, right: 10 },
+        margin: { 
+          top: 20,
+          bottom: 20,
+          left: 30,
+          right: 20
+        },
         encoding: 'UTF-8',
         footer: { right: '[page] of [topage]' }
       )
-
-      # Create a tempfile for the PDF
-      pdf_file = Tempfile.new(['contract', '.pdf'])
-      pdf_file.binmode
-      pdf_file.write(pdf)
-      pdf_file.close
-
-      # Attach the generated document to the contract
-      self.document.attach(
-        io: File.open(pdf_file.path),
-        filename: "hop_dong_thue_nha_#{contract_number}.pdf",
-        content_type: 'application/pdf'
-      )
-
-      self.save
     rescue => e
       Rails.logger.error "Error generating contract: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      return false
-    ensure
-      # Clean up temporary files
-      pdf_file.unlink if pdf_file && pdf_file.respond_to?(:unlink)
+      return nil
     end
+  end
 
+  # Legacy method that attaches the PDF to the contract record
+  # Kept for backward compatibility
+  def generate_html_contract
+    require 'tempfile'
+
+    pdf = generate_pdf
+    return false unless pdf
+
+    # Create a tempfile for the PDF
+    pdf_file = Tempfile.new(['contract', '.pdf'])
+    pdf_file.binmode
+    pdf_file.write(pdf)
+    pdf_file.close
+
+    # Attach the generated document to the contract
+    self.document.attach(
+      io: File.open(pdf_file.path),
+      filename: "hop_dong_thue_nha_#{contract_number}.pdf",
+      content_type: 'application/pdf'
+    )
+
+    self.save
     return self.document.attached?
+  ensure
+    # Clean up temporary files
+    pdf_file.unlink if pdf_file && pdf_file.respond_to?(:unlink)
   end
 
   private
@@ -157,30 +202,113 @@ class Contract < ApplicationRecord
   end
 
   def number_to_words(number)
-    return 'không đồng' if number == 0
+    # Format numbers in Vietnamese style for the contract
+    # Example: 2.500.000đ (hai triệu năm trăm nghìn đồng)
 
-    # Vietnamese number to words conversion
-    # This is a more comprehensive implementation for Vietnamese currency
-    units = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín']
-    teens = ['', 'mười một', 'mười hai', 'mười ba', 'mười bốn', 'mười lăm', 'mười sáu', 'mười bảy', 'mười tám', 'mười chín']
-    tens = ['', 'mười', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi']
-    groups = ['', 'nghìn', 'triệu', 'tỷ', 'nghìn tỷ', 'triệu tỷ']
+    # Convert number to string and split integer and decimal parts
+    num_str = number.to_s
+    int_part, dec_part = num_str.split('.')
 
-    # Special case for small numbers
-    if number < 10
-      return "#{units[number]} đồng"
-    elsif number < 20
-      return "#{teens[number - 10]} đồng"
-    elsif number < 100
-      unit = number % 10
-      ten = number / 10
-      unit_str = unit == 0 ? '' : " #{units[unit]}"
-      return "#{tens[ten]}#{unit_str} đồng"
+    # Format the integer part with dots as thousand separators
+    formatted_int = int_part.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse
+
+    # Combine with decimal part if present, using comma as decimal separator
+    if dec_part
+      formatted_number = "#{formatted_int},#{dec_part}"
+    else
+      formatted_number = formatted_int
     end
 
-    # For larger numbers, just return the numeric form for now
-    # A complete implementation would be more complex
-    return "#{number.to_s} đồng"
+    # Convert number to Vietnamese words
+    vietnamese_words = vietnamese_number_to_words(number.to_i)
+
+    # Return in the format shown in the screenshot
+    "#{vietnamese_words} đồng"
+  end
+
+  # Helper method to convert numbers to Vietnamese words
+  def vietnamese_number_to_words(number)
+    return "không" if number == 0
+
+    # Vietnamese word arrays
+    digits = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"]
+    groups = ["", "nghìn", "triệu", "tỷ", "nghìn tỷ", "triệu tỷ"]
+
+    # Process number in groups of 3 digits
+    str = number.to_s
+    groups_of_3 = []
+
+    # Ensure the string length is a multiple of 3 by padding with zeros
+    while str.length % 3 != 0
+      str = "0" + str
+    end
+
+    # Split into groups of 3
+    0.step(str.length - 1, 3) do |i|
+      groups_of_3 << str[i, 3].to_i
+    end
+
+    # Process each group
+    result = ""
+    groups_of_3.each_with_index do |group, index|
+      # Skip if the group is 000
+      next if group == 0
+
+      group_index = groups_of_3.length - index - 1
+
+      # Process each group of 3 digits
+      hundreds = group / 100
+      tens = (group % 100) / 10
+      ones = group % 10
+
+      group_result = ""
+
+      # Hundreds
+      if hundreds > 0
+        group_result += "#{digits[hundreds]} trăm "
+      end
+
+      # Tens and ones
+      if tens > 0
+        if tens == 1
+          group_result += "mười "
+          if ones > 0
+            if ones == 5
+              group_result += "lăm"
+            elsif ones == 1
+              group_result += "một"
+            else
+              group_result += digits[ones]
+            end
+          end
+        else
+          group_result += "#{digits[tens]} mươi "
+          if ones > 0
+            if ones == 1
+              group_result += "mốt"
+            elsif ones == 5
+              group_result += "lăm"
+            else
+              group_result += digits[ones]
+            end
+          end
+        end
+      elsif ones > 0
+        if hundreds > 0
+          # If there's a hundred but no tens, we need to add "lẻ"
+          group_result += "lẻ "
+        end
+        group_result += digits[ones]
+      end
+
+      # Add the group name if not empty
+      if !group_result.empty?
+        group_result = "#{group_result.strip} #{groups[group_index]}".strip
+        result = result.empty? ? group_result : "#{result} #{group_result}"
+      end
+    end
+
+    result.strip
   end
 
   def number_with_delimiter(number)

@@ -128,24 +128,19 @@
                   </td>
                   <td class="text-center">
                     <div class="action-buttons">
-                      <%= link_to contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-primary mx-1', title: t('common.view') do %>
+                      <%= link_to contract_path(contract), class: 'btn btn-sm btn-primary mx-1', title: t('common.view') do %>
                         <i class="fas fa-eye"></i>
                       <% end %>
-                      <%= link_to edit_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-warning mx-1', title: t('common.edit') do %>
+                      <%= link_to edit_contract_path(contract), class: 'btn btn-sm btn-primary mx-1', title: t('common.edit') do %>
                         <i class="fas fa-edit"></i>
                       <% end %>
-                      <% if contract.document.attached? %>
-                        <%= link_to download_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-info mx-1', title: t('contracts.download') do %>
-                          <i class="fas fa-download"></i>
-                        <% end %>
-                      <% else %>
-                        <%= link_to generate_pdf_contract_path(contract), class: 'btn btn-icon btn-sm btn-outline-secondary mx-1', title: t('contracts.generate_pdf') do %>
-                          <i class="fas fa-file-pdf"></i>
-                        <% end %>
+                      <%= link_to contract_path(contract, format: :pdf), class: 'btn btn-sm btn-outline-primary mx-1', title: t('contracts.download'), target: "_blank" do %>
+                        <i class="fas fa-file-pdf"></i>
                       <% end %>
-                      <%= link_to contract_path(contract), 
-                                data: { turbo_method: :delete, turbo_confirm: t('contracts.confirm_delete') }, 
-                                class: 'btn btn-icon btn-sm btn-outline-danger mx-1', title: t('common.delete') do %>
+                      <%= button_to contract_path(contract), 
+                          method: :delete,
+                          form: { data: { turbo_confirm: t('contracts.confirm_delete') }, class: "d-inline" },
+                          class: 'btn btn-sm btn-outline-danger mx-1', title: t('common.delete') do %>
                         <i class="fas fa-trash"></i>
                       <% end %>
                     </div>
@@ -172,18 +167,52 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 5px;
   }
-  .action-buttons .btn-icon {
+  
+  .action-buttons .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 4px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
   }
-  .action-buttons .btn-icon i {
-    font-size: 0.875rem;
+  
+  .action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+  }
+  
+  .action-buttons form {
+    margin: 0;
+  }
+  
+  .btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .btn-outline-primary {
+    color: #4e73df;
+    border-color: #4e73df;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: #4e73df;
+    color: #fff;
+  }
+  
+  .btn-outline-danger {
+    color: #e74a3b;
+    border-color: #e74a3b;
+  }
+  
+  .btn-outline-danger:hover {
+    background-color: #e74a3b;
+    color: #fff;
   }
 </style>
 

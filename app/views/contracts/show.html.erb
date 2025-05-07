@@ -67,14 +67,12 @@
           </div>
         </div>
         <div class="card-footer">
-          <div class="btn-group">
-            <%= link_to edit_contract_path(@contract), class: 'btn btn-warning' do %>
-              <i class="fas fa-edit"></i> <%= t('common.edit') %>
-            <% end %>
-            <%= link_to contract_path(@contract), 
-                        data: { turbo_method: :delete, turbo_confirm: t('contracts.confirm_delete') }, 
-                        class: 'btn btn-danger' do %>
-              <i class="fas fa-trash"></i> <%= t('common.delete') %>
+          <div class="btn-group"> 
+            <%= button_to contract_path(@contract), 
+                        method: :delete,
+                        form: { data: { turbo_confirm: t('contracts.confirm_delete') }, class: "d-inline ms-2" },
+                        class: 'btn btn-outline-danger' do %>
+              <i class="fas fa-trash me-1"></i> <%= t('common.delete') %>
             <% end %>
           </div>
         </div>
@@ -87,23 +85,12 @@
           <h6 class="m-0 font-weight-bold text-primary"><%= t('contracts.document') %></h6>
         </div>
         <div class="card-body">
-          <% if @contract.document.attached? %>
-            <div class="text-center mb-3">
-              <i class="fas fa-file-pdf fa-4x text-danger mb-3"></i>
-              <p><%= t('contracts.document_attached') %></p>
-              <p class="text-muted"><%= @contract.document.filename %></p>
-            </div>
-            <%= link_to download_contract_path(@contract), class: 'btn btn-primary btn-block' do %>
-              <i class="fas fa-download"></i> <%= t('contracts.download') %>
-            <% end %>
-          <% else %>
-            <div class="text-center mb-3">
-              <i class="far fa-file-pdf fa-4x text-secondary mb-3"></i>
-              <p><%= t('contracts.no_document') %></p>
-            </div>
-            <%= link_to generate_pdf_contract_path(@contract), class: 'btn btn-secondary btn-block' do %>
-              <i class="fas fa-file-pdf"></i> <%= t('contracts.generate_pdf') %>
-            <% end %>
+          <div class="text-center mb-3">
+            <i class="fas fa-file-pdf fa-4x text-primary mb-3"></i>
+            <p><%= t('contracts.download_explanation') %></p>
+          </div>
+          <%= link_to contract_path(@contract, format: :pdf), class: 'btn btn-info w-100', target: "_blank" do %>
+            <i class="fas fa-file-pdf me-2"></i> <%= t('contracts.download') %>
           <% end %>
         </div>
       </div>
