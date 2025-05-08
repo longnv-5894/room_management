@@ -62,6 +62,12 @@
             <% end %>
           </span>
           <span class="stat-label"><%= t('revenues.monthly_profit') %></span>
+          <div class="profit-margin">
+            <% margin_class = @profit_margin >= 0 ? 'positive-profit' : 'negative-profit' %>
+            <span class="<%= margin_class %>">
+              <%= @profit_margin %>% <%= t('revenues.profit_margin') %>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -173,6 +179,136 @@
             <% end %>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profit Analysis by Building -->
+  <div class="col-12">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="card-title"><%= t('revenues.profit_analysis', default: 'Phân tích lợi nhuận') %></h2>
+        <button class="btn btn-sm btn-outline-primary" type="button" data-toggle="collapse" data-target="#profitAnalysisContent">
+          <i class="fas fa-chevron-down"></i>
+        </button>
+      </div>
+      <div id="profitAnalysisContent" class="collapse show">
+        <div class="card-body">
+          <div class="profit-analysis-charts row mb-4">
+            <div class="col-md-6">
+              <canvas id="buildingProfitChart" height="240"></canvas>
+            </div>
+            <div class="col-md-6">
+              <canvas id="profitMarginChart" height="240"></canvas>
+            </div>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="data-table profit-table">
+              <thead>
+                <tr>
+                  <th><%= t('buildings.name') %></th>
+                  <th class="text-right"><%= t('revenues.revenue') %></th>
+                  <th class="text-right"><%= t('revenues.expenses') %></th>
+                  <th class="text-right"><%= t('revenues.profit') %></th>
+                  <th class="text-right"><%= t('revenues.profit_margin', default: 'Tỷ suất LN') %></th>
+                  <th class="text-right"><%= t('buildings.occupancy', default: 'Tỷ lệ lấp đầy') %></th>
+                  <th><%= t('common.action') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if @profits_by_building.any? %>
+                  <% @profits_by_building.each do |data| %>
+                    <tr>
+                      <td>
+                        <span class="building-name">
+                          <%= data[:building].name %>
+                        </span>
+                        <small class="d-block text-muted">
+                          <%= data[:building].address %>
+                        </small>
+                      </td>
+                      <td class="text-right">
+                        <%= number_to_currency(data[:revenue], precision: 0, delimiter: ',', unit: 'VND ') %>
+                      </td>
+                      <td class="text-right">
+                        <%= number_to_currency(data[:expenses], precision: 0, delimiter: ',', unit: 'VND ') %>
+                      </td>
+                      <td class="text-right">
+                        <% profit_class = data[:profit] >= 0 ? 'positive-profit' : 'negative-profit' %>
+                        <span class="<%= profit_class %>">
+                          <%= number_to_currency(data[:profit].abs, precision: 0, delimiter: ',', unit: 'VND ') %>
+                          <% if data[:profit] < 0 %>
+                            (<%= t('revenues.loss') %>)
+                          <% end %>
+                        </span>
+                      </td>
+                      <td class="text-right">
+                        <% profit_margin_class = data[:profit_margin] >= 0 ? 'positive-profit' : 'negative-profit' %>
+                        <div class="progress-wrapper">
+                          <span class="<%= profit_margin_class %>">
+                            <%= data[:profit_margin] %>%
+                          </span>
+                          <div class="progress">
+                            <div class="progress-bar <%= data[:profit_margin] >= 0 ? 'bg-success' : 'bg-danger' %>" 
+                                style="width: <%= [data[:profit_margin].abs, 100].min %>%">
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="text-right">
+                        <div class="progress-wrapper">
+                          <span><%= data[:occupancy_rate] %>%</span>
+                          <div class="progress">
+                            <div class="progress-bar bg-info" style="width: <%= data[:occupancy_rate] %>%"></div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <%= link_to building_path(data[:building]), class: "btn btn-sm btn-outline-primary" do %>
+                          <i class="fas fa-eye"></i>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                <% else %>
+                  <tr>
+                    <td colspan="7" class="text-center">
+                      <%= t('revenues.no_buildings_data', default: 'Không có dữ liệu tòa nhà.') %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+              <tfoot>
+                <tr class="table-total">
+                  <th><%= t('common.total') %></th>
+                  <th class="text-right">
+                    <%= number_to_currency(@monthly_revenue, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </th>
+                  <th class="text-right">
+                    <%= number_to_currency(@monthly_expenses, precision: 0, delimiter: ',', unit: 'VND ') %>
+                  </th>
+                  <th class="text-right">
+                    <% profit_class = @monthly_profit >= 0 ? 'positive-profit' : 'negative-profit' %>
+                    <span class="<%= profit_class %>">
+                      <%= number_to_currency(@monthly_profit.abs, precision: 0, delimiter: ',', unit: 'VND ') %>
+                      <% if @monthly_profit < 0 %>
+                        (<%= t('revenues.loss') %>)
+                      <% end %>
+                    </span>
+                  </th>
+                  <th class="text-right">
+                    <% profit_margin_class = @profit_margin >= 0 ? 'positive-profit' : 'negative-profit' %>
+                    <span class="<%= profit_margin_class %>">
+                      <%= @profit_margin %>%
+                    </span>
+                  </th>
+                  <th colspan="2"></th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -304,6 +440,170 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
+
+  // Building profit chart
+  const buildingProfitCtx = document.getElementById('buildingProfitChart').getContext('2d');
+  
+  const buildingLabels = <%= raw @profits_by_building.map { |data| data[:building].name }.to_json %>;
+  const buildingRevenues = <%= raw @profits_by_building.map { |data| data[:revenue] }.to_json %>;
+  const buildingExpenses = <%= raw @profits_by_building.map { |data| data[:expenses] }.to_json %>;
+  const buildingProfits = <%= raw @profits_by_building.map { |data| data[:profit] }.to_json %>;
+  
+  new Chart(buildingProfitCtx, {
+    type: 'bar',
+    data: {
+      labels: buildingLabels,
+      datasets: [
+        {
+          label: '<%= t('revenues.revenue') %>',
+          data: buildingRevenues,
+          backgroundColor: 'rgba(75, 192, 192, 0.7)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        },
+        {
+          label: '<%= t('revenues.expenses') %>',
+          data: buildingExpenses,
+          backgroundColor: 'rgba(255, 99, 132, 0.7)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        },
+        {
+          label: '<%= t('revenues.profit') %>',
+          data: buildingProfits,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1,
+          type: 'bar'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: '<%= t('revenues.profit_by_building', default: 'Lợi nhuận theo tòa nhà') %>'
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += new Intl.NumberFormat('vi-VN', { 
+                  style: 'currency', 
+                  currency: 'VND',
+                  maximumFractionDigits: 0
+                }).format(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                notation: 'compact',
+                compactDisplay: 'short',
+                maximumFractionDigits: 0
+              }).format(value);
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Profit margin chart
+  const profitMarginCtx = document.getElementById('profitMarginChart').getContext('2d');
+  
+  const profitMargins = <%= raw @profits_by_building.map { |data| data[:profit_margin] }.to_json %>;
+  const occupancyRates = <%= raw @profits_by_building.map { |data| data[:occupancy_rate] }.to_json %>;
+  
+  new Chart(profitMarginCtx, {
+    type: 'bar',
+    data: {
+      labels: buildingLabels,
+      datasets: [
+        {
+          label: '<%= t('revenues.profit_margin', default: 'Tỷ suất lợi nhuận') %>',
+          data: profitMargins,
+          backgroundColor: profitMargins.map(value => value >= 0 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(220, 53, 69, 0.7)'),
+          borderColor: profitMargins.map(value => value >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'),
+          borderWidth: 1,
+          yAxisID: 'y'
+        },
+        {
+          label: '<%= t('buildings.occupancy', default: 'Tỷ lệ lấp đầy') %>',
+          data: occupancyRates,
+          backgroundColor: 'rgba(23, 162, 184, 0.7)',
+          borderColor: 'rgba(23, 162, 184, 1)',
+          borderWidth: 1,
+          type: 'line',
+          yAxisID: 'y1',
+          fill: false,
+          tension: 0.4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: '<%= t('revenues.profitability_analysis', default: 'Phân tích khả năng sinh lời') %>'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          position: 'left',
+          title: {
+            display: true,
+            text: '%'
+          },
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        },
+        y1: {
+          beginAtZero: true,
+          position: 'right',
+          title: {
+            display: true,
+            text: '<%= t('buildings.occupancy', default: 'Tỷ lệ lấp đầy') %> (%)'
+          },
+          grid: {
+            drawOnChartArea: false
+          },
+          ticks: {
+            callback: function(value) {
+              return value + '%';
+            }
+          }
+        }
+      }
+    }
+  });
 });
 </script>
 
@@ -315,14 +615,54 @@ document.addEventListener('DOMContentLoaded', function() {
   color: #dc3545;
 }
 
+/* Progress bar styling */
+.progress-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress {
+  height: 8px;
+  margin-top: 5px;
+  background-color: rgba(0,0,0,0.05);
+}
+
 /* Additional Chart Styles */
-canvas#revenueChart {
-  min-height: 350px;
+canvas#revenueChart,
+canvas#buildingProfitChart,
+canvas#profitMarginChart {
+  min-height: 240px;
 }
 
 .card-header .card-title {
   margin-bottom: 0;
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+.profit-table .table-total {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.building-name {
+  font-weight: 600;
+}
+
+.profit-margin {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Improve table styling */
+.profit-table th, 
+.profit-table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+
+.profit-analysis-charts {
+  margin-bottom: 2rem;
 }
 </style>

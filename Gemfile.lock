@@ -240,6 +240,9 @@ GEM
     regexp_parser (2.10.0)
     reline (0.6.1)
       io-console (~> 0.5)
+    roo (2.10.1)
+      nokogiri (~> 1)
+      rubyzip (>= 1.3.0, < 3.0.0)
     rubocop (1.75.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -351,6 +354,7 @@ DEPENDENCIES
   propshaft
   puma (>= 5.0)
   rails (~> 8.0.2)
+  roo (~> 2.10.0)
   rubocop-rails-omakase
   sablon
   solid_cable

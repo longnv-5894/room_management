@@ -58,11 +58,12 @@
                 <%= link_to edit_building_path(building), class: "btn btn-sm btn-outline-secondary flex-grow-1" do %>
                   <i class="fas fa-edit"></i> <%= t('common.edit') %>
                 <% end %>
-                <%= link_to building_path(building), 
-                    data: { turbo_method: :delete, turbo_confirm: t('buildings.confirm_delete') },
-                    class: "btn btn-sm btn-outline-danger flex-grow-1" do %>
-                  <i class="fas fa-trash-alt"></i>
-                <% end %>
+                  <%= button_to building_path(building), 
+                      method: :delete,
+                      form: { data: { turbo_confirm: t('buildings.confirm_delete') }, class: "d-inline" },
+                      class: "btn btn-sm btn-outline-danger" do %>
+                    <i class="fas fa-trash-alt"></i>
+                  <% end %>
               </div>
             </div>
           </div>

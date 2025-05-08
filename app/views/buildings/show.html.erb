@@ -4,6 +4,9 @@
     <%= link_to buildings_path, class: "btn btn-outline me-2" do %>
       <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
     <% end %>
+    <%= link_to import_form_building_path(@building), class: "btn btn-outline-success me-2" do %>
+      <i class="fas fa-file-excel"></i> <%= t('buildings.import.import_excel') %>
+    <% end %>
     <%= link_to edit_building_path(@building), class: "btn btn-primary" do %>
       <i class="fas fa-edit"></i> <%= t('common.edit') %>
     <% end %>

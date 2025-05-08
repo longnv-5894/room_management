@@ -1,8 +1,8 @@
 class Room < ApplicationRecord
   belongs_to :building, optional: true
-  has_many :room_assignments
+  has_many :room_assignments, dependent: :destroy
   has_many :tenants, through: :room_assignments
-  has_many :utility_readings
+  has_many :utility_readings, dependent: :destroy
   
   validates :number, presence: true, uniqueness: { scope: :building_id }
   validates :monthly_rent, presence: true, numericality: { greater_than: 0 }

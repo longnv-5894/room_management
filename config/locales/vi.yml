@@ -577,7 +577,8 @@ vi:
     create_error: "Có lỗi khi tạo tòa nhà."
     update_error: "Có lỗi khi cập nhật tòa nhà."
     cannot_delete: "Không thể xóa tòa nhà có phòng. Vui lòng xóa tất cả phòng trước."
-    confirm_delete: "Bạn có chắc muốn xóa tòa nhà này không?"
+    confirm_delete: "Bạn có chắc muốn xóa tòa nhà này không? Thao tác này sẽ xóa tất cả phòng, người thuê, hóa đơn, và chi phí liên quan đến tòa nhà này."
+    cannot_delete_with_rooms: "Không thể xóa tòa nhà có phòng. Vui lòng xóa tất cả phòng trước."
     no_buildings: "Không tìm thấy tòa nhà nào"
     no_buildings_description: "Bắt đầu quản lý bất động sản của bạn bằng cách thêm tòa nhà đầu tiên."
     delete_building: "Xóa tòa nhà"
@@ -590,6 +591,38 @@ vi:
       under_construction: "Đang xây dựng"
       renovation: "Đang sửa chữa"
       inactive: "Không hoạt động"
+    import:
+      import_excel: "Nhập dữ liệu Excel"
+      title: "Nhập dữ liệu từ Excel"
+      instructions: "Hướng dẫn nhập dữ liệu Excel"
+      format_info: "File Excel cần được cấu trúc như ví dụ bên dưới. Hệ thống sẽ nhận diện các cột dựa trên tiêu đề của chúng."
+      description: "Tải lên file Excel chứa dữ liệu phòng và tiện ích. Hệ thống sẽ tạo hoặc cập nhật phòng, người thuê, chỉ số tiện ích và hóa đơn dựa trên dữ liệu cung cấp."
+      template: "Ví dụ định dạng file Excel"
+      select_file: "Chọn file Excel để tải lên"
+      file_format: "Định dạng chấp nhận: .xlsx, .xls"
+      upload_button: "Tải lên và nhập dữ liệu"
+      success: "Đã nhập thành công %{rooms} phòng, %{tenants} người thuê, %{readings} chỉ số tiện ích, và %{bills} hóa đơn cho tháng %{month}/%{year}."
+      failed: "Nhập dữ liệu không thành công: %{errors}"
+      no_file: "Vui lòng chọn một file để tải lên"
+      error: "Đã xảy ra lỗi trong quá trình nhập dữ liệu: %{message}"
+      additional_services: "Dịch vụ bổ sung"
+      room_label: "Phòng"
+      tenant_label: "Tên"
+      area_label: "Diện tích"
+      room_fee_label: "Tiền phòng"
+      elec_readings: "Điện đầu → cuối"
+      elec_fee: "Tiền điện"
+      water_readings: "Nước đầu → cuối"
+      water_fee: "Tiền nước"
+      services: "WiFi, Rác, ..."
+      total_label: "Tổng cộng"
+      status_label: "Trạng thái"
+      billing_period_note: "Kỳ thanh toán (tháng/năm) sẽ được tự động phát hiện từ tên file. Đảm bảo file của bạn được đặt tên theo định dạng 'Tính tiền nhà trọ tháng X-YYYY.xlsx' để có kết quả tốt nhất."
+      imported_data: "Dữ liệu sẽ được nhập:"
+      will_import_rooms: "Phòng với số phòng, diện tích và tiền thuê hàng tháng"
+      will_import_tenants: "Người thuê và phân phối phòng của họ"
+      will_import_utilities: "Chỉ số tiện ích (điện và nước) với giá trị trước và hiện tại"
+      will_import_bills: "Hóa đơn với tất cả các khoản phí bao gồm dịch vụ bổ sung"
 
   # Contracts
   contracts:
@@ -662,3 +695,41 @@ vi:
         precision: 0
         delimiter: "."
         separator: ","
+
+  # ActiveRecord errors
+  activerecord:
+    errors:
+      models:
+        room:
+          attributes:
+            monthly_rent:
+              blank: "không được để trống"
+              not_a_number: "phải là một số"
+              greater_than: "phải lớn hơn %{count}"
+          blank: "không được để trống"
+        utility_price:
+          attributes:
+            electricity_unit_price:
+              blank: "không được để trống"
+            water_unit_price:
+              blank: "không được để trống"
+            service_charge:
+              blank: "không được để trống"
+      messages:
+        blank: "không được để trống"
+        not_a_number: "phải là một số"
+        greater_than: "phải lớn hơn %{count}"
+  
+  # Error messages
+  errors:
+    attributes:
+      monthly_rent:
+        blank: "Tiền thuê hàng tháng không được để trống"
+        not_a_number: "Tiền thuê hàng tháng phải là một số"
+        greater_than: "Tiền thuê hàng tháng phải lớn hơn %{count}"
+      electricity_unit_price:
+        blank: "Đơn giá điện không được để trống"
+    messages:
+      blank: "không được để trống"
+      not_a_number: "phải là một số"
+      greater_than: "phải lớn hơn %{count}"

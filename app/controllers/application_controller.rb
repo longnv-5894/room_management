@@ -11,4 +11,12 @@ class ApplicationController < ActionController::Base
   def set_locale
     I18n.locale = session[:locale] || I18n.default_locale
   end
+  
+  def require_login
+    unless session[:user_id]
+      flash[:danger] = t('auth.login_required') 
+      redirect_to login_path
+      return false
+    end
+  end
 end

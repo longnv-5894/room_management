@@ -25,6 +25,10 @@ Rails.application.routes.draw do
 
   # Resource routes
   resources :buildings do
+    member do
+      get :import_form
+      post :import_excel
+    end
     resources :rooms, only: [:index, :new, :create]
     resources :operating_expenses, only: [:index, :new, :create]
   end

@@ -1,0 +1,113 @@
+<div class="page-header">
+  <h1 class="header-title"><%= t('buildings.import.title') %></h1>
+  <div class="header-actions">
+    <%= link_to @building, class: "btn btn-outline me-2" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-file-excel me-2"></i> <%= t('buildings.import.instructions') %>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle me-2"></i>
+      <%= t('buildings.import.format_info') %>
+    </div>
+    
+    <p class="mb-4"><%= t('buildings.import.description') %></p>
+    
+    <div class="excel-template mb-4">
+      <h5><%= t('buildings.import.template') %></h5>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr class="bg-light">
+              <th><%= t('rooms.number') %></th>
+              <th><%= t('tenants.name') %></th>
+              <th><%= t('rooms.area') %></th>
+              <th><%= t('rooms.rent') %></th>
+              <th colspan="2" class="text-center"><%= t('utility_readings.electricity') %></th>
+              <th colspan="2" class="text-center"><%= t('utility_readings.water') %></th>
+              <th><%= t('buildings.import.additional_services') %></th>
+              <th><%= t('bills.total_amount') %></th>
+              <th><%= t('bills.status') %></th>
+            </tr>
+            <tr>
+              <th><%= t('buildings.import.room_label') %></th>
+              <th><%= t('buildings.import.tenant_label') %></th>
+              <th><%= t('buildings.import.area_label') %></th>
+              <th><%= t('buildings.import.room_fee_label') %></th>
+              <th><%= t('buildings.import.elec_readings') %></th>
+              <th><%= t('buildings.import.elec_fee') %></th>
+              <th><%= t('buildings.import.water_readings') %></th>
+              <th><%= t('buildings.import.water_fee') %></th>
+              <th><%= t('buildings.import.services') %></th>
+              <th><%= t('buildings.import.total_label') %></th>
+              <th><%= t('buildings.import.status_label') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P301</td>
+              <td>Nguyễn Văn A</td>
+              <td>25 m²</td>
+              <td>2,500,000</td>
+              <td>1200 → 1350</td>
+              <td>300,000</td>
+              <td>45 → 55</td>
+              <td>100,000</td>
+              <td>WiFi: 70,000<br>Rác: 30,000</td>
+              <td>3,000,000</td>
+              <td>Đã thanh toán</td>
+            </tr>
+            <tr>
+              <td>P302</td>
+              <td>Trần Thị B</td>
+              <td>30 m²</td>
+              <td>3,000,000</td>
+              <td>980 → 1090</td>
+              <td>220,000</td>
+              <td>38 → 46</td>
+              <td>80,000</td>
+              <td>WiFi: 70,000<br>Rác: 30,000</td>
+              <td>3,400,000</td>
+              <td>Chưa thanh toán</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="alert alert-warning">
+      <i class="fas fa-lightbulb me-2"></i>
+      <%= t('buildings.import.billing_period_note') %>
+    </div>
+    
+    <%= form_with url: import_excel_building_path(@building), method: :post, multipart: true, class: "upload-form" do |form| %>
+      <div class="mb-4">
+        <div class="form-label"><%= t('buildings.import.select_file') %></div>
+        <div class="custom-file-input">
+          <%= form.file_field :file, accept: '.xlsx,.xls', class: "form-control", required: true %>
+        </div>
+        <div class="form-text"><%= t('buildings.import.file_format') %></div>
+      </div>
+      
+      <div class="alert alert-secondary">
+        <h6><%= t('buildings.import.imported_data') %></h6>
+        <ul>
+          <li><%= t('buildings.import.will_import_rooms') %></li>
+          <li><%= t('buildings.import.will_import_tenants') %></li>
+          <li><%= t('buildings.import.will_import_utilities') %></li>
+          <li><%= t('buildings.import.will_import_bills') %></li>
+        </ul>
+      </div>
+      
+      <div class="mt-4">
+        <%= form.submit t('buildings.import.upload_button'), class: "btn btn-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

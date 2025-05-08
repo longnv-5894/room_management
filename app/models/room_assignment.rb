@@ -1,8 +1,8 @@
 class RoomAssignment < ApplicationRecord
   belongs_to :room
   belongs_to :tenant
-  has_many :bills
-  has_many :contracts
+  has_many :bills, dependent: :destroy
+  has_many :contracts, dependent: :destroy
 
   validates :start_date, presence: true
   validate :end_date_after_start_date, if: -> { end_date.present? }

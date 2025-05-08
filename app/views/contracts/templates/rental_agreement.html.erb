@@ -106,10 +106,10 @@
       width: 50%;
       text-align: center;
       vertical-align: top;
-      padding: 12pt;
+      padding: 1pt;
     }
     .signature-space {
-      height: 72pt;
+      height: 20pt;
     }
     .party-title {
       font-weight: bold;
@@ -146,12 +146,14 @@
   <p>CMND/CCCD/Hộ chiếu số: <%= cmnd_nguoi_thue %></p>
   <p>Điện thoại: <%= sdt_nguoi_thue %></p>
   <p>Địa chỉ thường trú: <%= dia_chi_nguoi_thue %></p>
+  <% if co_tenants && co_tenants.any? %>
   <p>Thông tin người ở trú cùng:</p>
-  <p class="indent">1. Ông/Bà: .........................</p>
-  <p class="indent">Sinh ngày: ...............</p>
-  <p class="indent">CMND/CCCD/Hộ chiếu số: ....................... do..............................................</p>
-  <p class="indent">cấp ngày .............</p>
-  <p class="indent">Hộ khẩu thường trú tại: ...............................................................................</p>
+  <% co_tenants.each_with_index do |ct, index| %>
+  <p class="indent"><%= index + 1 %>. Ông/Bà: <%= ct[:name] %></p>
+  <p class="indent">CMND/CCCD/Hộ chiếu số: <%= ct[:id_number] %></p>
+  <p class="indent">Điện thoại: <%= ct[:phone] || 'N/A' %></p>
+  <% end %>
+  <% end %>
 
   <p class="italic">Sau khi thảo luận, Hai Bên thống nhất đi đến ký kết Hợp đồng thuê nhà ("Hợp Đồng") với các điều khoản và điều kiện dưới đây:</p>
 
@@ -184,8 +186,7 @@
   <p>3.1 Giá cho thuê:</p>
   <p>- Số tiền: <%= tien_thue %>đ (<%= tien_thue_bang_chu %>)/ tháng</p>
   <p>3.2 Tiền đặt cọc:</p>
-  <p>Bên B sẽ giao cho Bên A một khoản tiền là <%= tien_coc %> VNĐ (bằng chữ: <%= tien_coc_bang_chu %>) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp Đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực.</p>
-  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là <%= tien_thue %> VNĐ (bằng chữ: <%= tien_thue_bang_chu %>) ngay sau khi ký hợp đồng này. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
+  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là <%= tien_thue %> VNĐ (bằng chữ: <%= tien_thue_bang_chu %>) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp Đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
   <p>Nếu Bên B đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho Bên A thì Bên A sẽ không phải hoàn trả lại Bên B số tiền đặt cọc này.</p>
   <p>Nếu Bên A đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho bên B thì bên A sẽ phải hoàn trả lại Bên B số tiền đặt cọc</p>
   <p>3.4 Phương thức thanh toán bằng: Chuyển khoản hoặc tiền mặt</p>

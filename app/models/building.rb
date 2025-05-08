@@ -5,6 +5,7 @@ class Building < ApplicationRecord
   belongs_to :district, optional: true
   belongs_to :ward, optional: true
   has_many :rooms, dependent: :destroy
+  has_many :operating_expenses, dependent: :destroy
   
   validates :name, presence: true
   # We're keeping address validation temporarily until data migration is complete
@@ -54,7 +55,18 @@ class Building < ApplicationRecord
   
   # Return actual monthly revenue
   def actual_monthly_revenue
-    rooms.where(status: 'occupied').sum(:monthly_rent)
+    # Get the current month and year
+    current_date = Date.today
+    current_month = current_date.month
+    current_year = current_date.year
+    
+    # Get all bills from rooms in this building for the current month
+    Bill.joins(room_assignment: :room)
+        .where(rooms: { building_id: id })
+        .where('extract(month from billing_date) = ?', current_month)
+        .where('extract(year from billing_date) = ?', current_year)
+        .where(status: ['paid', 'partial'])
+        .sum(:total_amount)
   end
   
   def operating_expenses

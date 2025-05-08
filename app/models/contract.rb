@@ -46,6 +46,16 @@ class Contract < ApplicationRecord
     water_price = number_with_delimiter(current_price&.water_unit_price || 30000)
     service_fee = number_with_delimiter(current_price&.service_charge || 200000)
 
+    # Get co-tenants information (all active tenants in the same room except the representative tenant)
+    co_tenants = []
+    room.room_assignments.where(active: true).where.not(id: room_assignment.id).each do |assignment|
+      co_tenants << {
+        name: assignment.tenant.name,
+        id_number: assignment.tenant.id_number,
+        phone: assignment.tenant.phone
+      }
+    end
+
     # Create a hash of data to be inserted into the template
     data = {
       contract_number: contract_number,
@@ -57,11 +67,14 @@ class Contract < ApplicationRecord
       sdt_chu_nha: room.building.user.phone || 'N/A',
       dia_chi_chu_nha: room.building.address || 'N/A',
 
-      # Bên thuê (Tenant info)
+      # Bên thuê (Tenant info) - Representative tenant
       ten_nguoi_thue: tenant.name,
       cmnd_nguoi_thue: tenant.id_number || 'N/A',
       sdt_nguoi_thue: tenant.phone || 'N/A',
       dia_chi_nguoi_thue: "N/A", # No permanent address field available
+
+      # Co-tenants information
+      co_tenants: co_tenants,
 
       # Thông tin phòng (Room info)
       so_phong: room.number,
