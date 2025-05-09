@@ -37,10 +37,15 @@
       </div>
       <div class="card-body">
         <h5 class="mb-3"><%= l @date, format: :month_year %></h5>
-        <h2 class="text-danger mb-4"><%= number_to_currency(@total_amount) %></h2>
+        <h2 class="text-danger mb-4"><%= number_to_currency(@total_amount, precision: 0, delimiter: ',', unit: 'VND ') %></h2>
         
         <% if @expenses_by_category.empty? %>
-          <p class="text-muted text-center"><%= t('operating_expenses.no_expenses_this_month') %></p>
+          <div class="empty-state">
+            <div class="empty-state-icon mb-3">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <p class="text-muted"><%= t('operating_expenses.no_expenses_this_month') %></p>
+          </div>
         <% else %>
           <div class="list-group">
             <% @expenses_by_category.sort_by { |_, amount| -amount }.each do |category, amount| %>
@@ -49,9 +54,11 @@
                   <span class="badge bg-secondary me-2">
                     <%= number_to_percentage((amount / @total_amount) * 100, precision: 0) %>
                   </span>
-                  <%= t("operating_expenses.categories.#{category}", default: category) %>
+                  <span class="category-badge category-<%= category.parameterize %>">
+                    <%= t("operating_expenses.categories.#{category}", default: category) %>
+                  </span>
                 </div>
-                <span class="text-danger"><%= number_to_currency(amount) %></span>
+                <span class="text-danger"><%= number_to_currency(amount, precision: 0, delimiter: ',', unit: 'VND ') %></span>
               </div>
             <% end %>
           </div>
@@ -69,10 +76,12 @@
       </div>
       
       <% if @operating_expenses.empty? %>
-        <div class="card-body text-center py-5">
+        <div class="card-body">
           <div class="empty-state">
-            <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
-            <h5><%= t('operating_expenses.no_expenses') %></h5>
+            <div class="empty-state-icon mb-3">
+              <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h3><%= t('operating_expenses.no_expenses') %></h3>
             <p class="text-muted"><%= t('operating_expenses.no_expenses_month') %></p>
             <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
               <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
@@ -80,46 +89,172 @@
           </div>
         </div>
       <% else %>
-        <div class="table-responsive">
-          <table class="table table-hover table-striped data-table mb-0">
-            <thead>
-              <tr>
-                <th><%= t('operating_expenses.date') %></th>
-                <th><%= t('operating_expenses.category') %></th>
-                <th><%= t('operating_expenses.amount') %></th>
-                <th><%= t('operating_expenses.description') %></th>
-                <th><%= t('common.actions') %></th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @operating_expenses.each do |expense| %>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
                 <tr>
-                  <td><%= l expense.expense_date %></td>
-                  <td>
-                    <span class="category-badge">
-                      <%= expense.category_name %>
-                    </span>
-                  </td>
-                  <td class="currency-amount"><%= number_to_currency(expense.amount) %></td>
-                  <td><%= truncate(expense.description, length: 30) if expense.description.present? %></td>
-                  <td>
-                    <div class="action-links">
-                      <%= link_to edit_operating_expense_path(expense), class: "btn btn-sm btn-outline-secondary" do %>
-                        <i class="fas fa-edit"></i>
-                      <% end %>
-                      <%= link_to operating_expense_path(expense), 
-                              data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
-                              class: "btn btn-sm btn-outline-danger" do %>
-                        <i class="fas fa-trash-alt"></i>
-                      <% end %>
-                    </div>
-                  </td>
+                  <th><%= t('operating_expenses.date') %></th>
+                  <th><%= t('operating_expenses.category') %></th>
+                  <th><%= t('operating_expenses.amount') %></th>
+                  <th><%= t('operating_expenses.description') %></th>
+                  <th><%= t('common.actions') %></th>
                 </tr>
-              <% end %>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <% @operating_expenses.each do |expense| %>
+                  <tr>
+                    <td><%= l expense.expense_date %></td>
+                    <td>
+                      <span class="category-badge category-<%= expense.category.parameterize %>">
+                        <%= t("operating_expenses.categories.#{expense.category}", default: expense.category) %>
+                      </span>
+                    </td>
+                    <td class="currency-amount"><%= number_to_currency(expense.amount, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                    <td><%= truncate(expense.description, length: 40) if expense.description.present? %></td>
+                    <td>
+                      <div class="action-links">
+                        <%= link_to edit_operating_expense_path(expense), class: "btn btn-sm btn-outline-secondary" do %>
+                          <i class="fas fa-edit"></i>
+                        <% end %>
+                        <%= link_to operating_expense_path(expense), 
+                                data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
+                                class: "btn btn-sm btn-outline-danger" do %>
+                          <i class="fas fa-trash-alt"></i>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<style>
+  /* Status badges styles */
+  .status-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    border-radius: 30px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  /* Category badges styles */
+  .category-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    border-radius: 30px;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+  
+  .category-utilities {
+    background-color: #e6f7ff;
+    color: #0958d9;
+  }
+  
+  .category-maintenance {
+    background-color: #e6fffb;
+    color: #13c2c2;
+  }
+  
+  .category-cleaning {
+    background-color: #f9f0ff;
+    color: #722ed1;
+  }
+  
+  .category-security {
+    background-color: #fffbe6;
+    color: #d4b106;
+  }
+  
+  .category-repair {
+    background-color: #fff2e8;
+    color: #fa541c;
+  }
+  
+  .category-salary {
+    background-color: #fcffe6;
+    color: #7cb305;
+  }
+  
+  .category-tax {
+    background-color: #f4ffb8;
+    color: #389e0d;
+  }
+  
+  .category-other {
+    background-color: #f0f0f0;
+    color: #5a5a5a;
+  }
+  
+  /* Empty state styles */
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+  
+  .empty-state-icon {
+    font-size: 2.5rem;
+    opacity: 0.6;
+    margin-bottom: 1rem;
+    color: #6c757d;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Action links styles */
+  .action-links {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  /* Data table styles */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .data-table th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    padding: 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .data-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+  }
+  
+  .data-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  .currency-amount {
+    text-align: right;
+    font-family: monospace;
+    white-space: nowrap;
+  }
+</style>

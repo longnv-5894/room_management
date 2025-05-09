@@ -10,74 +10,241 @@
   </div>
 </div>
 
-<% if @rooms.empty? %>
-  <div class="empty-state">
-    <div class="empty-state-icon">
-      <i class="fas fa-door-open"></i>
-    </div>
-    <h3><%= t('rooms.no_rooms') %></h3>
-    <p><%= t('rooms.no_rooms_in_building') %></p>
-    <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
-      <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+<div class="card mb-4">
+  <div class="card-body">
+    <%= form_with url: building_rooms_path(@building), method: :get, class: "search-form", id: "rooms-filter-form" do |form| %>
+      <div class="filter-container">
+        <!-- Search input -->
+        <div class="search-input-container">
+          <%= form.text_field :search, value: params[:search], class: "form-control", placeholder: t('rooms.search_placeholder', default: 'Tìm theo số phòng...') %>
+        </div>
+        
+        <!-- Floor filter -->
+        <div class="filter-select-container">
+          <%= form.select :floor, 
+                        options_for_select(@building.rooms.pluck(:floor).uniq.compact.sort, params[:floor]), 
+                        { prompt: t('rooms.filter_by_floor', default: 'Tầng') },
+                        class: "form-select filter-select", 
+                        id: "floor-filter" %>
+        </div>
+        
+        <!-- Status filter -->
+        <div class="filter-select-container">
+          <%= form.select :status, 
+                        options_for_select([
+                          [t('rooms.statuses.available'), 'available'],
+                          [t('rooms.statuses.occupied'), 'occupied'],
+                          [t('rooms.statuses.maintenance'), 'maintenance']
+                        ], params[:status]), 
+                        { prompt: t('rooms.filter_by_status', default: 'Trạng thái') },
+                        class: "form-select filter-select",
+                        id: "status-filter" %>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="filter-actions">
+          <button type="submit" class="btn btn-primary filter-btn">
+            <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
+          </button>
+          
+          <% if params[:search].present? || params[:status].present? || params[:floor].present? %>
+            <%= link_to building_rooms_path(@building), class: "btn btn-outline-secondary filter-clear-btn" do %>
+              <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
     <% end %>
+  </div>
+</div>
+
+<% if @rooms.empty? %>
+  <div class="card">
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fas fa-door-open"></i>
+        </div>
+        <% if params[:search].present? || params[:status].present? || params[:floor].present? %>
+          <p><%= t('rooms.no_rooms_with_filter', default: 'No rooms match your filter criteria.') %></p>
+          <%= link_to t('common.clear_filters', default: 'Clear all filters'), building_rooms_path(@building), class: "btn btn-primary" %>
+        <% else %>
+          <h3><%= t('rooms.no_rooms') %></h3>
+          <p><%= t('rooms.no_rooms_in_building') %></p>
+          <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
+            <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
   </div>
 <% else %>
   <div class="card">
-    <div class="card-header d-flex align-items-center">
-      <i class="fas fa-door-open me-2"></i> <%= t('rooms.title') %>
-    </div>
-    
-    <div class="table-responsive">
-      <table class="table table-hover table-striped data-table mb-0">
-        <thead>
-          <tr>
-            <th><%= t('rooms.number') %></th>
-            <th><%= t('rooms.floor') %></th>
-            <th><%= t('rooms.rent') %></th>
-            <th><%= t('rooms.area') %></th>
-            <th><%= t('rooms.status') %></th>
-            <th><%= t('rooms.current_tenant') %></th>
-            <th><%= t('common.actions') %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @rooms.each do |room| %>
-            <tr>
-              <td><%= room.number %></td>
-              <td><%= room.floor.presence || t('common.none') %></td>
-              <td><%= number_to_currency(room.monthly_rent) %></td>
-              <td><%= room.area.present? ? "#{room.area} m²" : t('common.none') %></td>
-              <td>
-                <span class="status-badge <%= room.status == 'occupied' ? 'status-paid' : (room.status == 'maintenance' ? 'status-partial' : '') %>">
-                  <%= t("rooms.statuses.#{room.status}") %>
-                </span>
-              </td>
-              <td>
-                <% if room.current_tenant %>
-                  <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
-                <% else %>
-                  <%= t('common.none') %>
-                <% end %>
-              </td>
-              <td>
-                <div class="action-links">
-                  <%= link_to room_path(room), class: "btn btn-sm btn-outline-primary" do %>
-                    <i class="fas fa-eye"></i>
-                  <% end %>
-                  <%= link_to edit_room_path(room), class: "btn btn-sm btn-outline-secondary" do %>
-                    <i class="fas fa-edit"></i>
-                  <% end %>
-                  <%= link_to room_path(room), 
-                          data: { turbo_method: :delete, turbo_confirm: t('rooms.confirm_delete') },
-                          class: "btn btn-sm btn-outline-danger" do %>
-                    <i class="fas fa-trash-alt"></i>
-                  <% end %>
-                </div>
-              </td>
-            </tr>
+    <div class="card-body">
+      <% if params[:search].present? || params[:status].present? || params[:floor].present? %>
+        <div class="search-results-info mb-3">
+          <%= t('rooms.filter_results_count', count: @rooms.count) %>
+          <% if params[:search].present? %>
+            <span class="filter-tag">
+              <%= t('rooms.search_term', term: params[:search]) %>
+            </span>
           <% end %>
-        </tbody>
-      </table>
+          <% if params[:floor].present? %>
+            <span class="filter-tag">
+              <%= t('rooms.floor_filter', floor: params[:floor]) %>
+            </span>
+          <% end %>
+          <% if params[:status].present? %>
+            <span class="filter-tag">
+              <%= t('rooms.status_filter', status: t("rooms.statuses.#{params[:status]}")) %>
+            </span>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th><%= t('rooms.number') %></th>
+              <th><%= t('rooms.floor') %></th>
+              <th><%= t('rooms.area') %> (m²)</th>
+              <th><%= t('rooms.monthly_rent') %></th>
+              <th><%= t('rooms.status') %></th>
+              <th><%= t('tenants.title') %></th>
+              <th><%= t('common.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @rooms.each do |room| %>
+              <tr>
+                <td><%= room.number %></td>
+                <td><%= room.floor.presence || t('common.none') %></td>
+                <td><%= room.area.present? ? room.area : t('common.none') %></td>
+                <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td>
+                  <span class="status-badge status-<%= room.status %>">
+                    <%= t("rooms.statuses.#{room.status}") %>
+                  </span>
+                </td>
+                <td>
+                  <% if room.current_tenant %>
+                    <div class="tenant-count">
+                      <% if room.respond_to?(:current_tenants) && room.current_tenants.count > 1 %>
+                        <span class="badge bg-info"><%= room.current_tenants.count %></span>
+                        <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                        <small class="text-muted">+<%= room.current_tenants.count - 1 %> <%= t('common.more') %></small>
+                      <% else %>
+                        <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <span class="text-muted"><%= t('common.none', default: 'None') %></span>
+                  <% end %>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to room_path(room), class: "btn btn-sm btn-outline-primary" do %>
+                      <i class="fas fa-eye"></i>
+                    <% end %>
+                    <%= link_to edit_room_path(room), class: "btn btn-sm btn-outline-secondary" do %>
+                      <i class="fas fa-edit"></i>
+                    <% end %>
+                    <%= link_to room_path(room), 
+                            data: { turbo_method: :delete, turbo_confirm: t('rooms.confirm_delete') },
+                            class: "btn btn-sm btn-outline-danger" do %>
+                      <i class="fas fa-trash-alt"></i>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 <% end %>
+
+<style>
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-input-container {
+    flex: 3;
+  }
+
+  .filter-select-container {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-control {
+    border-radius: 4px;
+    height: 40px;
+  }
+
+  .filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 110px;
+    justify-content: center;
+  }
+
+  .filter-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 4px;
+    height: 40px;
+    min-width: 100px;
+    justify-content: center;
+  }
+
+  .filter-select {
+    border-radius: 4px;
+    height: 40px;
+    width: 100%;
+  }
+
+  .search-results-info {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+  }
+  
+  .filter-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    margin-top: 5px;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 15px;
+  }
+</style>

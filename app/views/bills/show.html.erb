@@ -149,6 +149,21 @@
                 <%= number_to_currency(@bill.utility_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
               </td>
             </tr>
+            
+            <tr>
+              <td><strong><%= t('bills.previous_debt') %></strong></td>
+              <td class="text-right">
+                <%= number_to_currency(@bill.previous_debt.to_f, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            
+            <tr>
+              <td><strong><%= t('bills.overpayment') %></strong></td>
+              <td class="text-right text-success">
+                -<%= number_to_currency(@bill.overpayment.to_f, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            
             <% if @bill.additional_charges.present? && @bill.additional_charges > 0 %>
               <tr>
                 <td><strong><%= t('bills.additional_charges') %></strong></td>

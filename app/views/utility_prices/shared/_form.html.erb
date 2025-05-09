@@ -10,6 +10,14 @@
     </div>
   <% end %>
 
+  <div class="form-group mb-3">
+    <%= form.label :building_id, t('buildings.title'), class: "form-label" %>
+    <%= form.collection_select :building_id, @buildings, :id, :name, 
+        { include_blank: t('utility_prices.global_configuration') }, 
+        { class: "form-select" } %>
+    <small class="form-text text-muted"><%= t('utility_prices.building_selection_hint') %></small>
+  </div>
+
   <div class="form-row">
     <div class="form-group col-md-4">
       <%= form.label :electricity_unit_price, t('utility_readings.electricity_unit_price'), class: "form-label" %>

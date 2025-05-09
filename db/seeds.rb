@@ -4,6 +4,9 @@
 # Load locations data first (countries, cities, districts, wards)
 require_relative 'seeds/locations'
 
+# Load utility prices data
+require_relative 'seeds/utility_prices'
+
 # Clear existing data
 puts "Clearing existing data..."
 Vehicle.destroy_all
@@ -147,7 +150,7 @@ occupied_rooms = created_rooms.select { |room| room.status == 'occupied' }
 
 occupied_rooms.each_with_index do |room, index|
   # Select tenants for this room
-  num_tenants_for_room = [1, 1, 1, 2, 3].sample # Most rooms have 1 tenant, some have 2 or 3
+  num_tenants_for_room = [ 1, 1, 1, 2, 3 ].sample # Most rooms have 1 tenant, some have 2 or 3
   room_tenants = created_tenants.sample(num_tenants_for_room)
 
   room_tenants.each_with_index do |tenant, tenant_index|
@@ -183,129 +186,153 @@ created_assignments = room_assignments.map do |assignment_data|
   RoomAssignment.create!(assignment_data)
 end
 
-# Create utility prices for each month
-puts "Creating utility prices..."
-# Define electricity and water rates
-electricity_rate = 3500 # VND per kWh
-water_rate = 15000      # VND per cubic meter
-service_charge = 100000 # VND per person
-
-# Create utility prices for February, March, and April 2025
-[Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
-  UtilityPrice.create!(
-    effective_date: month_start,
-    electricity_unit_price: electricity_rate,
-    water_unit_price: water_rate,
-    service_charge: service_charge
-  )
-end
-
 # Create utility readings (past 3 months)
 puts "Creating utility readings..."
+
+# Current date (as defined in context)
+current_date = Date.new(2025, 5, 9)
+current_month = current_date.month
+current_year = current_date.year
+
+# Calculate billing periods
+billing_periods = [
+  Date.new(current_year, current_month - 2, 1),  # March 2025
+  Date.new(current_year, current_month - 1, 1),  # April 2025
+  Date.new(current_year, current_month, 1)       # May 2025 (current month)
+]
 
 # For each room with a tenant, create utility readings for the past 3 months
 occupied_rooms = created_rooms.select { |room| room.status == 'occupied' }
 
 occupied_rooms.each do |room|
-  # Initial readings (February 2025)
+  # Initial readings (2 months ago - March 2025)
   initial_electricity = rand(100..300)
   initial_water = rand(5..15)
 
   UtilityReading.create!(
     room: room,
-    reading_date: Date.new(2025, 2, 28),
+    reading_date: billing_periods[0],
     electricity_reading: initial_electricity,
     water_reading: initial_water
   )
 
-  # March 2025 readings (with some usage)
-  march_electricity = initial_electricity + rand(30..100)
-  march_water = initial_water + rand(2..5)
+  # Last month readings (April 2025)
+  april_electricity = initial_electricity + rand(30..100)
+  april_water = initial_water + rand(2..5)
 
   UtilityReading.create!(
     room: room,
-    reading_date: Date.new(2025, 3, 31),
-    electricity_reading: march_electricity,
-    water_reading: march_water
-  )
-
-  # April 2025 readings (current month)
-  april_electricity = march_electricity + rand(30..100)
-  april_water = march_water + rand(2..5)
-
-  UtilityReading.create!(
-    room: room,
-    reading_date: Date.new(2025, 4, 20), # Current reading as of April 20, 2025
+    reading_date: billing_periods[1],
     electricity_reading: april_electricity,
     water_reading: april_water
   )
+
+  # Current month readings (May 2025)
+  may_electricity = april_electricity + rand(30..100)
+  may_water = april_water + rand(2..5)
+
+  UtilityReading.create!(
+    room: room,
+    reading_date: billing_periods[2],
+    electricity_reading: may_electricity,
+    water_reading: may_water
+  )
 end
 
-# Create bills for April 2025
-puts "Creating bills for April 2025..."
+# Create bills for current and previous month
+puts "Creating bills for the past months..."
 
-occupied_rooms.each do |room|
-  # Get the latest utility reading for the room (April 2025)
-  april_reading = UtilityReading.where(room: room)
-                                .where('reading_date >= ?', Date.new(2025, 4, 1))
-                                .order(reading_date: :desc)
-                                .first
+# Function to create bills for a specific month
+def create_bills_for_month(rooms, billing_date)
+  # Get the current month utility prices
+  month_utility_prices = UtilityPrice.where('effective_date <= ?', billing_date)
+                                    .order(effective_date: :desc)
+                                    .first
 
-  # Get the previous reading (March 2025)
-  march_reading = UtilityReading.where(room: room)
-                               .where('reading_date >= ? AND reading_date < ?', Date.new(2025, 3, 1), Date.new(2025, 4, 1))
-                               .order(reading_date: :desc)
-                               .first
+  return unless month_utility_prices
 
-  if april_reading && march_reading
-    # Calculate electricity and water usage
-    electricity_usage = april_reading.electricity_reading - march_reading.electricity_reading
-    water_usage = april_reading.water_reading - march_reading.water_reading
+  # Default prices if no specific prices found
+  electricity_rate = month_utility_prices.electricity_unit_price || 4000
+  water_rate = month_utility_prices.water_unit_price || 15000
+  service_charge = month_utility_prices.service_charge || 100000
 
-    # Calculate fees
+  rooms.each do |room|
+    # Get the readings for current and previous month
+    current_reading = UtilityReading.where(room: room)
+                                   .where('reading_date <= ?', billing_date)
+                                   .order(reading_date: :desc)
+                                   .first
+
+    previous_reading = UtilityReading.where(room: room)
+                                    .where('reading_date < ?', billing_date)
+                                    .order(reading_date: :desc)
+                                    .first
+
+    next unless current_reading && previous_reading
+
+    # Calculate usage and fees
+    electricity_usage = current_reading.electricity_reading - previous_reading.electricity_reading
+    water_usage = current_reading.water_reading - previous_reading.water_reading
+
     electricity_fee = electricity_usage * electricity_rate
     water_fee = water_usage * water_rate
 
-    # Other fees (internet, garbage, etc.)
-    other_fees = rand(100000..200000)
-
     # Get all active room assignments for this room
     active_assignments = room.room_assignments.where(active: true)
-
-    # Count the number of tenants in this room
     tenant_count = active_assignments.count
 
-    if tenant_count > 0
-      # Create a bill for each tenant in the room
-      active_assignments.each do |assignment|
-        Bill.create!(
-          room_assignment: assignment,
-          billing_date: Date.new(2025, 4, 1),
-          due_date: Date.new(2025, 4, 15),
-          room_fee: room.monthly_rent,
-          electricity_fee: electricity_fee,
-          water_fee: water_fee,
-          service_fee: service_charge * tenant_count,
-          other_fees: other_fees,
-          status: ['unpaid', 'paid'].sample,
-          notes: "Electricity: #{electricity_usage.to_f} kWh, Water: #{water_usage.to_f} m³"
-        )
-      end
+    next if tenant_count == 0
+
+    # Calculate fee per tenant
+    total_service_fee = service_charge * tenant_count
+
+    # Create bills for each tenant, with the main tenant paying all utilities
+    active_assignments.each_with_index do |assignment, index|
+      is_main_tenant = assignment.is_representative_tenant
+
+      # Create due date 10 days after billing date
+      due_date = billing_date + 10.days
+
+      # Previous debts or overpayments (randomly added to some bills)
+      prev_debt = index == 0 && rand(10) > 7 ? rand(100000..300000) : 0
+      overpayment = index == 0 && prev_debt == 0 && rand(10) > 8 ? rand(50000..150000) : 0
+
+      # Create bill with additional realistic details
+      bill = Bill.create!(
+        room_assignment: assignment,
+        billing_date: billing_date,
+        due_date: due_date,
+        room_fee: room.monthly_rent / tenant_count,  # Split room fee equally
+        electricity_fee: is_main_tenant ? electricity_fee : 0,  # Only main tenant pays for electricity
+        water_fee: is_main_tenant ? water_fee : 0,             # Only main tenant pays for water
+        service_fee: service_charge,                          # Each tenant pays service fee
+        previous_debt: prev_debt,
+        overpayment: overpayment,
+        # For bills older than 15 days, mark many as paid
+        status: (Date.today - billing_date > 15 && rand(10) > 2) ? 'paid' : 'unpaid',
+        payment_date: (Date.today - billing_date > 15 && rand(10) > 2) ? billing_date + rand(1..10).days : nil,
+        notes: "Electricity: #{electricity_usage.to_f} kWh, Water: #{water_usage.to_f} m³"
+      )
     end
   end
 end
 
+# Create bills for April and May 2025
+[ billing_periods[0], billing_periods[1] ].each do |billing_date|
+  create_bills_for_month(occupied_rooms, billing_date)
+end
+
 # Create vehicles
 puts "Creating vehicles..."
-vehicle_types = ['car', 'motorcycle', 'bicycle', 'scooter', 'other']
+vehicle_types = [ 'car', 'motorcycle', 'bicycle', 'scooter', 'other' ]
 brands = {
-  'car' => ['Toyota', 'Honda', 'Ford', 'Mazda', 'Kia', 'Hyundai'],
-  'motorcycle' => ['Honda', 'Yamaha', 'Suzuki', 'SYM', 'Piaggio', 'Kawasaki'],
-  'bicycle' => ['Giant', 'Trek', 'Asama', 'Thong Nhat', 'Jett'],
-  'scooter' => ['Vespa', 'Honda', 'Yamaha', 'Gogoro'],
-  'other' => ['Misc']
+  'car' => [ 'Toyota', 'Honda', 'Ford', 'Mazda', 'Kia', 'Hyundai' ],
+  'motorcycle' => [ 'Honda', 'Yamaha', 'Suzuki', 'SYM', 'Piaggio', 'Kawasaki' ],
+  'bicycle' => [ 'Giant', 'Trek', 'Asama', 'Thong Nhat', 'Jett' ],
+  'scooter' => [ 'Vespa', 'Honda', 'Yamaha', 'Gogoro' ],
+  'other' => [ 'Misc' ]
 }
-colors = ['Black', 'White', 'Red', 'Blue', 'Silver', 'Grey', 'Green', 'Yellow']
+colors = [ 'Black', 'White', 'Red', 'Blue', 'Silver', 'Grey', 'Green', 'Yellow' ]
 
 # Get all tenants from database since created_tenants array might be empty at this point
 all_tenants = Tenant.all
@@ -323,11 +350,11 @@ tenant_sample.each do |tenant|
 
     model_year = (2015..2025).to_a.sample
     models = {
-      'car' => ['Vios', 'City', 'Ranger', 'CX-5', 'Seltos', 'Accent'],
-      'motorcycle' => ['Wave', 'Exciter', 'Raider', 'Angel', 'Liberty', 'Ninja'],
-      'bicycle' => ['Mountain', 'Road', 'City', 'ATX', 'FX'],
-      'scooter' => ['Sprint', 'Lead', 'NVX', 'Viva'],
-      'other' => ['Custom']
+      'car' => [ 'Vios', 'City', 'Ranger', 'CX-5', 'Seltos', 'Accent' ],
+      'motorcycle' => [ 'Wave', 'Exciter', 'Raider', 'Angel', 'Liberty', 'Ninja' ],
+      'bicycle' => [ 'Mountain', 'Road', 'City', 'ATX', 'FX' ],
+      'scooter' => [ 'Sprint', 'Lead', 'NVX', 'Viva' ],
+      'other' => [ 'Custom' ]
     }
 
     model = models[vehicle_type].sample
@@ -335,14 +362,14 @@ tenant_sample.each do |tenant|
     # Create license plate based on vehicle type
     license_plate = if vehicle_type == 'car'
                       "#{(29..99).to_a.sample}A-#{rand(100..999)}.#{rand(10..99)}"
-                    elsif vehicle_type == 'motorcycle'
+    elsif vehicle_type == 'motorcycle'
                       "#{(29..99).to_a.sample}B-#{rand(100..999)}.#{rand(10..99)}"
-                    elsif vehicle_type == 'scooter'
+    elsif vehicle_type == 'scooter'
                       "#{(29..99).to_a.sample}K-#{rand(100..999)}.#{rand(10..99)}"
-                    else
+    else
                       # Bicycles and others get a placeholder ID number
                       "ID-#{rand(1000..9999)}"
-                    end
+    end
 
     # Add optional notes to some vehicles
     notes_options = [
@@ -372,21 +399,21 @@ expense_categories = [
 ]
 
 expense_descriptions = {
-  'utilities' => ['Common area electricity', 'Hallway lighting', 'Elevator power consumption'],
-  'maintenance' => ['Regular building maintenance', 'Preventive maintenance check', 'Equipment servicing'],
-  'repairs' => ['Roof leak repair', 'Plumbing fix', 'Electrical wiring repair', 'Wall repainting', 'Door hinge replacement'],
-  'cleaning' => ['Monthly cleaning service', 'Waste disposal', 'Cleaning supplies purchase'],
-  'security' => ['Security guard salary', 'CCTV maintenance', 'Security equipment upgrade'],
-  'taxes' => ['Property tax payment', 'Annual property tax', 'Business permit renewal'],
-  'staff_salary' => ['Building manager salary', 'Maintenance staff wages', 'Administrative staff salary'],
-  'electric' => ['Common area electricity bill', 'Pump system electric consumption'],
-  'water' => ['Common area water bill', 'Garden watering system'],
-  'internet' => ['Building wifi service', 'Management office internet connection'],
-  'miscellaneous' => ['Office supplies', 'Misc administrative expenses', 'Unexpected expenses']
+  'utilities' => [ 'Common area electricity', 'Hallway lighting', 'Elevator power consumption' ],
+  'maintenance' => [ 'Regular building maintenance', 'Preventive maintenance check', 'Equipment servicing' ],
+  'repairs' => [ 'Roof leak repair', 'Plumbing fix', 'Electrical wiring repair', 'Wall repainting', 'Door hinge replacement' ],
+  'cleaning' => [ 'Monthly cleaning service', 'Waste disposal', 'Cleaning supplies purchase' ],
+  'security' => [ 'Security guard salary', 'CCTV maintenance', 'Security equipment upgrade' ],
+  'taxes' => [ 'Property tax payment', 'Annual property tax', 'Business permit renewal' ],
+  'staff_salary' => [ 'Building manager salary', 'Maintenance staff wages', 'Administrative staff salary' ],
+  'electric' => [ 'Common area electricity bill', 'Pump system electric consumption' ],
+  'water' => [ 'Common area water bill', 'Garden watering system' ],
+  'internet' => [ 'Building wifi service', 'Management office internet connection' ],
+  'miscellaneous' => [ 'Office supplies', 'Misc administrative expenses', 'Unexpected expenses' ]
 }
 
-# Create expenses for February, March, and April 2025 for each building
-[Date.new(2025, 2, 1), Date.new(2025, 3, 1), Date.new(2025, 4, 1)].each do |month_start|
+# Create expenses for past 3 months for each building
+billing_periods.each do |month_start|
   created_buildings.each do |building|
     # Create 5-8 expenses per month per building
     expense_count = rand(5..8)
@@ -403,6 +430,29 @@ expense_descriptions = {
       )
     end
   end
+end
+
+# Create contracts for some room assignments
+puts "Creating contracts..."
+
+# Sample 70% of room assignments to have contracts
+contract_assignments = RoomAssignment.where(is_representative_tenant: true).to_a.sample((RoomAssignment.where(is_representative_tenant: true).count * 0.7).to_i)
+
+contract_assignments.each do |assignment|
+  contract_start = assignment.start_date
+  # Contract ends 6 or 12 months after start
+  contract_duration = [ 6, 12 ].sample
+  contract_end = contract_start + contract_duration.months
+
+  Contract.create!(
+    room_assignment: assignment,
+    start_date: contract_start,
+    end_date: contract_end,
+    rent_amount: assignment.room.monthly_rent,
+    deposit_amount: assignment.deposit_amount || assignment.room.monthly_rent,
+    status: Date.today >= contract_end ? 'expired' : 'active',
+    notes: "Initial contract for room #{assignment.room.number}"
+  )
 end
 
 puts "Seed data created successfully!"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_07_151417) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_09_052620) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -56,6 +56,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_07_151417) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "service_fee", precision: 12, scale: 2, default: "0.0"
+    t.decimal "previous_debt", precision: 10, scale: 2, default: "0.0"
+    t.decimal "overpayment", precision: 10, scale: 2, default: "0.0"
     t.index ["room_assignment_id", "billing_date"], name: "index_bills_on_room_assignment_id_and_billing_date", unique: true
     t.index ["room_assignment_id"], name: "index_bills_on_room_assignment_id"
   end
@@ -202,6 +204,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_07_151417) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "building_id"
+    t.index ["building_id"], name: "index_utility_prices_on_building_id"
     t.index ["effective_date"], name: "index_utility_prices_on_effective_date"
   end
 
@@ -253,6 +257,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_07_151417) do
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
   add_foreign_key "rooms", "buildings"
+  add_foreign_key "utility_prices", "buildings"
   add_foreign_key "utility_readings", "rooms"
   add_foreign_key "vehicles", "tenants"
   add_foreign_key "wards", "districts"

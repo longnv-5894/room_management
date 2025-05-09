@@ -345,6 +345,11 @@ vi:
     current_label: "Hiện tại"
     no_records_title: "Chưa có cấu hình giá"
     add_first: "Thêm cấu hình giá đầu tiên"
+    filter_by_building: "Lọc theo tòa nhà"
+    all_buildings: "Tất cả tòa nhà"
+    global: "Cấu hình chung"
+    global_configuration: "Cấu hình chung (áp dụng cho tất cả tòa nhà chưa có giá riêng)"
+    building_selection_hint: "Để trống cho giá áp dụng chung cho tất cả tòa nhà chưa có cấu hình giá riêng"
     
   # Bills
   bills:
@@ -410,6 +415,24 @@ vi:
     important_dates: "Ngày quan trọng"
     tenants: "Người thuê"
     representative_tenant: "đại diện"
+    previous_debt: "Nợ cũ"
+    overpayment: "Thừa"
+    previous_debt_hint: "Khoản nợ chưa thanh toán từ hóa đơn trước"
+    overpayment_hint: "Số tiền dư đã thanh toán từ lần trước"
+    previous_balance: "Số dư trước đó"
+    room_payment_notice: "THÔNG BÁO THANH TOÁN TIỀN PHÒNG"
+    month_year: "THÁNG %{month} NĂM %{year}"
+    phone: "Điện thoại"
+    room_number: "Phòng số"
+    item: "Hạng mục"
+    details: "Chi tiết"
+    amount: "Số tiền"
+    total: "Tổng cộng"
+    payment_summary: "Tổng hợp thanh toán"
+    previous_month_debt: "Nợ tháng trước"
+    grand_total: "Tổng phải trả"
+    notes: "Ghi chú"
+    download_pdf: "Tải hóa đơn PDF"
     
   # Operating Expenses
   operating_expenses:
@@ -557,7 +580,8 @@ vi:
     edit_building: "Sửa tòa nhà"
     building_info: "Thông tin tòa nhà"
     building_details: "Chi tiết tòa nhà"
-    name: "Tên tòa nhà"
+    name: "Tòa nhà"
+    title: "Tòa nhà"
     address: "Địa chỉ"
     description: "Mô tả"
     floors: "Số tầng"

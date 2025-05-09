@@ -143,63 +143,80 @@
   </div>
   
   <% if @rooms.empty? %>
-    <div class="card-body text-center py-5">
-      <div class="empty-state-icon mb-3">
-        <i class="fas fa-door-open"></i>
+    <div class="card-body">
+      <div class="empty-state">
+        <div class="empty-state-icon mb-3">
+          <i class="fas fa-door-open"></i>
+        </div>
+        <h3><%= t('rooms.no_rooms') %></h3>
+        <p class="text-muted"><%= t('rooms.no_rooms_in_building') %></p>
+        <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
+          <i class="fas fa-plus"></i> <%= t('rooms.add') %>
+        <% end %>
       </div>
-      <h5><%= t('rooms.no_rooms') %></h5>
-      <p class="text-muted"><%= t('rooms.no_rooms_in_building') %></p>
-      <%= link_to new_building_room_path(@building), class: "btn btn-primary" do %>
-        <i class="fas fa-plus"></i> <%= t('rooms.add') %>
-      <% end %>
     </div>
   <% else %>
-    <div class="table-responsive">
-      <table class="table table-hover table-striped data-table mb-0">
-        <thead>
-          <tr>
-            <th><%= t('rooms.number') %></th>
-            <th><%= t('rooms.floor') %></th>
-            <th><%= t('rooms.rent') %></th>
-            <th><%= t('rooms.area') %></th>
-            <th><%= t('rooms.status') %></th>
-            <th><%= t('rooms.current_tenant') %></th>
-            <th><%= t('common.actions') %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @rooms.each do |room| %>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><%= room.number %></td>
-              <td><%= room.floor.presence || t('common.none') %></td>
-              <td><%= number_to_currency(room.monthly_rent) %></td>
-              <td><%= room.area.present? ? "#{room.area} m²" : t('common.none') %></td>
-              <td>
-                <span class="status-badge <%= room.status == 'occupied' ? 'status-paid' : (room.status == 'maintenance' ? 'status-partial' : '') %>">
-                  <%= t("rooms.statuses.#{room.status}") %>
-                </span>
-              </td>
-              <td>
-                <% if room.current_tenant %>
-                  <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
-                <% else %>
-                  <%= t('common.none') %>
-                <% end %>
-              </td>
-              <td>
-                <div class="action-links">
-                  <%= link_to room_path(room), class: "btn btn-sm btn-outline-primary" do %>
-                    <i class="fas fa-eye"></i>
-                  <% end %>
-                  <%= link_to edit_room_path(room), class: "btn btn-sm btn-outline-secondary" do %>
-                    <i class="fas fa-edit"></i>
-                  <% end %>
-                </div>
-              </td>
+              <th><%= t('rooms.number') %></th>
+              <th><%= t('rooms.floor') %></th>
+              <th><%= t('rooms.area') %> (m²)</th>
+              <th><%= t('rooms.monthly_rent') %></th>
+              <th><%= t('rooms.status') %></th>
+              <th><%= t('tenants.title') %></th>
+              <th><%= t('common.actions') %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @rooms.each do |room| %>
+              <tr>
+                <td><%= room.number %></td>
+                <td><%= room.floor.presence || t('common.none') %></td>
+                <td><%= room.area.present? ? room.area : t('common.none') %></td>
+                <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td>
+                  <span class="status-badge status-<%= room.status %>">
+                    <%= t("rooms.statuses.#{room.status}") %>
+                  </span>
+                </td>
+                <td>
+                  <% if room.current_tenant %>
+                    <div class="tenant-count">
+                      <% if room.respond_to?(:current_tenants) && room.current_tenants.count > 1 %>
+                        <span class="badge bg-info"><%= room.current_tenants.count %></span>
+                        <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                        <small class="text-muted">+<%= room.current_tenants.count - 1 %> <%= t('common.more') %></small>
+                      <% else %>
+                        <%= link_to room.current_tenant.name, tenant_path(room.current_tenant) %>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <span class="text-muted"><%= t('common.none', default: 'None') %></span>
+                  <% end %>
+                </td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to room_path(room), class: "btn btn-sm btn-outline-primary" do %>
+                      <i class="fas fa-eye"></i>
+                    <% end %>
+                    <%= link_to edit_room_path(room), class: "btn btn-sm btn-outline-secondary" do %>
+                      <i class="fas fa-edit"></i>
+                    <% end %>
+                    <%= link_to room_path(room), 
+                            data: { turbo_method: :delete, turbo_confirm: t('rooms.confirm_delete') },
+                            class: "btn btn-sm btn-outline-danger" do %>
+                      <i class="fas fa-trash-alt"></i>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   <% end %>
 </div>
@@ -221,10 +238,12 @@
   </div>
   
   <% if @operating_expenses.empty? %>
-    <div class="card-body text-center py-5">
+    <div class="card-body">
       <div class="empty-state">
-        <i class="fas fa-file-invoice-dollar fa-3x mb-3 text-muted"></i>
-        <h5><%= t('operating_expenses.no_expenses') %></h5>
+        <div class="empty-state-icon mb-3">
+          <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <h3><%= t('operating_expenses.no_expenses') %></h3>
         <p class="text-muted"><%= t('operating_expenses.no_expenses_in_building') %></p>
         <%= link_to new_building_operating_expense_path(@building), class: "btn btn-primary" do %>
           <i class="fas fa-plus"></i> <%= t('operating_expenses.add') %>
@@ -232,44 +251,196 @@
       </div>
     </div>
   <% else %>
-    <div class="table-responsive">
-      <table class="table table-hover table-striped data-table mb-0">
-        <thead>
-          <tr>
-            <th><%= t('operating_expenses.date') %></th>
-            <th><%= t('operating_expenses.category') %></th>
-            <th><%= t('operating_expenses.amount') %></th>
-            <th><%= t('operating_expenses.description') %></th>
-            <th><%= t('common.actions') %></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @operating_expenses.each do |expense| %>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
             <tr>
-              <td><%= l expense.expense_date %></td>
-              <td>
-                <span class="category-badge">
-                  <%= t("operating_expenses.categories.#{expense.category}") rescue expense.category %>
-                </span>
-              </td>
-              <td class="currency-amount"><%= number_to_currency(expense.amount) %></td>
-              <td><%= truncate(expense.description, length: 40) if expense.description.present? %></td>
-              <td>
-                <div class="action-links">
-                  <%= link_to edit_operating_expense_path(expense), class: "btn btn-sm btn-outline-secondary" do %>
-                    <i class="fas fa-edit"></i>
-                  <% end %>
-                  <%= link_to operating_expense_path(expense), 
-                          data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
-                          class: "btn btn-sm btn-outline-danger" do %>
-                    <i class="fas fa-trash-alt"></i>
-                  <% end %>
-                </div>
-              </td>
+              <th><%= t('operating_expenses.date') %></th>
+              <th><%= t('operating_expenses.category') %></th>
+              <th><%= t('operating_expenses.amount') %></th>
+              <th><%= t('operating_expenses.description') %></th>
+              <th><%= t('common.actions') %></th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% @operating_expenses.each do |expense| %>
+              <tr>
+                <td><%= l expense.expense_date %></td>
+                <td>
+                  <span class="category-badge category-<%= expense.category.parameterize %>">
+                    <%= t("operating_expenses.categories.#{expense.category}", default: expense.category) %>
+                  </span>
+                </td>
+                <td class="currency-amount"><%= number_to_currency(expense.amount, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= truncate(expense.description, length: 40) if expense.description.present? %></td>
+                <td>
+                  <div class="action-links">
+                    <%= link_to edit_operating_expense_path(expense), class: "btn btn-sm btn-outline-secondary" do %>
+                      <i class="fas fa-edit"></i>
+                    <% end %>
+                    <%= link_to operating_expense_path(expense), 
+                            data: { turbo_method: :delete, turbo_confirm: t('operating_expenses.confirm_delete') },
+                            class: "btn btn-sm btn-outline-danger" do %>
+                      <i class="fas fa-trash-alt"></i>
+                    <% end %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
     </div>
   <% end %>
 </div>
+
+<style>
+  /* Status badges styles */
+  .status-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    border-radius: 30px;
+    font-size: 0.8em;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  .status-available {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+  
+  .status-occupied {
+    background-color: #cfe2ff;
+    color: #084298;
+  }
+  
+  .status-maintenance {
+    background-color: #fff3cd;
+    color: #664d03;
+  }
+  
+  /* Category badges styles */
+  .category-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    border-radius: 30px;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+  
+  .category-utilities {
+    background-color: #e6f7ff;
+    color: #0958d9;
+  }
+  
+  .category-maintenance {
+    background-color: #e6fffb;
+    color: #13c2c2;
+  }
+  
+  .category-cleaning {
+    background-color: #f9f0ff;
+    color: #722ed1;
+  }
+  
+  .category-security {
+    background-color: #fffbe6;
+    color: #d4b106;
+  }
+  
+  .category-repair {
+    background-color: #fff2e8;
+    color: #fa541c;
+  }
+  
+  .category-salary {
+    background-color: #fcffe6;
+    color: #7cb305;
+  }
+  
+  .category-tax {
+    background-color: #f4ffb8;
+    color: #389e0d;
+  }
+  
+  .category-other {
+    background-color: #f0f0f0;
+    color: #5a5a5a;
+  }
+  
+  /* Empty state styles */
+  .empty-state {
+    text-align: center;
+    padding: 30px 0;
+  }
+  
+  .empty-state-icon {
+    font-size: 2.5rem;
+    opacity: 0.6;
+    margin-bottom: 1rem;
+    color: #6c757d;
+  }
+  
+  .empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Action links styles */
+  .action-links {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  /* Data table styles */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .data-table th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    padding: 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .data-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #e9ecef;
+  }
+  
+  .data-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  
+  .currency-amount {
+    text-align: right;
+    font-family: monospace;
+    white-space: nowrap;
+  }
+  
+  /* Tenant count styles */
+  .tenant-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .tenant-count .badge {
+    padding: 0.35em 0.65em;
+  }
+</style>
