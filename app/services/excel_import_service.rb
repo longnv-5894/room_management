@@ -5,7 +5,7 @@ class ExcelImportService
     @file_path = file_path
     @building = building
     @errors = []
-    @imported_count = { rooms: 0, tenants: 0, utility_readings: 0, bills: 0, expenses: 0, utility_prices: 0 }
+    @imported_count = { rooms: 0, tenants: 0, utility_readings: 0, bills: 0, expenses: 0, utility_prices: 0, vehicles: 0 }
     @billing_month = nil
     @billing_year = nil
     @column_indices = {}
@@ -459,6 +459,10 @@ class ExcelImportService
     @column_indices[:co_tenant2_phone] = find_column(column_headers, "số điện thoại.*cùng 2|phone.*2|sđt.*2")
     @column_indices[:co_tenant2_id] = find_column(column_headers, "cmnd.*cùng 2|cccd.*cùng 2|id.*co.?tenant.*2")
 
+    # Find vehicle columns (in the circled section from the image)
+    @column_indices[:vehicle_plate] = find_column(column_headers, "biển số xe|license plate|plate number")
+    @column_indices[:vehicle_plate2] = find_column(column_headers, "biển số xe người ở cùng|co-tenant.*plate|plate.*co-tenant")
+
     # For backward compatibility - use the first co-tenant as the default co-tenant
     @column_indices[:co_tenant_name] = @column_indices[:co_tenant1_name]
     @column_indices[:co_tenant_phone] = @column_indices[:co_tenant1_phone]
@@ -587,11 +591,28 @@ class ExcelImportService
     primary_tenant = nil
     if tenant_name.present?
       primary_tenant = create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, true) # Mark as representative tenant
+
+      # Process vehicle for primary tenant
+      if primary_tenant
+        vehicle_plate = get_cell_value(row, :vehicle_plate).to_s.strip
+        if vehicle_plate.present?
+          create_vehicle(vehicle_plate, primary_tenant)
+        end
+      end
     end
 
     # Create first co-tenant if name provided
+    co_tenant1 = nil
     if co_tenant1_name.present?
-      create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false) # Not representative tenant
+      co_tenant1 = create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false) # Not representative tenant
+
+      # Process vehicle for first co-tenant
+      if co_tenant1
+        vehicle_plate2 = get_cell_value(row, :vehicle_plate2).to_s.strip
+        if vehicle_plate2.present?
+          create_vehicle(vehicle_plate2, co_tenant1)
+        end
+      end
     end
 
     # Create second co-tenant if name provided
@@ -1046,6 +1067,96 @@ class ExcelImportService
       @errors << "Error creating bill: #{e.message}"
       Rails.logger.error "Exception when creating bill: #{e.message}"
       Rails.logger.error e.backtrace.join("\n") if Rails.env.development?
+    end
+  end
+
+  def create_vehicle(plate_number, tenant)
+    return if plate_number.blank? || tenant.nil?
+
+    # Extract vehicle model and color if present in parentheses
+    model = nil
+    color = nil
+
+    # Extract content from parentheses if present (e.g. "59F1-12345 (Wave Blue)")
+    if plate_number.include?("(") && plate_number.include?(")")
+      parentheses_content = plate_number.match(/\((.*?)\)/)[1].to_s.strip
+      plate_number = plate_number.gsub(/\s*\(.*?\)\s*/, "").strip
+
+      # Parse parentheses content - first word is model, second word is color
+      if parentheses_content.present?
+        parts = parentheses_content.split(" ", 2)
+        model = parts[0] if parts[0].present?
+        color = parts[1] if parts.length > 1 && parts[1].present?
+
+        Rails.logger.info "Extracted from license plate: Model=#{model}, Color=#{color}"
+      end
+    end
+
+    plate_number = plate_number.strip.upcase
+
+    # Check if the vehicle with this plate already exists
+    existing_vehicle = Vehicle.find_by(license_plate: plate_number)
+
+    if existing_vehicle
+      # If the vehicle exists but belongs to a different tenant, log a warning
+      if existing_vehicle.tenant_id != tenant.id
+        @errors << "Vehicle with plate #{plate_number} already registered to a different tenant."
+        Rails.logger.warn "Vehicle with plate #{plate_number} already registered to tenant #{existing_vehicle.tenant_id}, not adding to tenant #{tenant.id}"
+        return
+      else
+        # Vehicle already exists for this tenant, update model and color if provided
+        if model.present? || color.present?
+          existing_vehicle.model = model if model.present? && existing_vehicle.model.blank?
+          existing_vehicle.color = color if color.present? && existing_vehicle.color.blank?
+
+          if existing_vehicle.changed?
+            if existing_vehicle.save
+              Rails.logger.info "Updated vehicle #{plate_number} with model: #{model}, color: #{color}"
+            else
+              @errors << "Failed to update vehicle details: #{existing_vehicle.errors.full_messages.join(', ')}"
+            end
+          end
+        end
+
+        Rails.logger.info "Vehicle with plate #{plate_number} already registered to tenant #{tenant.name}"
+        return
+      end
+    end
+
+    # Determine vehicle type based on plate format
+    vehicle_type = determine_vehicle_type(plate_number)
+
+    # Create the new vehicle
+    vehicle = Vehicle.new(
+      tenant: tenant,
+      license_plate: plate_number,
+      vehicle_type: vehicle_type,
+      model: model,
+      color: color,
+      notes: "Imported from Excel"
+    )
+
+    if vehicle.save
+      @imported_count[:vehicles] += 1
+      Rails.logger.info "Successfully registered vehicle #{plate_number} for tenant #{tenant.name}, model: #{model}, color: #{color}"
+    else
+      @errors << "Failed to register vehicle #{plate_number}: #{vehicle.errors.full_messages.join(', ')}"
+      Rails.logger.error "Failed to register vehicle #{plate_number}: #{vehicle.errors.full_messages.join(', ')}"
+    end
+  end
+
+  def determine_vehicle_type(plate_number)
+    # Logic to determine vehicle type based on plate format
+    # Vietnamese license plates follow certain patterns
+    plate = plate_number.to_s.strip.upcase
+
+    # Explicitly check for car patterns
+    if plate.match?(/\d{2}[A-Z]\d{1}-\d{5}/) || plate.match?(/\d{2}[A-Z]\d{1}-\d{4}/)
+      # Pattern for cars: 2 digits, 1 letter, 1 digit, dash, 5 digits
+      "car"
+    else
+      # Default to motorcycle for all other cases
+      "motorcycle"
     end
   end
 end

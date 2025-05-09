@@ -36,7 +36,7 @@
           
           <div class="detail-item">
             <div class="detail-label"><%= t('tenants.move_in_date') %></div>
-            <div class="detail-value"><%= @tenant.move_in_date.strftime("%B %d, %Y") %></div>
+            <div class="detail-value"><%= @tenant.move_in_date&.strftime("%B %d, %Y") %></div>
           </div>
         </div>
       </div>
