@@ -5,7 +5,7 @@
 require_relative 'seeds/locations'
 
 # Load utility prices data
-require_relative 'seeds/utility_prices'
+# require_relative 'seeds/utility_prices'
 
 # Clear existing data
 puts "Clearing existing data..."

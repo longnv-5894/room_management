@@ -31,6 +31,8 @@ vi:
     cancel: "Hủy"
     create: "Tạo mới"
     confirm: "Bạn có chắc không?"
+    confirmation: "Xác nhận"
+    ok: "Ok"
     search: "Tìm kiếm"
     status: "Trạng thái"
     date: "Ngày"

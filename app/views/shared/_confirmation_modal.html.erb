@@ -1,0 +1,99 @@
+<%#
+  Modal xác nhận có thể tái sử dụng (hỗ trợ đa ngôn ngữ)
+  
+  Cách sử dụng:
+  <%= render 'shared/confirmation_modal', {
+    modal_id: 'uniqueModalId',              # ID của modal (bắt buộc)
+    title: 'buildings.delete_building',     # Khóa tiêu đề hoặc text (bắt buộc)
+    content: 'buildings.confirm_delete',    # Khóa nội dung hoặc text (bắt buộc)
+    confirm_url: some_path(object),         # URL khi xác nhận (bắt buộc)
+    confirm_method: :delete,                # Phương thức HTTP (mặc định là :delete)
+    status_text: object.status,             # Văn bản trạng thái hoặc khóa dịch (tùy chọn)
+    status_class: 'bg-success',             # Class CSS cho trạng thái (tùy chọn)
+    cancel_text: 'common.cancel',           # Khóa nút hủy hoặc text (tùy chọn)
+    confirm_text: 'common.ok',              # Khóa nút xác nhận hoặc text (tùy chọn)
+    confirm_class: 'btn-success',           # Class CSS cho nút xác nhận (tùy chọn)
+    translate_title: true,                  # Có dịch tiêu đề không (mặc định: true)
+    translate_content: true,                # Có dịch nội dung không (mặc định: true)
+    translate_status: false,                # Có dịch trạng thái không (mặc định: false)
+    translate_cancel: true,                 # Có dịch nút hủy không (mặc định: true)
+    translate_confirm: true                 # Có dịch nút xác nhận không (mặc định: true)
+  } %>
+<%# %>
+
+<div class="modal" id="<%= modal_id %>" tabindex="-1" aria-labelledby="<%= modal_id %>Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-white border-0 pb-0">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <h6 class="text-primary mb-0">
+            <% if defined?(translate_title) && translate_title == false %>
+              <%= title %>
+            <% else %>
+              <%= title.to_s.include?('.') ? t(title) : title %>
+            <% end %>
+          </h6>
+          <% if defined?(status_text) && status_text.present? %>
+            <span class="badge <%= status_class || 'bg-success' %> text-white px-3 py-2">
+              <% if defined?(translate_status) && translate_status == true %>
+                <%= status_text.to_s.include?('.') ? t(status_text) : status_text %>
+              <% else %>
+                <%= status_text %>
+              <% end %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+      <div class="modal-body pt-2">
+        <h5 class="mb-3">
+          <% if defined?(subtitle) && subtitle.present? %>
+            <% if defined?(translate_subtitle) && translate_subtitle == false %>
+              <%= subtitle %>
+            <% else %>
+              <%= subtitle.to_s.include?('.') ? t(subtitle) : subtitle %>
+            <% end %>
+          <% else %>
+            <%= t('common.confirmation') %>
+          <% end %>
+        </h5>
+        <p>
+          <% if defined?(translate_content) && translate_content == false %>
+            <%= content %>
+          <% else %>
+            <%= content.to_s.include?('.') ? t(content) : content %>
+          <% end %>
+        </p>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <% if defined?(cancel_text) && cancel_text.present? %>
+              <% if defined?(translate_cancel) && translate_cancel == false %>
+                <%= cancel_text %>
+              <% else %>
+                <%= cancel_text.to_s.include?('.') ? t(cancel_text) : cancel_text %>
+              <% end %>
+            <% else %>
+              <%= t('common.cancel') %>
+            <% end %>
+          </button>
+          
+          <%= form_with url: confirm_url, method: :delete, class: "d-inline" do |form| %>
+            <%= form.submit(
+                  begin
+                    if defined?(confirm_text) && confirm_text.present?
+                      if defined?(translate_confirm) && translate_confirm == false
+                        confirm_text
+                      else
+                        confirm_text.to_s.include?('.') ? t(confirm_text) : confirm_text
+                      end
+                    else
+                      t('common.ok')
+                    end
+                  end,
+                  class: "btn #{defined?(confirm_class) && confirm_class.present? ? confirm_class : 'btn-success'}"
+                ) %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
