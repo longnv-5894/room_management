@@ -295,6 +295,82 @@
   <% end %>
 </div>
 
+<!-- Monthly Financial Report Section -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <i class="fas fa-chart-line me-2"></i> <%= t('buildings.monthly_financial_report', default: 'Monthly Financial Report') %>
+    </div>
+    <div class="d-flex align-items-center">
+      <div class="dropdown me-2">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="timeRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <%= 
+            months = params[:months].present? ? params[:months].to_i : 6
+            case months
+            when 3 then t('common.last_3_months', default: 'Last 3 months')
+            when 6 then t('common.last_6_months', default: 'Last 6 months')
+            when 12 then t('common.last_12_months', default: 'Last 12 months')
+            else t('common.last_6_months', default: 'Last 6 months')
+            end
+          %>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="timeRangeDropdown">
+          <li><%= link_to t('common.last_3_months', default: 'Last 3 months'), building_path(@building, months: 3), class: "dropdown-item" %></li>
+          <li><%= link_to t('common.last_6_months', default: 'Last 6 months'), building_path(@building, months: 6), class: "dropdown-item" %></li>
+          <li><%= link_to t('common.last_12_months', default: 'Last 12 months'), building_path(@building, months: 12), class: "dropdown-item" %></li>
+        </ul>
+      </div>
+      <%= link_to revenues_path(building_id: @building.id), class: "btn btn-sm btn-outline-secondary" do %>
+        <i class="fas fa-list"></i> <%= t('common.view_details', default: 'View Details') %>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="data-table financial-report-table">
+        <thead>
+          <tr>
+            <th><%= t('common.month', default: 'Month') %></th>
+            <th class="text-end"><%= t('revenues.revenue', default: 'Revenue') %></th>
+            <th class="text-end"><%= t('revenues.expenses', default: 'Expenses') %></th>
+            <th class="text-end"><%= t('revenues.profit', default: 'Profit/Loss') %></th>
+            <th class="text-end"><%= t('common.margin', default: 'Margin') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @monthly_financial_data.each do |data| %>
+            <tr>
+              <td><%= l(data[:month], format: '%B %Y') %></td>
+              <td class="text-end currency-amount"><%= number_to_currency(data[:revenue], precision: 0, delimiter: ',', unit: 'VND ') %></td>
+              <td class="text-end currency-amount"><%= number_to_currency(data[:expenses], precision: 0, delimiter: ',', unit: 'VND ') %></td>
+              <td class="text-end currency-amount <%= data[:profit] >= 0 ? 'text-success' : 'text-danger' %>">
+                <%= number_to_currency(data[:profit], precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+              <td class="text-end <%= data[:margin] >= 0 ? 'text-success' : 'text-danger' %>">
+                <%= number_to_percentage(data[:margin], precision: 1) %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr class="table-summary">
+            <th><%= t('common.total', default: 'Total') %></th>
+            <th class="text-end currency-amount"><%= number_to_currency(@total_financial_data[:revenue], precision: 0, delimiter: ',', unit: 'VND ') %></th>
+            <th class="text-end currency-amount"><%= number_to_currency(@total_financial_data[:expenses], precision: 0, delimiter: ',', unit: 'VND ') %></th>
+            <th class="text-end currency-amount <%= @total_financial_data[:profit] >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= number_to_currency(@total_financial_data[:profit], precision: 0, delimiter: ',', unit: 'VND ') %>
+            </th>
+            <th class="text-end <%= @total_financial_data[:margin] >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= number_to_percentage(@total_financial_data[:margin], precision: 1) %>
+            </th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
 <style>
   /* Status badges styles */
   .status-badge {
@@ -442,5 +518,38 @@
   
   .tenant-count .badge {
     padding: 0.35em 0.65em;
+  }
+  
+  /* Financial report table styles */
+  .financial-report-table {
+    width: 100%;
+    margin-bottom: 0;
+  }
+  
+  .financial-report-table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  
+  .financial-report-table tbody td {
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem;
+  }
+  
+  .financial-report-table tfoot {
+    border-top: 2px solid #dee2e6;
+    font-weight: 600;
+  }
+  
+  .financial-report-table tfoot th,
+  .financial-report-table tfoot td {
+    padding: 0.75rem;
+    background-color: #f8f9fa;
+  }
+  
+  .table-summary {
+    background-color: #f8f9fa;
+    font-weight: 600;
   }
 </style>

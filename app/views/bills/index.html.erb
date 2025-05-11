@@ -150,12 +150,20 @@
                   </span>
                 </td>
                 <td>
-                  <div class="action-links">
-                    <%= link_to t('common.view'), bill_path(room_bill[:representative_bill]), class: "btn btn-sm btn-outline" %>
+                  <div class="d-flex justify-content-center">
+                    <%= link_to bill_path(room_bill[:representative_bill]), class: "btn btn-sm btn-light" do %>
+                      <i class="fas fa-eye"></i> <%= t('common.view') %>
+                    <% end %>
                     
                     <% if room_bill[:status] == "unpaid" %>
-                      <%= link_to t('bills.mark_as_paid'), mark_as_paid_bill_path(room_bill[:representative_bill]), data: { turbo_method: :patch }, class: "btn btn-sm btn-success" %>
+                      <%= link_to mark_as_paid_bill_path(room_bill[:representative_bill]), data: { turbo_method: :patch }, class: "btn btn-sm btn-light" do %>
+                        <i class="fas fa-check text-success"></i> <%= t('bills.mark_as_paid') %>
+                      <% end %>
                     <% end %>
+                    
+                    <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#deleteModal<%= room_bill[:representative_bill].id %>">
+                      <i class="fas fa-trash-alt text-danger"></i> <%= t('common.delete') %>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -323,3 +331,23 @@
     }
   });
 </script>
+
+<% @room_bills.each do |room_bill| %>
+  <%= render 'shared/confirmation_modal', {
+    modal_id: "deleteModal#{room_bill[:representative_bill].id}",
+    title: 'bills.delete_bill',
+    content: 'bills.confirm_delete', 
+    confirm_url: bill_path(room_bill[:representative_bill]),
+    status_text: "bills.#{room_bill[:status]}",
+    subtitle: 'common.confirmation',
+    status_class: room_bill[:status] == 'paid' ? "bg-success" : (room_bill[:status] == 'overdue' ? "bg-danger" : "bg-warning"),
+    cancel_text: 'common.cancel',
+    confirm_text: 'common.ok',
+    translate_title: true,
+    translate_content: true,
+    translate_status: true,
+    translate_cancel: true,
+    translate_confirm: true,
+    translate_subtitle: true
+  } %>
+<% end %>

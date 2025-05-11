@@ -201,22 +201,19 @@
                     <%= number_to_currency(assignment.deposit_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
                   </td>
                   <td>
-                    <div class="d-flex justify-content-center gap-1">
-                      <%= link_to room_assignment_path(assignment), class: "btn btn-sm btn-outline", title: t('common.view'), data: { bs_toggle: "tooltip" } do %>
-                        <i class="fas fa-eye"></i>
+                    <div class="d-flex justify-content-center">
+                      <%= link_to room_assignment_path(assignment), class: "btn btn-sm btn-light" do %>
+                        <i class="fas fa-eye"></i> <%= t('common.view') %>
                       <% end %>
                       
                       <% if assignment.active? %>
-                        <%= link_to edit_room_assignment_path(assignment), class: "btn btn-sm btn-outline", title: t('common.edit'), data: { bs_toggle: "tooltip" } do %>
-                          <i class="fas fa-edit"></i>
+                        <%= link_to edit_room_assignment_path(assignment), class: "btn btn-sm btn-light" do %>
+                          <i class="fas fa-edit"></i> <%= t('common.edit') %>
                         <% end %>
                         
-                        <%= link_to end_room_assignment_path(assignment), 
-                            data: { turbo_method: :patch, turbo_confirm: t('room_assignments.confirm_end'), bs_toggle: "tooltip" }, 
-                            title: t('room_assignments.end'),
-                            class: "btn btn-sm btn-outline-danger" do %>
-                          <i class="fas fa-times"></i>
-                        <% end %>
+                        <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#deleteModal<%= assignment.id %>">
+                          <i class="fas fa-trash-alt text-danger"></i> <%= t('common.delete') %>
+                        </button>
                       <% end %>
                     </div>
                   </td>
@@ -408,3 +405,23 @@
     }
   });
 </script>
+
+<% @room_assignments.each do |assignment| %>
+  <%= render 'shared/confirmation_modal', {
+    modal_id: "deleteModal#{assignment.id}",
+    title: 'room_assignments.delete_assignment',
+    content: 'room_assignments.confirm_delete', 
+    confirm_url: room_assignment_path(assignment),
+    status_text: assignment.active? ? 'room_assignments.active' : 'room_assignments.inactive',
+    subtitle: 'common.confirmation',
+    status_class: assignment.active? ? "bg-success" : "bg-secondary",
+    cancel_text: 'common.cancel',
+    confirm_text: 'common.ok',
+    translate_title: true,
+    translate_content: true,
+    translate_status: true,
+    translate_cancel: true,
+    translate_confirm: true,
+    translate_subtitle: true
+  } %>
+<% end %>

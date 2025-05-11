@@ -136,8 +136,8 @@
               <span class="input-group-text">
                 <i class="fas fa-calendar-day"></i>
               </span>
-              <%= form.select :room_fee_frequency, @payment_frequency_options,
-                           { selected: @room_assignment.room_fee_frequency || 1 },
+              <%= form.select :room_fee_frequency, options_for_select(@payment_frequency_options, (@room_assignment.room_fee_frequency || 1).to_i),
+                           {},
                            { class: "form-select" } %>
               <span class="input-group-text"><%= t('room_assignments.frequency_unit') %></span>
             </div>
@@ -156,8 +156,8 @@
               <span class="input-group-text">
                 <i class="fas fa-calendar-week"></i>
               </span>
-              <%= form.select :utility_fee_frequency, @payment_frequency_options,
-                           { selected: @room_assignment.utility_fee_frequency || 1 },
+              <%= form.select :utility_fee_frequency, options_for_select(@payment_frequency_options, (@room_assignment.utility_fee_frequency || 1).to_i),
+                           {},
                            { class: "form-select" } %>
               <span class="input-group-text"><%= t('room_assignments.frequency_unit') %></span>
             </div>

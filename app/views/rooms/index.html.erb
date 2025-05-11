@@ -129,9 +129,18 @@
                   <% end %>
                 </td>
                 <td>
-                  <div class="action-links">
-                    <%= link_to t('common.view'), room_path(room), class: "btn btn-sm btn-outline" %>
-                    <%= link_to t('common.edit'), edit_room_path(room), class: "btn btn-sm btn-outline" %>
+                  <div class="d-flex justify-content-center">
+                    <%= link_to room_path(room), class: "btn btn-sm btn-light" do %>
+                      <i class="fas fa-eye"></i> <%= t('common.view') %>
+                    <% end %>
+                    
+                    <%= link_to edit_room_path(room), class: "btn btn-sm btn-light" do %>
+                      <i class="fas fa-edit"></i> <%= t('common.edit') %>
+                    <% end %>
+                    
+                    <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#deleteModal<%= room.id %>">
+                      <i class="fas fa-trash-alt text-danger"></i> <%= t('common.delete') %>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -228,7 +237,29 @@
     text-align: center;
     padding: 30px 0;
   }
-  
+</style>
+
+<% @rooms.each do |room| %>
+  <%= render 'shared/confirmation_modal', {
+    modal_id: "deleteModal#{room.id}",
+    title: 'rooms.delete_room',
+    content: 'rooms.confirm_delete', 
+    confirm_url: room_path(room),
+    status_text: "rooms.#{room.status}",
+    subtitle: 'common.confirmation',
+    status_class: room.status == 'available' ? "bg-success" : "bg-warning",
+    cancel_text: 'common.cancel',
+    confirm_text: 'common.ok',
+    translate_title: true,
+    translate_content: true,
+    translate_status: true,
+    translate_cancel: true,
+    translate_confirm: true,
+    translate_subtitle: true
+  } %>
+<% end %>
+
+<style>
   .empty-state p {
     color: #6c757d;
     margin-bottom: 15px;

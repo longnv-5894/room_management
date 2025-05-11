@@ -22,6 +22,65 @@ class BuildingsController < ApplicationController
     current_year = Date.today.year
     @monthly_revenue = @building.actual_monthly_revenue
     @monthly_expenses = OperatingExpense.total_for_month_and_building(current_year, current_month, @building.id)
+
+    # Get monthly financial data for report (last 6 months by default)
+    months_to_show = params[:months].present? ? params[:months].to_i : 6
+    @monthly_financial_data = get_monthly_financial_data(@building, months_to_show)
+    @total_financial_data = calculate_total_financial_data(@monthly_financial_data)
+  end
+
+  # Get monthly financial data for a building
+  def get_monthly_financial_data(building, months = 6)
+    result = []
+
+    # Start from current month and go back for the specified number of months
+    current_date = Date.today.beginning_of_month
+    months.times do |i|
+      month_date = current_date - i.months
+      month_end = month_date.end_of_month
+
+      # Calculate revenue for this building and month
+      revenue = Bill.joins(room_assignment: :room)
+                    .where(rooms: { building_id: building.id })
+                    .where(billing_date: month_date..month_end)
+                    .sum(:total_amount)
+
+      # Calculate expenses for this building and month
+      expenses = OperatingExpense.where(building_id: building.id)
+                                .where(expense_date: month_date..month_end)
+                                .sum(:amount)
+
+      # Calculate profit
+      profit = revenue - expenses
+
+      # Calculate profit margin
+      margin = revenue > 0 ? ((profit.to_f / revenue) * 100).round(1) : 0
+
+      result << {
+        month: month_date,
+        revenue: revenue,
+        expenses: expenses,
+        profit: profit,
+        margin: margin
+      }
+    end
+
+    result
+  end
+
+  # Calculate totals for financial data
+  def calculate_total_financial_data(monthly_data)
+    total_revenue = monthly_data.sum { |data| data[:revenue] }
+    total_expenses = monthly_data.sum { |data| data[:expenses] }
+    total_profit = total_revenue - total_expenses
+    total_margin = total_revenue > 0 ? ((total_profit.to_f / total_revenue) * 100).round(1) : 0
+
+    {
+      revenue: total_revenue,
+      expenses: total_expenses,
+      profit: total_profit,
+      margin: total_margin
+    }
   end
 
   # Excel Import actions

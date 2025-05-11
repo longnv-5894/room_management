@@ -126,23 +126,23 @@
                       <%= t("contracts.statuses.#{contract.status}") %>
                     </span>
                   </td>
-                  <td class="text-center">
-                    <div class="action-buttons">
-                      <%= link_to contract_path(contract), class: 'btn btn-sm btn-primary mx-1', title: t('common.view') do %>
-                        <i class="fas fa-eye"></i>
+                  <td>
+                    <div class="d-flex justify-content-center">
+                      <%= link_to contract_path(contract), class: "btn btn-sm btn-light" do %>
+                        <i class="fas fa-eye"></i> <%= t('common.view') %>
                       <% end %>
-                      <%= link_to edit_contract_path(contract), class: 'btn btn-sm btn-primary mx-1', title: t('common.edit') do %>
-                        <i class="fas fa-edit"></i>
+                      
+                      <%= link_to edit_contract_path(contract), class: "btn btn-sm btn-light" do %>
+                        <i class="fas fa-edit"></i> <%= t('common.edit') %>
                       <% end %>
-                      <%= link_to contract_path(contract, format: :pdf), class: 'btn btn-sm btn-outline-primary mx-1', title: t('contracts.download'), target: "_blank" do %>
-                        <i class="fas fa-file-pdf"></i>
+                      
+                      <%= link_to contract_path(contract, format: :pdf), class: "btn btn-sm btn-light", target: "_blank" do %>
+                        <i class="fas fa-file-pdf"></i> PDF
                       <% end %>
-                      <%= button_to contract_path(contract), 
-                          method: :delete,
-                          form: { data: { turbo_confirm: t('contracts.confirm_delete') }, class: "d-inline" },
-                          class: 'btn btn-sm btn-outline-danger mx-1', title: t('common.delete') do %>
-                        <i class="fas fa-trash"></i>
-                      <% end %>
+                      
+                      <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#deleteModal<%= contract.id %>">
+                        <i class="fas fa-trash-alt text-danger"></i> <%= t('common.delete') %>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -239,3 +239,23 @@
     });
   });
 </script>
+
+<% @contracts.each do |contract| %>
+  <%= render 'shared/confirmation_modal', {
+    modal_id: "deleteModal#{contract.id}",
+    title: 'contracts.delete_contract',
+    content: 'contracts.confirm_delete', 
+    confirm_url: contract_path(contract),
+    status_text: "contracts.statuses.#{contract.status}",
+    subtitle: 'common.confirmation',
+    status_class: contract.status == 'active' ? "bg-success" : (contract.status == 'draft' ? "bg-warning" : "bg-secondary"),
+    cancel_text: 'common.cancel',
+    confirm_text: 'common.ok',
+    translate_title: true,
+    translate_content: true,
+    translate_status: true,
+    translate_cancel: true,
+    translate_confirm: true,
+    translate_subtitle: true
+  } %>
+<% end %>

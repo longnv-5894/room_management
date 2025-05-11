@@ -557,10 +557,10 @@ class ExcelImportService
     room_area = get_cell_value(row, :room_area).to_f
 
     # Skip importing rooms without a specified monthly rent
-    if monthly_rent <= 0
-      Rails.logger.warn "Skipping room #{room_number}: No valid monthly rent specified"
-      return
-    end
+    # if monthly_rent <= 0
+    #   Rails.logger.warn "Skipping room #{room_number}: No valid monthly rent specified"
+    #   return
+    # end
 
     # Get or create room
     room = building.rooms.find_or_initialize_by(number: room_number)
