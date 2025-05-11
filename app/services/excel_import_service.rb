@@ -118,7 +118,7 @@ class ExcelImportService
       (1..10).each do |row_idx|
         row = sheet.row(row_idx)
         next if empty_row?(row)
-        if row[0].present? && row[0].to_s.downcase.include?("tiền") && row[1].present? && row[1].to_f > 0
+        if row[0].present? && row[0].to_s.downcase.include?("tiền") && row[1].present? && row[1].to_i > 0
           has_data_in_columns = true
           break
         end
@@ -146,9 +146,9 @@ class ExcelImportService
 
       # Xử lý cả giá trị số và chuỗi chứa số
       if amount_raw.is_a?(Numeric)
-        amount = amount_raw.to_f
+        amount = amount_raw.to_i
       elsif amount_raw.to_s.strip.match(/^[\d\.,]+$/)
-        amount = amount_raw.to_s.gsub(/[^\d\.]/, "").to_f
+        amount = amount_raw.to_s.gsub(/[^\d\.]/, "").to_i
       end
 
       # Skip total rows or empty categories
@@ -240,13 +240,13 @@ class ExcelImportService
 
         if cell_text.include?("tiền điện") || cell_text.include?("electricity") || cell_text.include?("giá điện")
           # Look for the rate value in the next column
-          rate_value = row[col_idx + 1].to_f if row[col_idx + 1]
+          rate_value = row[col_idx + 1].to_i if row[col_idx + 1]
           electricity_rate = rate_value if rate_value && rate_value > 0
         elsif cell_text.include?("tiền nước") || cell_text.include?("water") || cell_text.include?("giá nước")
-          rate_value = row[col_idx + 1].to_f if row[col_idx + 1]
+          rate_value = row[col_idx + 1].to_i if row[col_idx + 1]
           water_rate = rate_value if rate_value && rate_value > 0
         elsif cell_text.include?("phí dịch vụ") || cell_text.include?("service") || cell_text.include?("dịch vụ")
-          rate_value = row[col_idx + 1].to_f if row[col_idx + 1]
+          rate_value = row[col_idx + 1].to_i if row[col_idx + 1]
           service_fee = rate_value if rate_value && rate_value > 0
         end
       end
@@ -553,14 +553,14 @@ class ExcelImportService
     co_tenant2_phone = get_cell_value(row, :co_tenant2_phone).to_s.strip
     co_tenant2_id = get_cell_value(row, :co_tenant2_id).to_s.strip
 
-    monthly_rent = get_cell_value(row, :room_fee).to_f
-    room_area = get_cell_value(row, :room_area).to_f
+    monthly_rent = get_cell_value(row, :room_fee).to_i
+    room_area = get_cell_value(row, :room_area).to_i
 
     # Skip importing rooms without a specified monthly rent
-    # if monthly_rent <= 0
-    #   Rails.logger.warn "Skipping room #{room_number}: No valid monthly rent specified"
-    #   return
-    # end
+    if monthly_rent <= 0
+      Rails.logger.warn "Skipping room #{room_number}: No valid monthly rent specified"
+      return
+    end
 
     # Get or create room
     room = building.rooms.find_or_initialize_by(number: room_number)
@@ -753,8 +753,8 @@ class ExcelImportService
     end
 
     # Electricity reading
-    elec_start = get_cell_value(row, :elec_start).to_f
-    elec_end = get_cell_value(row, :elec_end).to_f
+    elec_start = get_cell_value(row, :elec_start).to_i
+    elec_end = get_cell_value(row, :elec_end).to_i
 
     Rails.logger.info "Electricity readings: #{elec_start} → #{elec_end}"
 
@@ -764,15 +764,15 @@ class ExcelImportService
       Rails.logger.info "Trying to extract electricity from usage text: #{elec_usage_text}"
       # Try to extract start and end values if they're in format "start → end" or "start - end"
       if elec_usage_text =~ /(\d+)(?:\s*(?:→|-|to)\s*)(\d+)/
-        elec_start = $1.to_f
-        elec_end = $2.to_f
+        elec_start = $1.to_i
+        elec_end = $2.to_i
         Rails.logger.info "Extracted electricity: #{elec_start} → #{elec_end}"
       end
     end
 
     # Water reading
-    water_start = get_cell_value(row, :water_start).to_f
-    water_end = get_cell_value(row, :water_end).to_f
+    water_start = get_cell_value(row, :water_start).to_i
+    water_end = get_cell_value(row, :water_end).to_i
 
     Rails.logger.info "Water readings: #{water_start} → #{water_end}"
 
@@ -782,8 +782,8 @@ class ExcelImportService
       Rails.logger.info "Trying to extract water from usage text: #{water_usage_text}"
       # Try to extract start and end values if they're in format "start → end" or "start - end"
       if water_usage_text =~ /(\d+)(?:\s*(?:→|-|to)\s*)(\d+)/
-        water_start = $1.to_f
-        water_end = $2.to_f
+        water_start = $1.to_i
+        water_end = $2.to_i
         Rails.logger.info "Extracted water: #{water_start} → #{water_end}"
       end
     end
@@ -909,16 +909,16 @@ class ExcelImportService
     end
 
     # Get values for bill
-    room_fee = get_cell_value(row, :room_fee).to_f
-    elec_amount = get_cell_value(row, :elec_amount).to_f
-    water_amount = get_cell_value(row, :water_amount).to_f
+    room_fee = get_cell_value(row, :room_fee).to_i
+    elec_amount = get_cell_value(row, :elec_amount).to_i
+    water_amount = get_cell_value(row, :water_amount).to_i
 
     # Log water fee details for debugging
     Rails.logger.info "Water fee from Excel: #{water_amount}"
 
     # Make sure water_amount is not set to 0 when there's an actual value in the Excel
     if water_amount == 0 && @column_indices[:water_amount]
-      water_amount_direct = row[@column_indices[:water_amount]].to_f
+      water_amount_direct = row[@column_indices[:water_amount]].to_i
       Rails.logger.info "Attempting to get water fee directly from column: #{water_amount_direct}"
       water_amount = water_amount_direct if water_amount_direct > 0
     end
@@ -926,8 +926,8 @@ class ExcelImportService
     # As a fallback, try to calculate water fee from readings if available
     if water_amount == 0
       begin
-        water_start = get_cell_value(row, :water_start).to_f
-        water_end = get_cell_value(row, :water_end).to_f
+        water_start = get_cell_value(row, :water_start).to_i
+        water_end = get_cell_value(row, :water_end).to_i
         water_usage = water_end - water_start
 
         # Try to get price from the utility price model
@@ -955,16 +955,16 @@ class ExcelImportService
     end
 
     # Get service fee - this will be saved to the dedicated service_fee column
-    service_fee = get_cell_value(row, :service_fee).to_f
+    service_fee = get_cell_value(row, :service_fee).to_i
     Rails.logger.info "Service fee from Excel: #{service_fee}"
 
     # Get previous debt and overpayment values
-    prev_debt = get_cell_value(row, :prev_debt).to_f
-    overpayment = get_cell_value(row, :overpayment).to_f
+    prev_debt = get_cell_value(row, :prev_debt).to_i
+    overpayment = get_cell_value(row, :overpayment).to_i
 
     Rails.logger.info "Previous debt: #{prev_debt}, Overpayment: #{overpayment}"
 
-    total_amount = get_cell_value(row, :total_amount).to_f
+    total_amount = get_cell_value(row, :total_amount).to_i
     payment_status = get_cell_value(row, :payment_status).to_s.strip.downcase
 
     Rails.logger.info "Bill values: room_fee=#{room_fee}, elec=#{elec_amount}, water=#{water_amount}, service=#{service_fee}, prev_debt=#{prev_debt}, overpayment=#{overpayment}, total=#{total_amount}"

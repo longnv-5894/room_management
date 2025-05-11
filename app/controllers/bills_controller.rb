@@ -1,10 +1,10 @@
 class BillsController < ApplicationController
   before_action :require_login
-  before_action :set_bill, only: [:show, :edit, :update, :destroy, :mark_as_paid]
+  before_action :set_bill, only: [ :show, :edit, :update, :destroy, :mark_as_paid ]
 
   def index
     # Get all bills
-    bills_query = Bill.includes(room_assignment: [:room, :tenant]).order(billing_date: :desc)
+    bills_query = Bill.includes(room_assignment: [ :room, :tenant ]).order(billing_date: :desc)
 
     # Apply filters
     if params[:building_id].present?
@@ -25,12 +25,12 @@ class BillsController < ApplicationController
 
     if params[:date_from].present?
       date_from = Date.parse(params[:date_from])
-      bills_query = bills_query.where('billing_date >= ?', date_from)
+      bills_query = bills_query.where("billing_date >= ?", date_from)
     end
 
     if params[:date_to].present?
       date_to = Date.parse(params[:date_to])
-      bills_query = bills_query.where('billing_date <= ?', date_to)
+      bills_query = bills_query.where("billing_date <= ?", date_to)
     end
 
     bills = bills_query
@@ -42,7 +42,7 @@ class BillsController < ApplicationController
       room = bill.room_assignment.room
       billing_period = "#{bill.billing_date.year}-#{bill.billing_date.month}"
 
-      @room_bills[[room.id, billing_period]] ||= {
+      @room_bills[[ room.id, billing_period ]] ||= {
         room: room,
         bills: [],
         billing_date: bill.billing_date,
@@ -57,12 +57,12 @@ class BillsController < ApplicationController
         representative_bill: bill.room_assignment.is_representative_tenant ? bill : nil # Use bill for representative tenant if available
       }
 
-      @room_bills[[room.id, billing_period]][:bills] << bill
-      @room_bills[[room.id, billing_period]][:tenants] << bill.room_assignment.tenant
+      @room_bills[[ room.id, billing_period ]][:bills] << bill
+      @room_bills[[ room.id, billing_period ]][:tenants] << bill.room_assignment.tenant
 
       # If this bill is for the representative tenant, use it as the representative_bill
       if bill.room_assignment.is_representative_tenant
-        @room_bills[[room.id, billing_period]][:representative_bill] = bill
+        @room_bills[[ room.id, billing_period ]][:representative_bill] = bill
       end
     end
 
@@ -86,32 +86,32 @@ class BillsController < ApplicationController
     # Get all the bills for the same room and billing period
     @related_bills = Bill.joins(:room_assignment)
                         .where(room_assignments: { room_id: @room.id })
-                        .where('extract(month from billing_date) = ?', @bill.billing_date.month)
-                        .where('extract(year from billing_date) = ?', @bill.billing_date.year)
+                        .where("extract(month from billing_date) = ?", @bill.billing_date.month)
+                        .where("extract(year from billing_date) = ?", @bill.billing_date.year)
                         .includes(room_assignment: :tenant)
 
     # Get utility readings for this bill's period
     @utility_readings = @bill.relevant_utility_readings
-    
+
     respond_to do |format|
       format.html
       format.pdf do
         # Explicitly specify HTML format to bypass locale-specific lookup
         html = render_to_string(
-          partial: 'bill_pdf',
-          formats: [:html],
-          handlers: [:erb],
+          partial: "bill_pdf",
+          formats: [ :html ],
+          handlers: [ :erb ],
           locals: { bill: @bill, tenant: @tenant, room: @room, utility_readings: @utility_readings, room_assignments: @room_assignments },
           layout: false
         )
-        
+
         pdf = WickedPdf.new.pdf_from_string(
           html,
-          page_size: 'A4',
-          encoding: 'UTF-8'
+          page_size: "A4",
+          encoding: "UTF-8"
         )
-        
-        send_data pdf, filename: "bill_#{@bill.id}.pdf", type: 'application/pdf', disposition: 'inline'
+
+        send_data pdf, filename: "bill_#{@bill.id}.pdf", type: "application/pdf", disposition: "inline"
       end
     end
   end
@@ -126,9 +126,23 @@ class BillsController < ApplicationController
       @room = @room_assignment.room
       @latest_readings = UtilityReading.where(room_id: @room.id).order(reading_date: :desc).limit(2)
 
-      # Initialize bill with room assignment and default values
+      # Initialize bill with room assignment
       @bill.room_assignment_id = @room_assignment.id
-      @bill.room_fee = @room.monthly_rent
+
+      # Get the room fee frequency
+      room_fee_frequency = @room_assignment.effective_room_fee_frequency
+
+      # Check if this month should include room fee based on frequency
+      billing_month = Date.today.month
+      include_room_fee = (billing_month % room_fee_frequency == 0)
+
+      # Set appropriate room fee
+      if include_room_fee
+        # If frequency > 1, multiply the monthly rent by the frequency
+        @bill.room_fee = room_fee_frequency > 1 ? @room.monthly_rent * room_fee_frequency : @room.monthly_rent
+      else
+        @bill.room_fee = 0
+      end
 
       # Set default service fee from the latest reading if available
       if @latest_readings.present? && @latest_readings.first.respond_to?(:service_charge)
@@ -141,7 +155,7 @@ class BillsController < ApplicationController
     @bill = Bill.new(bill_params)
 
     if @bill.save
-      flash[:success] = t('bills.create_success')
+      flash[:success] = t("bills.create_success")
       redirect_to @bill
     else
       @active_assignments = RoomAssignment.where(active: true).includes(:room, :tenant)
@@ -155,7 +169,7 @@ class BillsController < ApplicationController
 
   def update
     if @bill.update(bill_params)
-      flash[:success] = t('bills.update_success')
+      flash[:success] = t("bills.update_success")
       redirect_to @bill
     else
       @room_assignments = RoomAssignment.includes(:room, :tenant)
@@ -165,13 +179,13 @@ class BillsController < ApplicationController
 
   def destroy
     @bill.destroy
-    flash[:success] = t('bills.delete_success')
+    flash[:success] = t("bills.delete_success")
     redirect_to bills_url
   end
 
   def mark_as_paid
     @bill.mark_as_paid
-    flash[:success] = t('bills.mark_paid_success')
+    flash[:success] = t("bills.mark_paid_success")
     redirect_to @bill
   end
 
@@ -189,7 +203,7 @@ class BillsController < ApplicationController
 
   def require_login
     unless session[:user_id]
-      flash[:danger] = t('auth.login_required')
+      flash[:danger] = t("auth.login_required")
       redirect_to login_path
     end
   end

@@ -113,13 +113,26 @@ class Bill < ApplicationRecord
 
   # Apply payment schedule rules to determine which fees to include in this bill
   def apply_payment_schedule
-    # Zero out the room fee if it shouldn't be included this month
-    unless should_include_room_fee?
+    # Handle room fee based on frequency
+    if should_include_room_fee?
+      # If this is a billing month for room fee, multiply by frequency
+      room_fee_frequency = room_assignment.effective_room_fee_frequency
+
+      # Only multiply if frequency is > 1 and we're using the default room fee
+      if room_fee_frequency > 1 && self.room_fee == room_assignment.room.monthly_rent
+        self.room_fee = room_assignment.room.monthly_rent * room_fee_frequency
+      end
+    else
+      # Zero out the room fee if it shouldn't be included this month
       self.room_fee = 0
     end
 
-    # Zero out utility fees if they shouldn't be included this month
-    unless should_include_utility_fee?
+    # Handle utility fees based on frequency
+    if should_include_utility_fee?
+      # If this is a billing month for utilities, we leave the fees as is
+      # Utility readings are typically based on actual usage, so we don't multiply them
+    else
+      # Zero out utility fees if they shouldn't be included this month
       self.electricity_fee = 0
       self.water_fee = 0
       self.service_fee = 0 if respond_to?(:service_fee)

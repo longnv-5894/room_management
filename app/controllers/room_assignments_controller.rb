@@ -55,6 +55,9 @@ class RoomAssignmentsController < ApplicationController
           id: @room_assignment.id,
           active: @room_assignment.active,
           start_date: @room_assignment.start_date,
+          room_fee_frequency: @room_assignment.effective_room_fee_frequency,
+          utility_fee_frequency: @room_assignment.effective_utility_fee_frequency,
+          is_representative_tenant: @room_assignment.is_representative_tenant?,
           room: {
             id: @room_assignment.room.id,
             number: @room_assignment.room.number,
@@ -217,7 +220,7 @@ class RoomAssignmentsController < ApplicationController
   def update
     # Handle case where frequency values might come in as strings
     frequency_params = params[:room_assignment]
-    
+
     # Extract frequency values from the form and convert to integers if they're strings
     if frequency_params[:room_fee_frequency].present?
       # If it's a string containing numbers, extract just the first number
@@ -227,7 +230,7 @@ class RoomAssignmentsController < ApplicationController
         frequency_params[:room_fee_frequency] = frequency_params[:room_fee_frequency].to_i
       end
     end
-    
+
     if frequency_params[:utility_fee_frequency].present?
       # If it's a string containing numbers, extract just the first number
       if frequency_params[:utility_fee_frequency].is_a?(String) && frequency_params[:utility_fee_frequency].match(/\d+/)
@@ -236,7 +239,7 @@ class RoomAssignmentsController < ApplicationController
         frequency_params[:utility_fee_frequency] = frequency_params[:utility_fee_frequency].to_i
       end
     end
-    
+
     if @room_assignment.update(room_assignment_params)
       flash[:success] = t("room_assignments.update_success")
       redirect_to @room_assignment
@@ -333,11 +336,11 @@ class RoomAssignmentsController < ApplicationController
     parameters = params.require(:room_assignment).permit(:room_id, :tenant_id, :start_date,
                                            :end_date, :deposit_amount, :active, :is_representative_tenant,
                                            :room_fee_frequency, :utility_fee_frequency, :notes)
-    
+
     # Ensure frequency fields are integers
     parameters[:room_fee_frequency] = parameters[:room_fee_frequency].to_i if parameters[:room_fee_frequency].present?
     parameters[:utility_fee_frequency] = parameters[:utility_fee_frequency].to_i if parameters[:utility_fee_frequency].present?
-    
+
     parameters
   end
 

@@ -1,32 +1,21 @@
-<div class="page-header">
-  <h1 class="header-title"><%= t('bills.new') %></h1>
-  <div class="header-actions">
-    <%= link_to bills_path, class: "btn btn-outline" do %>
-      <i class="fas fa-arrow-left"></i> <%= t('common.cancel') %>
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2"><%= t('bills.new') %></h1>
+  <div>
+    <%= link_to bills_path, class: "btn btn-outline-secondary" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') %>
     <% end %>
   </div>
 </div>
 
-<div class="form-container">
-  <div class="card shadow-sm">
-    <div class="card-header bg-white">
-      <div class="d-flex align-items-center">
-        <div class="bill-icon-container me-3">
-          <i class="fas fa-file-invoice-dollar text-primary"></i>
-        </div>
-        <div>
-          <h2 class="card-title mb-0"><%= t('bills.new') %></h2>
-          <p class="card-subtitle text-muted mb-0"><%= t('bills.bill_information') %></p>
-        </div>
-      </div>
-    </div>
-    
-    <div class="card-body">
-      <%= form_with(model: @bill, local: true, id: "bill-form") do |form| %>
+<div class="container-fluid px-0">
+  <div class="row">
+    <!-- Left Side - Main Form -->
+    <div class="col-lg-8">
+      <%= form_with(model: @bill, local: true, id: "bill-form", class: "needs-validation") do |form| %>
         <% if @bill.errors.any? %>
-          <div class="alert alert-danger">
-            <h2 class="h5"><%= pluralize(@bill.errors.count, t('common.form_error')) %>:</h2>
-            <ul class="mb-0">
+          <div class="alert alert-danger mb-4">
+            <div><%= pluralize(@bill.errors.count, t('common.form_error')) %></div>
+            <ul class="mb-0 ps-3 mt-1">
               <% @bill.errors.full_messages.each do |message| %>
                 <li><%= message %></li>
               <% end %>
@@ -34,419 +23,434 @@
           </div>
         <% end %>
         
-        <div class="form-group mb-4">
-          <%= form.label :room_assignment_id, t('room_assignments.title'), class: "form-label fw-bold" %>
-          <% if params[:room_assignment_id].present? %>
-            <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
-            <%= form.hidden_field :room_assignment_id, value: assignment.id %>
-            <div class="info-card bg-light rounded p-3">
-              <div class="info-card-header mb-2">
-                <i class="fas fa-home text-primary me-2"></i>
-                <strong><%= t('bills.room_and_tenant') %></strong>
-              </div>
-              <div class="info-card-value">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong><%= t('rooms.number') %>:</strong> 
-                    <%= assignment.room.number %>
-                  </div>
-                  <div>
-                    <strong><%= t('bills.tenant') %>:</strong> 
-                    <%= assignment.tenant.name %>
-                  </div>
+        <!-- Room Selection Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-home text-primary me-2"></i>
+            <h2 class="h5 mb-0"><%= t('bills.room_and_tenant') %></h2>
+          </div>
+          
+          <div class="card-body">
+            <% if params[:room_assignment_id].present? %>
+              <% assignment = RoomAssignment.find(params[:room_assignment_id]) %>
+              <%= form.hidden_field :room_assignment_id, value: assignment.id %>
+              <div class="d-flex align-items-center px-3 py-2 bg-light rounded-3 border">
+                <div class="room-number bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                  <%= assignment.room.number[0..1] %>
                 </div>
-              </div>
-            </div>
-          <% else %>
-            <div class="input-group">
-              <span class="input-group-text">
-                <i class="fas fa-home"></i>
-              </span>
-              <%= form.collection_select :room_assignment_id, @active_assignments, :id, :display_name, 
-                                       { prompt: t('room_assignments.select_room') }, 
-                                       { class: "form-select form-select-lg", id: "room_assignment_selector" } %>
-            </div>
-          <% end %>
-        </div>
-
-        <!-- Utility Readings section - Will appear after room is selected -->
-        <div class="utility-readings-section mb-4">
-          <!-- Loading indicator -->
-          <div class="loading-indicator text-center py-4" style="display: none;">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden"><%= t('common.loading') %></span>
-            </div>
-            <p class="mt-2 text-muted"><%= t('utility_readings.loading_readings') %></p>
-          </div>
-          
-          <!-- No readings message -->
-          <div id="no-readings-message" class="d-none">
-            <div id="add-reading-container" class="text-center py-3"></div>
-          </div>
-          
-          <!-- Readings table -->
-          <div class="readings-table-container card border shadow-sm d-none">
-            <div class="card-header bg-light">
-              <h5 class="card-title mb-0"><%= t('utility_readings.latest_readings') %></h5>
-            </div>
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover utilities-table" id="readings-table">
-                  <thead class="table-light">
-                    <tr>
-                      <th class="utility-type-col"><%= t('utility_readings.utility_type') %></th>
-                      <th class="reading-col"><%= t('utility_readings.previous_reading') %></th>
-                      <th class="reading-col"><%= t('utility_readings.current_reading') %></th>
-                      <th class="reading-col"><%= t('utility_readings.usage') %></th>
-                      <th class="reading-col"><%= t('utility_readings.rate') %></th>
-                      <th class="text-end amount-col"><%= t('utility_readings.amount') %></th>
-                    </tr>
-                  </thead>
-                  <tbody id="readings-table-body"></tbody>
-                </table>
-              </div>
-            </div>
-            <div id="apply-utilities-container" class="card-footer bg-white d-none">
-              <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <strong><%= t('utility_readings.total_amount') %>:</strong>
-                  <span class="fs-5 fw-bold text-primary" id="utility-total-amount">0</span> VND
+                  <div class="fw-bold"><%= assignment.room.number %></div>
+                  <div class="text-secondary"><%= assignment.tenant.name %></div>
                 </div>
-                <button type="button" class="btn btn-primary" id="apply-utility-total">
-                  <i class="fas fa-check-circle me-1"></i> <%= t('utility_readings.apply_to_bill') %>
-                </button>
               </div>
-            </div>
+            <% else %>
+              <div class="form-floating mb-3">
+                <%= form.collection_select :room_assignment_id, @active_assignments, :id, :display_name, 
+                    { prompt: t('room_assignments.select_room') }, 
+                    { class: "form-select", id: "room_assignment_selector", required: true } %>
+                <label for="room_assignment_selector"><%= t('room_assignments.title') %></label>
+              </div>
+            <% end %>
           </div>
         </div>
-
-        <!-- Main form tabs -->
-        <ul class="nav nav-tabs mb-4" id="billFormTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="dates-tab" data-bs-toggle="tab" data-bs-target="#dates" type="button" role="tab" aria-controls="dates" aria-selected="true">
-              <i class="fas fa-calendar-alt me-2"></i><%= t('bills.dates') %>
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="charges-tab" data-bs-toggle="tab" data-bs-target="#charges" type="button" role="tab" aria-controls="charges" aria-selected="false">
-              <i class="fas fa-money-bill-wave me-2"></i><%= t('bills.charges') %>
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="status-tab" data-bs-toggle="tab" data-bs-target="#status" type="button" role="tab" aria-controls="status" aria-selected="false">
-              <i class="fas fa-tag me-2"></i><%= t('common.status') %>
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">
-              <i class="fas fa-sticky-note me-2"></i><%= t('common.notes') %>
-            </button>
-          </li>
-        </ul>
         
-        <!-- Tab content -->
-        <div class="tab-content p-2" id="billFormTabContent">
-          <!-- Dates tab -->
-          <div class="tab-pane fade show active" id="dates" role="tabpanel" aria-labelledby="dates-tab">
-            <div class="row g-3">
-              <div class="col-md-4">
-                <div class="form-group">
-                  <%= form.label :billing_date, t('bills.billing_date'), class: "form-label" %>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fas fa-calendar"></i>
-                    </span>
-                    <%= form.date_field :billing_date, value: Date.today, class: "form-control" %>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-4">
-                <div class="form-group">
-                  <%= form.label :billing_period_start, t('bills.billing_period_start'), class: "form-label" %>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fas fa-calendar-alt"></i>
-                    </span>
-                    <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control" %>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-4">
-                <div class="form-group">
-                  <%= form.label :billing_period_end, t('common.to'), class: "form-label" %>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fas fa-calendar-alt"></i>
-                    </span>
-                    <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control" %>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="col-md-4">
-                <div class="form-group">
-                  <%= form.label :due_date, t('bills.due_date'), class: "form-label" %>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fas fa-calendar-check"></i>
-                    </span>
-                    <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control" %>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <!-- Dates Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-calendar-alt text-success me-2"></i>
+            <h2 class="h5 mb-0"><%= t('bills.dates') %></h2>
           </div>
           
-          <!-- Charges tab -->
-          <div class="tab-pane fade" id="charges" role="tabpanel" aria-labelledby="charges-tab">
-            <!-- Main charges -->
-            <div class="charges-card bg-light rounded p-3 mb-3">
-              <h5 class="charges-title border-bottom pb-2 mb-3">
-                <i class="fas fa-home text-primary me-2"></i>
-                <%= t('bills.main_charges') %>
-              </h5>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <%= form.label :room_fee, t('bills.monthly_rent'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-money-bill-wave text-success"></i>
-                      </span>
-                      <%= form.text_field :room_fee, class: "form-control number-format", min: 0, id: "room_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <%= form.label :other_fees, t('bills.additional_charges'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-plus-circle text-danger"></i>
-                      </span>
-                      <%= form.text_field :other_fees, value: 0, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                    <small class="form-text text-muted"><%= t('bills.additional_charges_hint') %></small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Previous balance section -->
-            <div class="charges-card bg-light rounded p-3 mb-3">
-              <h5 class="charges-title border-bottom pb-2 mb-3">
-                <i class="fas fa-history text-secondary me-2"></i>
-                <%= t('bills.previous_balance') %>
-              </h5>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <%= form.label :previous_debt, t('bills.previous_debt'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-arrow-circle-up text-danger"></i>
-                      </span>
-                      <%= form.text_field :previous_debt, value: 0, class: "form-control number-format", min: 0, id: "previous_debt", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                    <small class="form-text text-muted"><%= t('bills.previous_debt_hint') %></small>
-                  </div>
-                </div>
-                
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <%= form.label :overpayment, t('bills.overpayment'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-arrow-circle-down text-success"></i>
-                      </span>
-                      <%= form.text_field :overpayment, value: 0, class: "form-control number-format", min: 0, id: "overpayment", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                    <small class="form-text text-muted"><%= t('bills.overpayment_hint') %></small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Utility charges -->
-            <div class="charges-card bg-light rounded p-3">
-              <h5 class="charges-title border-bottom pb-2 mb-3">
-                <i class="fas fa-bolt text-warning me-2"></i>
-                <%= t('bills.utility_charges') %>
-              </h5>
-              <div class="row g-3">
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <%= form.label :electricity_fee, t('utility_readings.electricity_cost'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-bolt text-warning"></i>
-                      </span>
-                      <%= form.text_field :electricity_fee, class: "form-control number-format", min: 0, id: "electricity_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <%= form.label :water_fee, t('utility_readings.water_cost'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-tint text-info"></i>
-                      </span>
-                      <%= form.text_field :water_fee, class: "form-control number-format", min: 0, id: "water_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="col-md-4">
-                  <div class="form-group">
-                    <%= form.label :service_fee, t('utility_readings.service_charge'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-hand-holding-usd text-success"></i>
-                      </span>
-                      <%= form.text_field :service_fee, class: "form-control number-format", min: 0, id: "service_fee", inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                    </div>
-                    <small class="form-text text-muted"><%= t('utility_readings.service_charge_explanation') %></small>
-                  </div>
-                </div>
-                
-                <div class="col-12">
-                  <div class="form-group">
-                    <%= form.label :utility_amount, t('bills.utility_charges_total'), class: "form-label" %>
-                    <div class="input-group">
-                      <span class="input-group-text">
-                        <i class="fas fa-calculator text-primary"></i>
-                      </span>
-                      <%= form.text_field :utility_amount, class: "form-control number-format", min: 0, id: "utility_amount", readonly: true, inputmode: "numeric", pattern: "[0-9,]*" %>
-                      <span class="input-group-text">VND</span>
-                      <button type="button" class="btn btn-outline-secondary" id="edit-utilities-btn">
-                        <i class="fas fa-edit"></i> <%= t('common.edit') %>
-                      </button>
-                    </div>
-                    <small class="form-text text-muted"><%= t('utility_readings.total_cost') %></small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Status tab -->
-          <div class="tab-pane fade" id="status" role="tabpanel" aria-labelledby="status-tab">
+          <div class="card-body">
             <div class="row g-3">
               <div class="col-md-6">
-                <div class="form-group">
-                  <%= form.label :status, t('common.status'), class: "form-label" %>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <i class="fas fa-tag"></i>
-                    </span>
-                    <%= form.select :status, [
-                      [t('bills.unpaid'), "unpaid"], 
-                      [t('bills.partial'), "partial"], 
-                      [t('bills.paid'), "paid"]], 
-                      { selected: "unpaid" }, 
-                      { class: "form-select", id: "bill_status" } 
-                    %>
-                  </div>
+                <div class="form-floating">
+                  <%= form.date_field :billing_period_start, value: Date.today.beginning_of_month, class: "form-control", required: true %>
+                  <label><%= t('bills.billing_period_start') %></label>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.date_field :billing_period_end, value: Date.today.end_of_month, class: "form-control", required: true %>
+                  <label><%= t('common.to') %></label>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.date_field :billing_date, value: Date.today, class: "form-control", required: true %>
+                  <label><%= t('bills.billing_date') %></label>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.date_field :due_date, value: Date.today + 7.days, class: "form-control", required: true %>
+                  <label><%= t('bills.due_date') %></label>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+        
+        <!-- Charges Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-money-bill-wave text-danger me-2"></i>
+            <h2 class="h5 mb-0"><%= t('bills.charges') %></h2>
+          </div>
           
-          <!-- Notes tab -->
-          <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
-            <div class="form-group">
-              <%= form.label :notes, t('common.notes'), class: "form-label" %>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-sticky-note"></i>
-                </span>
-                <%= form.text_area :notes, class: "form-control", rows: 5 %>
+          <div class="card-body">
+            <!-- Main Charges -->
+            <div class="row g-3">
+              <div class="col-12">
+                <h6 class="text-body-secondary mb-3 border-bottom pb-2"><%= t('bills.main_charges') %></h6>
               </div>
-              <small class="form-text text-muted"><%= t('bills.notes_hint') %></small>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.text_field :room_fee, class: "form-control number-format", min: 0, id: "room_fee", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('bills.monthly_rent') %> (VND)</label>
+                </div>
+                <div id="frequency-info-container" class="small text-secondary mt-1"></div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.text_field :service_fee, class: "form-control number-format", min: 0, id: "service_fee", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('utility_readings.service_charge') %> (VND)</label>
+                </div>
+              </div>
+
+              <!-- Utility Charges -->
+              <div class="col-12 mt-4">
+                <h6 class="text-body-secondary mb-3 border-bottom pb-2">
+                  <%= t('bills.utility_charges') %>
+                  <span id="loading-indicator" class="text-muted ms-2 small" style="display: none;">
+                    <i class="spinner-border spinner-border-sm"></i> <%= t('bills.loading') %>
+                  </span>
+                </h6>
+                
+                <div id="no-readings-message" class="d-none">
+                  <div class="alert alert-warning d-flex align-items-center my-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div><%= t('bills.no_readings') %></div>
+                  </div>
+                  <div id="add-reading-container" class="d-flex justify-content-center py-2"></div>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.text_field :electricity_fee, class: "form-control number-format", min: 0, id: "electricity_fee", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('utility_readings.electricity_cost') %> (VND)</label>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.text_field :water_fee, class: "form-control number-format", min: 0, id: "water_fee", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('utility_readings.water_cost') %> (VND)</label>
+                </div>
+              </div>
+
+              <!-- Additional Charges -->
+              <div class="col-12 mt-4">
+                <h6 class="text-body-secondary mb-3 border-bottom pb-2"><%= t('bills.additional_charges') %></h6>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-floating">
+                  <%= form.text_field :previous_debt, value: number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND '), class: "form-control number-format", min: 0, id: "previous_debt", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('bills.previous_debt') %> (VND)</label>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-floating">
+                  <%= form.text_field :overpayment, value: number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND '), class: "form-control number-format", min: 0, id: "overpayment", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('bills.overpayment') %> (VND)</label>
+                </div>
+              </div>
+              
+              <div class="col-md-4">
+                <div class="form-floating">
+                  <%= form.text_field :other_fees, value: number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND '), class: "form-control number-format", min: 0, id: "other_fees", inputmode: "numeric", pattern: "[0-9,\.]*" %>
+                  <label><%= t('bills.additional_charges') %> (VND)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Status Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-tag text-info me-2"></i>
+            <h2 class="h5 mb-0"><%= t('common.status') %></h2>
+          </div>
+          
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-floating">
+                  <%= form.select :status, [
+                    [t('bills.unpaid'), "unpaid"], 
+                    [t('bills.partial'), "partial"], 
+                    [t('bills.paid'), "paid"]], 
+                    { selected: "unpaid" }, 
+                    { class: "form-select", id: "bill_status" } 
+                  %>
+                  <label><%= t('common.status') %></label>
+                </div>
+              </div>
+              
+              <div id="payment-date-container" class="col-md-6" style="display: none;">
+                <div class="form-floating">
+                  <input type="date" class="form-control" value="<%= Date.today.to_s %>" name="bill[payment_date]" id="bill_payment_date">
+                  <label><%= t("bills.payment_date") %></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Notes Card -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-sticky-note text-warning me-2"></i>
+            <h2 class="h5 mb-0"><%= t('common.notes') %></h2>
+          </div>
+          
+          <div class="card-body">
+            <div class="form-floating">
+              <%= form.text_area :notes, class: "form-control", style: "height: 100px", placeholder: "" %>
+              <label><%= t('common.notes') %></label>
             </div>
           </div>
         </div>
         
         <!-- Form actions -->
-        <div class="form-actions d-flex justify-content-end gap-2 mt-4">
-          <%= link_to bills_path, class: "btn btn-light me-2" do %>
+        <div class="d-flex gap-2 justify-content-end mb-5">
+          <%= link_to bills_path, class: "btn btn-light px-4" do %>
             <%= t('common.cancel') %>
           <% end %>
           <%= form.submit t('bills.generate'), class: "btn btn-primary px-4" %>
         </div>
       <% end %>
     </div>
+    
+    <!-- Right Side - Summary and Help -->
+    <div class="col-lg-4">
+      <div id="summary-container">
+        <div class="card border-0 shadow-sm mb-4" id="summary-card">
+          <div class="card-header d-flex align-items-center bg-light py-3">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            <h2 class="h5 mb-0"><%= t('bills.summary') %></h2>
+          </div>
+        
+        <div class="card-body">
+          <div id="bill-summary" class="d-none">
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <div class="text-secondary"><%= t('bills.room_number') %></div>
+              <div id="summary-room" class="fw-bold">-</div>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <div class="text-secondary"><%= t('bills.tenant_name') %></div>
+              <div id="summary-tenant" class="fw-bold">-</div>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom">
+              <div class="text-secondary"><%= t('bills.billing_period') %></div>
+              <div id="summary-period" class="fw-bold">-</div>
+            </div>
+            
+            <h6 class="mt-4 mb-3"><%= t('bills.charges') %></h6>
+            
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('bills.monthly_rent') %></div>
+              <div id="summary-rent"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('utility_readings.electricity_cost') %></div>
+              <div id="summary-electricity"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('utility_readings.water_cost') %></div>
+              <div id="summary-water"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('utility_readings.service_charge') %></div>
+              <div id="summary-service"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('bills.other_charges') %></div>
+              <div id="summary-other"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('bills.previous_debt') %></div>
+              <div id="summary-debt"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            <div class="d-flex justify-content-between py-1">
+              <div class="text-secondary"><%= t('bills.overpayment') %></div>
+              <div id="summary-overpayment" class="text-success"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between py-2">
+              <div class="fw-bold"><%= t('bills.total') %></div>
+              <div id="summary-total" class="fw-bold"><%= number_to_currency(0, precision: 0, delimiter: '.', separator: ',', unit: 'VND ') %></div>
+            </div>
+          </div>
+          
+          <div id="bill-help" class="py-2">
+            <div class="alert alert-info">
+              <div class="fw-bold mb-2"><%= t('bills.instructions') %></div>
+              <ol class="ps-3 mb-0">
+                <li><%= t('bills.select_room_first') %></li>
+                <li><%= t('bills.verify_period') %></li>
+                <li><%= t('bills.check_amounts') %></li>
+                <li><%= t('bills.set_status') %></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize Bootstrap tabs
-  const triggerTabList = [].slice.call(document.querySelectorAll('#billFormTabs button'))
-  triggerTabList.forEach(function(triggerEl) {
-    const tabTrigger = new bootstrap.Tab(triggerEl)
-    triggerEl.addEventListener('click', function(event) {
-      event.preventDefault()
-      tabTrigger.show()
-    })
-  })
-
   const roomAssignmentSelector = document.getElementById('room_assignment_selector');
   const roomFeeInput = document.getElementById('room_fee');
-  const utilityAmountInput = document.getElementById('utility_amount');
-  const readingsTable = document.getElementById('readings-table');
-  const readingsTableBody = document.getElementById('readings-table-body');
+  const loadingIndicator = document.getElementById('loading-indicator');
   const noReadingsMessage = document.getElementById('no-readings-message');
-  const applyUtilitiesContainer = document.getElementById('apply-utilities-container');
-  const addReadingContainer = document.getElementById('add-reading-container');
-  const utilityTotalAmount = document.getElementById('utility-total-amount');
-  const loadingIndicator = document.querySelector('.loading-indicator');
-  const applyUtilityButton = document.getElementById('apply-utility-total');
-  const readingsTableContainer = document.querySelector('.readings-table-container');
+  const billStatusSelect = document.getElementById('bill_status');
+  const paymentDateContainer = document.getElementById('payment-date-container');
+  const billSummary = document.getElementById('bill-summary');
+  const billHelp = document.getElementById('bill-help');
+  const summaryContainer = document.getElementById('summary-container');
+  const summaryCard = document.getElementById('summary-card');
   
-  let currentRoomId = null;
+  // Function to handle the sticky behavior of the summary card
+  function handleStickyBehavior() {
+    if (window.innerWidth < 992) {
+      // On mobile and tablet, don't make it sticky
+      summaryCard.style.position = '';
+      summaryCard.style.top = '';
+      summaryCard.style.width = '';
+      summaryCard.classList.remove('fixed');
+      return;
+    }
+    
+    const containerTop = summaryContainer.getBoundingClientRect().top;
+    const containerHeight = summaryContainer.offsetHeight;
+    const windowHeight = window.innerHeight;
+    const formBottom = document.getElementById('bill-form').getBoundingClientRect().bottom;
+    const footerHeight = 20; // Smaller footer margin
+    const bottomSpacing = 20; // Space at the bottom when scrolled to the end
+    
+    // When we're scrolled past the top of the container
+    if (containerTop <= 20) {
+      // Set the card position to fixed
+      summaryCard.classList.add('fixed');
+      summaryCard.style.position = 'fixed';
+      summaryCard.style.top = '20px';
+      summaryCard.style.width = summaryContainer.offsetWidth + 'px';
+      
+      // Handle bottom of page - ensure there's always some spacing at the bottom
+      const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      
+      // Calculate how close we are to the bottom of the page
+      const distanceToBottom = documentHeight - (scrollPosition + windowHeight);
+      
+      // If we're near the bottom, adjust the bottom position instead of top
+      if (distanceToBottom < footerHeight) {
+        summaryCard.style.top = '';
+        summaryCard.style.bottom = `${footerHeight - distanceToBottom + bottomSpacing}px`;
+      } else {
+        summaryCard.style.bottom = '';
+        summaryCard.style.top = '20px';
+      }
+    } else {
+      // Reset position when at the top
+      summaryCard.classList.remove('fixed');
+      summaryCard.style.position = '';
+      summaryCard.style.top = '';
+      summaryCard.style.bottom = '';
+      summaryCard.style.width = '';
+    }
+  }
   
-  // Initialize utility amount to 0
-  utilityAmountInput.value = 0;
+  // Add scroll event listener to handle sticky behavior
+  window.addEventListener('scroll', handleStickyBehavior);
+  window.addEventListener('resize', handleStickyBehavior);
   
-  // Initially hide loading indicator if no room is selected yet
-  if (roomAssignmentSelector && !roomAssignmentSelector.value) {
-    loadingIndicator.style.display = 'none';
+  // Format number with Vietnamese currency format
+  function formatNumber(num) {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(num);
+  }
+  
+  // Update summary values with animation effect
+  function updateSummary() {
+    // Parse input values consistently
+    const parseInputValue = (value) => {
+      if (!value || value.trim() === '') return 0;
+      return parseFloat(value.replace(/[,\.]/g, '')) || 0;
+    };
+    
+    const roomFee = parseInputValue(roomFeeInput.value);
+    const electricityFee = parseInputValue(document.getElementById('electricity_fee').value);
+    const waterFee = parseInputValue(document.getElementById('water_fee').value);
+    const serviceFee = parseInputValue(document.getElementById('service_fee').value);
+    const otherFees = parseInputValue(document.getElementById('other_fees').value);
+    const previousDebt = parseInputValue(document.getElementById('previous_debt').value);
+    const overpayment = parseInputValue(document.getElementById('overpayment').value);
+    
+    // Update summary with highlight animation
+    const updateElement = (id, value) => {
+      const element = document.getElementById(id);
+      const oldValue = element.textContent;
+      const newValue = formatNumber(value);
+      if (oldValue !== newValue) {
+        element.textContent = newValue;
+        element.classList.remove('highlight-change');
+        // Trigger reflow to restart the animation
+        void element.offsetWidth;
+        element.classList.add('highlight-change');
+      }
+    };
+    
+    updateElement('summary-rent', roomFee);
+    updateElement('summary-electricity', electricityFee);
+    updateElement('summary-water', waterFee);
+    updateElement('summary-service', serviceFee);
+    updateElement('summary-other', otherFees);
+    updateElement('summary-debt', previousDebt);
+    updateElement('summary-overpayment', overpayment);
+    
+    const total = roomFee + electricityFee + waterFee + serviceFee + otherFees + previousDebt - overpayment;
+    updateElement('summary-total', total);
   }
   
   // Function to check if response is valid JSON
   async function getJSON(response) {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Server did not return JSON. Check that you have proper API endpoints set up.');
-    }
-    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     return response.json();
-  }
-  
-  // Function to safely format numbers
-  function safeToLocaleString(value) {
-    // Check if value is defined and is a number
-    if (value !== undefined && value !== null && !isNaN(value)) {
-      return value.toLocaleString();
-    }
-    return '0'; // Return a safe default
   }
   
   // Add event listener to room assignment selector
@@ -455,17 +459,56 @@ document.addEventListener('DOMContentLoaded', function() {
       const selectedValue = this.value;
       if (selectedValue) {
         // Show loading indicator
-        loadingIndicator.style.display = 'block';
-        readingsTableContainer.classList.add('d-none');
+        loadingIndicator.style.display = 'inline-block';
         noReadingsMessage.classList.add('d-none');
-        applyUtilitiesContainer.classList.add('d-none');
         
         // Fetch room information
         fetch(`/room_assignments/${selectedValue}.json`)
           .then(response => getJSON(response))
           .then(data => {
-            roomFeeInput.value = data.room.monthly_rent;
-            currentRoomId = data.room.id;
+            const monthlyRent = data.room.monthly_rent;
+            const roomFeeFrequency = data.room_fee_frequency || 1;
+            const currentMonth = new Date().getMonth() + 1; // 1-12
+            
+            // Update summary with room and tenant info
+            billSummary.classList.remove('d-none');
+            billHelp.classList.add('d-none');
+            document.getElementById('summary-room').textContent = data.room.number;
+            document.getElementById('summary-tenant').textContent = data.tenant.name;
+            document.getElementById('summary-period').textContent = 
+              document.getElementById('bill_billing_period_start').value + ' to ' + 
+              document.getElementById('bill_billing_period_end').value;
+            
+            // Check if this month should include room fee based on frequency
+            const shouldIncludeRoomFee = (currentMonth % roomFeeFrequency === 0);              // Set appropriate room fee value
+            if (shouldIncludeRoomFee) {
+              if (roomFeeFrequency > 1) {
+                // If frequency > 1, multiply the monthly rent
+                const rentValue = parseFloat(monthlyRent);
+                // Set value and format it properly
+                roomFeeInput.value = formatNumber(rentValue * roomFeeFrequency);
+                
+                // Add an informative note about frequency
+                const infoContainer = document.getElementById('frequency-info-container');
+                infoContainer.innerHTML = `
+                  <i class="fas fa-info-circle me-1"></i> 
+                  <%= t('bills.payment_frequency_info', frequency: '{frequency}') %>
+                `.replace('{frequency}', roomFeeFrequency);
+              } else {
+                roomFeeInput.value = formatNumber(parseFloat(monthlyRent));
+                document.getElementById('frequency-info-container').innerHTML = '';
+              }
+            } else {
+              // This month should not include room fee
+              roomFeeInput.value = formatNumber(0);
+              
+              // Add an informative note about skipping the fee this month
+              const infoContainer = document.getElementById('frequency-info-container');
+              infoContainer.innerHTML = `
+                <i class="fas fa-exclamation-circle me-1"></i> 
+                <%= t('bills.no_room_fee_this_month') %>
+              `;
+            }
             
             // Now fetch utility readings for this room
             return fetch(`/utility_readings.json?room_id=${data.room.id}`);
@@ -476,371 +519,154 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingIndicator.style.display = 'none';
             
             if (readings.length > 0) {
-              // Populate readings table
-              populateReadingsTable(readings);
-              readingsTableContainer.classList.remove('d-none');
-              applyUtilitiesContainer.classList.remove('d-none');
+              // Set electric and water fees based on readings
+              let electricityCost = 0;
+              let waterCost = 0;
+              let serviceCharge = 0;
               
-              // Auto-apply utility total
-              const amount = utilityTotalAmount.textContent.replace(/,/g, '');
-              utilityAmountInput.value = amount;
+              readings.forEach(reading => {
+                const previousReading = parseFloat(reading.previous_reading) || 0;
+                const currentReading = parseFloat(reading.electricity_reading || reading.water_reading || reading.current_reading || 0);
+                const usage = currentReading - previousReading;
+                let rate = 0;
+                
+                if ('electricity_reading' in reading || reading.utility_type === 'electricity') {
+                  rate = parseFloat(reading.electricity_unit_price || reading.rate) || 0;
+                  electricityCost += usage * rate;
+                } else if ('water_reading' in reading || reading.utility_type === 'water') {
+                  rate = parseFloat(reading.water_unit_price || reading.rate) || 0;
+                  waterCost += usage * rate;
+                }
+                
+                // Check for service charge
+                if (readings.length > 0 && readings[0].service_charge) {
+                  serviceCharge = parseFloat(readings[0].service_charge) || 0;
+                }
+              });
+              
+              // Update the form fields with properly formatted values
+              document.getElementById('electricity_fee').value = formatNumber(Math.round(electricityCost));
+              document.getElementById('water_fee').value = formatNumber(Math.round(waterCost));
+              document.getElementById('service_fee').value = formatNumber(serviceCharge);
+              
             } else {
-              // Show no readings message with clear instructions
+              // Show no readings message
               noReadingsMessage.classList.remove('d-none');
-              addReadingContainer.innerHTML = `
-                <div class="alert alert-warning">
-                  <i class="fas fa-exclamation-triangle me-2"></i>
-                  <%= t('bills.no_readings') %>
-                </div>
-                <a href="/utility_readings/new?room_id=${currentRoomId}" class="btn btn-outline-primary">
+              document.getElementById('add-reading-container').innerHTML = `
+                <a href="/utility_readings/new?room_id=${data.room.id}" class="btn btn-sm btn-primary">
                   <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
                 </a>`;
             }
+            
+            // Update summary
+            updateSummary();
           })
           .catch(error => {
             console.error('Error:', error);
             loadingIndicator.style.display = 'none';
             noReadingsMessage.classList.remove('d-none');
-            addReadingContainer.innerHTML = `
-              <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Error loading readings:</strong> ${error.message}
-              </div>
-              <a href="/utility_readings/new?room_id=${currentRoomId}" class="btn btn-outline-primary mt-3">
-                <i class="fas fa-plus"></i> <%= t('utility_readings.new') %>
-              </a>
-            `;
           });
       } else {
         // Reset form if no room is selected
-        roomFeeInput.value = '';
-        utilityAmountInput.value = 0;
-        readingsTableContainer.classList.add('d-none');
-        noReadingsMessage.classList.add('d-none');
-        applyUtilitiesContainer.classList.add('d-none');
-        loadingIndicator.style.display = 'none';
+        roomFeeInput.value = formatNumber(0);
+        document.getElementById('electricity_fee').value = formatNumber(0);
+        document.getElementById('water_fee').value = formatNumber(0);
+        document.getElementById('service_fee').value = formatNumber(0);
+        document.getElementById('frequency-info-container').innerHTML = '';
+        
+        // Hide summary
+        billSummary.classList.add('d-none');
+        billHelp.classList.remove('d-none');
       }
     });
     
-    // Trigger the change event if a value is already selected
+    // Trigger change event if a room is selected
     if (roomAssignmentSelector.value) {
+      billSummary.classList.remove('d-none');
+      billHelp.classList.add('d-none');
       const event = new Event('change');
       roomAssignmentSelector.dispatchEvent(event);
     }
   }
   
-  // Handle apply utility total button
-  if (applyUtilityButton) {
-    applyUtilityButton.addEventListener('click', function() {
-      const amount = utilityTotalAmount.textContent.replace(/,/g, '');
-      utilityAmountInput.value = amount;
-      
-      // Store individual fee values
-      const electricityFeeInput = document.getElementById('electricity_fee');
-      const waterFeeInput = document.getElementById('water_fee');
-      const serviceFeeInput = document.getElementById('service_fee');
-      
-      // Make sure all individual fields are properly calculated in the total
-      if (electricityFeeInput && waterFeeInput && serviceFeeInput) {
-        const electricityValue = parseFloat(electricityFeeInput.value) || 0;
-        const waterValue = parseFloat(waterFeeInput.value) || 0;
-        const serviceValue = parseFloat(serviceFeeInput.value) || 0;
-        
-        const calculatedTotal = electricityValue + waterValue + serviceValue;
-        utilityAmountInput.value = calculatedTotal;
+  // Add auto-formatting to all number-format inputs
+  document.querySelectorAll('.number-format').forEach(input => {
+    // Format on blur
+    input.addEventListener('blur', function(e) {
+      if (this.value.trim()) {
+        // Get the raw value without separators
+        const rawValue = parseFloat(this.value.replace(/[,\.]/g, '')) || 0;
+        // For display, show correctly formatted number with Vietnamese currency format
+        this.value = formatNumber(rawValue);
+      } else {
+        // If empty, show as zero with format
+        this.value = formatNumber(0);
+      }
+      // Update summary after formatting
+      setTimeout(updateSummary, 10);
+    });
+    
+    // Clear formatting on focus for easier editing
+    input.addEventListener('focus', function(e) {
+      // Get the raw value without separators and currency symbol
+      const rawValue = parseFloat(this.value.replace(/[^\d]/g, '')) || 0;
+      if (rawValue > 0) {
+        this.value = rawValue.toString();
+      } else {
+        this.value = '0';
       }
     });
-  }
-  
-  // Enable manual editing of utility fields
-  const editUtilitiesBtn = document.getElementById('edit-utilities-btn');
-  if (editUtilitiesBtn) {
-    editUtilitiesBtn.addEventListener('click', function() {
-      utilityAmountInput.readOnly = false;
-      utilityAmountInput.focus();
-    });
-  }
-  
-  // Function to populate the readings table
-  function populateReadingsTable(readings) {
-    readingsTableBody.innerHTML = '';
-    let totalUtilityAmount = 0;
-    let serviceCharge = 0;
-    let electricityCost = 0;
-    let waterCost = 0;
-    
-    // Initialize individual fee fields
-    document.getElementById('electricity_fee').value = 0;
-    document.getElementById('water_fee').value = 0;
-    document.getElementById('service_fee').value = 0;
-    
-    // Check if there's a service charge in the readings
-    if (readings.length > 0 && readings[0].service_charge) {
-      serviceCharge = parseFloat(readings[0].service_charge) || 0;
-      document.getElementById('service_fee').value = serviceCharge;
+  });
+
+  // Add input event listeners to all charge fields to update summary
+  const chargeFields = ['room_fee', 'electricity_fee', 'water_fee', 'service_fee', 'other_fees', 'previous_debt', 'overpayment'];
+  chargeFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener('input', updateSummary);
+      
+      // Also trigger input event on load to properly format the initial display
+      if (field.value) {
+        const event = new Event('input', { bubbles: true });
+        field.dispatchEvent(event);
+      }
     }
-    
-    readings.forEach(reading => {
-      const previousReading = parseFloat(reading.previous_reading) || 0;
-      const currentReading = parseFloat(reading.electricity_reading || reading.water_reading || reading.current_reading || 0);
-      const usage = currentReading - previousReading;
-      let rate = 0;
-      let utilityType = '';
-      
-      if ('electricity_reading' in reading || reading.utility_type === 'electricity') {
-        rate = parseFloat(reading.electricity_unit_price || reading.rate) || 0;
-        utilityType = 'electricity';
-      } else if ('water_reading' in reading || reading.utility_type === 'water') {
-        rate = parseFloat(reading.water_unit_price || reading.rate) || 0;
-        utilityType = 'water';
-      }
-      
-      const amount = usage * rate;
-      totalUtilityAmount += amount;
-      
-      // Track individual utility costs
-      if (utilityType === 'electricity') {
-        electricityCost += amount;
-        document.getElementById('electricity_fee').value = Math.round(amount);
-      } else if (utilityType === 'water') {
-        waterCost += amount;
-        document.getElementById('water_fee').value = Math.round(amount);
-      }
-      
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>
-          <div class="d-flex align-items-center">
-            <i class="fas fa-${utilityType === 'electricity' ? 'bolt text-warning' : 'tint text-info'} me-2"></i>
-            ${utilityType === 'electricity' ? '<%= t("utility_readings.electricity") %>' : '<%= t("utility_readings.water") %>'}
-          </div>
-        </td>
-        <td>${previousReading}</td>
-        <td>${currentReading}</td>
-        <td>${usage}</td>
-        <td>${safeToLocaleString(rate)}</td>
-        <td class="text-end"><strong>${safeToLocaleString(Math.round(amount))}</strong></td>
-      `;
-      
-      readingsTableBody.appendChild(row);
-    });
-    
-    // Add a service charge row if there is a service charge
-    if (serviceCharge > 0) {
-      const serviceRow = document.createElement('tr');
-      serviceRow.innerHTML = `
-        <td>
-          <div class="d-flex align-items-center">
-            <i class="fas fa-hand-holding-usd text-success me-2"></i>
-            <%= t("utility_readings.service_charge") %>
-          </div>
-        </td>
-        <td colspan="4" class="text-end"><%= t("utility_readings.service_charge_per_tenant") %>:</td>
-        <td class="text-end"><strong>${safeToLocaleString(serviceCharge)}</strong></td>
-      `;
-      readingsTableBody.appendChild(serviceRow);
-      
-      // Add service charge to total utility amount
-      totalUtilityAmount += serviceCharge;
-    }
-    
-    // Round the total amount
-    totalUtilityAmount = Math.round(totalUtilityAmount);
-    utilityTotalAmount.textContent = safeToLocaleString(totalUtilityAmount);
-    
-    // Add a total row
-    const totalRow = document.createElement('tr');
-    totalRow.classList.add('table-active', 'fw-bold');
-    totalRow.innerHTML = `
-      <td colspan="5" class="text-end"><%= t('common.total') %></td>
-      <td class="text-end">${safeToLocaleString(totalUtilityAmount)}</td>
-    `;
-    readingsTableBody.appendChild(totalRow);
-    
-    // Add a link to view all utility readings for this room
-    const viewAllRow = document.createElement('tr');
-    viewAllRow.classList.add('table-light');
-    viewAllRow.innerHTML = `
-      <td colspan="6" class="text-center">
-        <a href="/utility_readings?room_id=${currentRoomId}" class="btn btn-sm btn-link">
-          <i class="fas fa-list me-1"></i> <%= t('utility_readings.view_all') %>
-        </a>
-      </td>
-    `;
-    readingsTableBody.appendChild(viewAllRow);
-  }
+  });
   
-  // Handle status changes for payment date field
-  const billStatusSelect = document.getElementById('bill_status');
+  // Handle status change
   if (billStatusSelect) {
     billStatusSelect.addEventListener('change', function() {
-      const paymentDateContainer = document.querySelector('.payment-date-field');
-      
-      if (billStatusSelect.value === 'paid') {
-        if (!paymentDateContainer) {
-          const statusTabContent = document.getElementById('status');
-          const row = statusTabContent.querySelector('.row');
-          
-          const newCol = document.createElement('div');
-          newCol.className = 'col-md-6 payment-date-field';
-          newCol.innerHTML = `
-            <div class="form-group">
-              <label for="bill_payment_date" class="form-label">${'<%= t("bills.payment_date") %>'}</label>
-              <div class="input-group">
-                <span class="input-group-text">
-                  <i class="fas fa-money-bill-wave"></i>
-                </span>
-                <input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}" name="bill[payment_date]" id="bill_payment_date">
-              </div>
-            </div>
-          `;
-          
-          row.appendChild(newCol);
-        }
+      if (this.value === 'paid') {
+        paymentDateContainer.style.display = 'block';
       } else {
-        if (paymentDateContainer) {
-          paymentDateContainer.remove();
-        }
+        paymentDateContainer.style.display = 'none';
       }
     });
   }
   
-  // Re-calculate utility total when individual fees change
-  const updateUtilityTotal = function() {
-    const electricityFeeInput = document.getElementById('electricity_fee');
-    const waterFeeInput = document.getElementById('water_fee');
-    const serviceFeeInput = document.getElementById('service_fee');
-    
-    const electricity = parseFloat(electricityFeeInput.value) || 0;
-    const water = parseFloat(waterFeeInput.value) || 0;
-    const service = parseFloat(serviceFeeInput.value) || 0;
-    
-    utilityAmountInput.value = electricity + water + service;
-  };
-  
-  // Add event listeners to utility fee inputs
-  const electricityFeeInput = document.getElementById('electricity_fee');
-  const waterFeeInput = document.getElementById('water_fee');
-  const serviceFeeInput = document.getElementById('service_fee');
-  
-  if (electricityFeeInput && waterFeeInput && serviceFeeInput) {
-    electricityFeeInput.addEventListener('change', updateUtilityTotal);
-    waterFeeInput.addEventListener('change', updateUtilityTotal);
-    serviceFeeInput.addEventListener('change', updateUtilityTotal);
+  // Handle date fields for summary update
+  const periodStartField = document.getElementById('bill_billing_period_start');
+  const periodEndField = document.getElementById('bill_billing_period_end');
+  if (periodStartField && periodEndField && billSummary) {
+    const updatePeriodSummary = function() {
+      document.getElementById('summary-period').textContent = 
+        periodStartField.value + ' to ' + periodEndField.value;
+    };
+    periodStartField.addEventListener('change', updatePeriodSummary);
+    periodEndField.addEventListener('change', updatePeriodSummary);
   }
+  
+  // Run the sticky behavior function once on page load
+  setTimeout(function() {
+    handleStickyBehavior();
+  }, 100);
+  
+  // Manually trigger sticky behavior calculation when the form fields are filled
+  // This helps when the content height changes
+  document.querySelectorAll('input, select, textarea').forEach(field => {
+    field.addEventListener('change', function() {
+      setTimeout(handleStickyBehavior, 50);
+    });
+  });
 });
 </script>
-
-<style>
-  .form-container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  
-  .card {
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  
-  .bill-icon-container {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background-color: rgba(108, 92, 231, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-  }
-  
-  .card-header {
-    padding: 1.25rem 1.5rem;
-    background-color: #fff;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-  }
-  
-  .card-title {
-    font-weight: 600;
-  }
-  
-  .card-subtitle {
-    font-size: 0.9rem;
-  }
-  
-  .card-body {
-    padding: 1.5rem;
-  }
-  
-  .form-label {
-    margin-bottom: 0.5rem;
-  }
-  
-  .input-group-text {
-    background-color: #f8f9fa;
-  }
-  
-  .form-text {
-    margin-top: 0.5rem;
-  }
-  
-  .charges-title {
-    font-size: 1rem;
-    color: #495057;
-  }
-  
-  .nav-tabs .nav-link {
-    color: #495057;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-    padding: 0.75rem 1rem;
-  }
-  
-  .nav-tabs .nav-link.active {
-    color: #6c5ce7;
-    background-color: transparent;
-    border-bottom: 2px solid #6c5ce7;
-  }
-  
-  .nav-tabs .nav-link:hover {
-    border-color: transparent;
-    border-bottom: 2px solid #e2e2e2;
-  }
-  
-  .nav-tabs .nav-link.active:hover {
-    border-bottom: 2px solid #6c5ce7;
-  }
-  
-  .utilities-table {
-    table-layout: fixed;
-    width: 100%;
-  }
-  
-  .utilities-table th,
-  .utilities-table td {
-    padding: 0.75rem 1rem;
-    vertical-align: middle;
-  }
-  
-  .utilities-table .utility-type-col {
-    width: 20%;
-  }
-  
-  .utilities-table .reading-col {
-    width: 15%;
-    text-align: center;
-  }
-  
-  .utilities-table .amount-col {
-    width: 20%;
-  }
-  
-  .utilities-table td:not(:first-child):not(.text-end) {
-    text-align: center;
-  }
-  
-  #utility-total-amount {
-    font-size: 1.1rem;
-    margin-right: 5px;
-  }
-</style>
