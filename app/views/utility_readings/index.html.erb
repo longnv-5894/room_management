@@ -97,13 +97,45 @@
           </thead>
           <tbody>
             <% @utility_readings.each do |reading| %>
+              <% 
+                # Find the previous reading to calculate consumption
+                previous_reading = UtilityReading.where(room_id: reading.room_id)
+                                  .where('reading_date < ?', reading.reading_date)
+                                  .order(reading_date: :desc)
+                                  .first
+
+                # Calculate electricity consumption
+                electricity_consumption = previous_reading ? (reading.electricity_reading - previous_reading.electricity_reading) : 0
+                electricity_consumption = [0, electricity_consumption].max # Ensure consumption is not negative
+
+                # Calculate water consumption
+                water_consumption = previous_reading ? (reading.water_reading - previous_reading.water_reading) : 0
+                water_consumption = [0, water_consumption].max # Ensure consumption is not negative
+
+                # Get utility price - first try from the reading itself, then from latest available price
+                electricity_price = begin
+                  price = reading.electricity_unit_price
+                  price = UtilityPrice.current(reading.room.building_id).electricity_unit_price if price.nil? || price == 0
+                  price
+                end
+
+                water_price = begin
+                  price = reading.water_unit_price
+                  price = UtilityPrice.current(reading.room.building_id).water_unit_price if price.nil? || price == 0
+                  price
+                end
+
+                # Calculate costs
+                electricity_cost = electricity_consumption * electricity_price
+                water_cost = water_consumption * water_price
+              %>
               <tr>
                 <td><%= link_to reading.room.number, room_path(reading.room) %></td>
                 <td><%= l reading.reading_date, format: :short %></td>
                 <td><%= reading.electricity_reading %></td>
                 <td><%= reading.water_reading %></td>
-                <td><%= number_to_currency(reading.electricity_reading * reading.electricity_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></td>
-                <td><%= number_to_currency(reading.water_reading * reading.water_unit_price, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= number_to_currency(electricity_cost, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= number_to_currency(water_cost, precision: 0, delimiter: ',', unit: 'VND ') %></td>
                 <td>
                   <div class="d-flex justify-content-center">
                     <%= link_to utility_reading_path(reading), class: "btn btn-sm btn-light" do %>

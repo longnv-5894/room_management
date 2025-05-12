@@ -647,6 +647,24 @@ class ExcelImportService
     end
   end
 
+  def is_latest_billing_period?
+    return true if @billing_month.nil? || @billing_year.nil? # If we don't have a billing period, assume it's the latest
+
+    # Check if there are any bills with a later date for this building
+    current_period = Date.new(@billing_year, @billing_month, 1)
+
+    # Find the latest bill date for this building
+    latest_bill = Bill.joins(room_assignment: :room)
+                     .where(rooms: { building_id: @building.id })
+                     .order(billing_date: :desc)
+                     .first
+
+    return true unless latest_bill # No bills exist yet
+
+    # Return true only if current period is greater than or equal to the latest bill date
+    current_period >= latest_bill.billing_date
+  end
+
   def create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, is_representative_tenant = false, monthly_rent = nil)
     return nil if tenant_name.blank?
 
@@ -718,28 +736,49 @@ class ExcelImportService
       end
     end
 
+    # Kiểm tra xem kỳ hóa đơn hiện tại có phải là kỳ mới nhất không
+    is_latest_period = is_latest_billing_period?
+
+    # Nếu không phải kỳ mới nhất, ghi log
+    unless is_latest_period
+      Rails.logger.info "Current billing period #{@billing_month}/#{@billing_year} is not the latest period. Room prices will not be updated except for new tenants."
+    end
+
+    # Kiểm tra xem tenant đã từng được assign vào phòng này trước đó chưa (kể cả inactive)
+    previous_assignment = RoomAssignment.where(room: room, tenant: tenant).order(start_date: :desc).first
+
     # Create room assignment if not exists
     unless RoomAssignment.exists?(room: room, tenant: tenant, active: true)
-      # Chỉ lưu monthly_rent và deposit_amount trong room_assignment nếu là representative tenant
-      assignment_monthly_rent = is_representative_tenant ? monthly_rent : nil
+      # Set rent amount only if we are in the latest billing period or this is a new tenant (don't have assignment yet)
+      assignment_monthly_rent = nil
+      assignment_deposit = nil
 
-      # Thiết lập tiền cọc bằng tiền thuê cho representative tenant
-      assignment_deposit = is_representative_tenant && monthly_rent ? monthly_rent : nil
+      # Kiểm tra xem có phải là tenant mới không (chưa có room assignment) hoặc kỳ hóa đơn hiện tại
+      # là kỳ mới nhất. Nếu đúng, cập nhật giá phòng.
+      if is_representative_tenant
+        if is_latest_period || !RoomAssignment.exists?(tenant: tenant)
+          assignment_monthly_rent = monthly_rent
+          assignment_deposit = monthly_rent
+        end
+      end
+
+      # Luôn sử dụng ngày bắt đầu từ dữ liệu import - không sử dụng lại ngày cũ
+      start_date = Date.new(@billing_year, @billing_month, 1)
 
       assignment = RoomAssignment.new(
         room: room,
         tenant: tenant,
-        start_date: Date.new(@billing_year, @billing_month, 1),
+        start_date: start_date,
         active: true,
         is_representative_tenant: is_representative_tenant,
-        monthly_rent: assignment_monthly_rent,  # Chỉ gán monthly_rent cho representative tenant
-        deposit_amount: assignment_deposit      # Đặt tiền cọc bằng tiền thuê tháng
+        monthly_rent: assignment_monthly_rent,
+        deposit_amount: assignment_deposit
       )
 
       if assignment.save
         Rails.logger.info "Successfully created room assignment for #{tenant.name} in room #{room.number}" +
                         (is_representative_tenant ? " (Representative)" : "") +
-                        (is_representative_tenant && monthly_rent ? " with monthly rent: #{monthly_rent}" : "") +
+                        (is_representative_tenant && assignment_monthly_rent ? " with monthly rent: #{assignment_monthly_rent}" : "") +
                         (is_representative_tenant && assignment_deposit ? " and deposit: #{assignment_deposit}" : "")
       else
         @errors << "Failed to assign tenant to room: #{assignment.errors.full_messages.join(', ')}"
@@ -749,8 +788,17 @@ class ExcelImportService
       # Update existing assignment if needed
       existing_assignment = RoomAssignment.where(room: room, tenant: tenant, active: true).first
 
+      # Cập nhật start_date từ file Excel nếu start_date mới cũ hơn start_date hiện tại
+      # Mục đích: Đảm bảo start_date luôn là ngày sớm nhất mà tenant thuê phòng
+      import_date = Date.new(@billing_year, @billing_month, 1)
+      if import_date < existing_assignment.start_date
+        existing_assignment.start_date = import_date
+        Rails.logger.info "Updating start_date for #{tenant.name} in room #{room.number} from #{existing_assignment.start_date} to #{import_date}"
+      end
+
       # Cập nhật giá phòng và tiền cọc chỉ khi là representative tenant
-      if is_representative_tenant
+      # VÀ kỳ hóa đơn hiện tại là kỳ mới nhất
+      if is_representative_tenant && is_latest_period
         if monthly_rent.present? && existing_assignment.monthly_rent != monthly_rent
           existing_assignment.monthly_rent = monthly_rent
           # Cập nhật cả tiền cọc nếu chưa có hoặc khi tiền thuê thay đổi
@@ -763,15 +811,19 @@ class ExcelImportService
         end
       elsif !is_representative_tenant && (existing_assignment.monthly_rent.present? || existing_assignment.deposit_amount.present?)
         # Nếu không phải representative tenant, đặt monthly_rent và deposit_amount về nil
-        existing_assignment.monthly_rent = nil
-        existing_assignment.deposit_amount = nil
-        Rails.logger.info "Removing monthly rent and deposit for non-representative tenant #{tenant.name} in room #{room.number}"
+        if is_latest_period
+          existing_assignment.monthly_rent = nil
+          existing_assignment.deposit_amount = nil
+          Rails.logger.info "Removing monthly rent and deposit for non-representative tenant #{tenant.name} in room #{room.number}"
+        end
       end
 
       if existing_assignment && is_representative_tenant && !existing_assignment.is_representative_tenant
         existing_assignment.is_representative_tenant = true
-        # Nếu tenant được nâng cấp thành representative, đặt monthly_rent và deposit_amount
-        if monthly_rent.present?
+
+        # Nếu tenant được nâng cấp thành representative VÀ kỳ hóa đơn hiện tại là kỳ mới nhất,
+        # đặt monthly_rent và deposit_amount
+        if monthly_rent.present? && is_latest_period
           existing_assignment.monthly_rent = monthly_rent
           existing_assignment.deposit_amount = monthly_rent
           Rails.logger.info "Setting #{tenant.name} as representative with rent/deposit of #{monthly_rent}"
@@ -1181,7 +1233,7 @@ class ExcelImportService
     end
 
     # Determine vehicle type based on plate format
-    vehicle_type = determine_vehicle_type(plate_number)
+    vehicle_type = "motorcycle"
 
     # Create the new vehicle
     vehicle = Vehicle.new(
@@ -1199,21 +1251,6 @@ class ExcelImportService
     else
       @errors << "Failed to register vehicle #{plate_number}: #{vehicle.errors.full_messages.join(', ')}"
       Rails.logger.error "Failed to register vehicle #{plate_number}: #{vehicle.errors.full_messages.join(', ')}"
-    end
-  end
-
-  def determine_vehicle_type(plate_number)
-    # Logic to determine vehicle type based on plate format
-    # Vietnamese license plates follow certain patterns
-    plate = plate_number.to_s.strip.upcase
-
-    # Explicitly check for car patterns
-    if plate.match?(/\d{2}[A-Z]\d{1}-\d{5}/) || plate.match?(/\d{2}[A-Z]\d{1}-\d{4}/)
-      # Pattern for cars: 2 digits, 1 letter, 1 digit, dash, 5 digits
-      "car"
-    else
-      # Default to motorcycle for all other cases
-      "motorcycle"
     end
   end
 end
