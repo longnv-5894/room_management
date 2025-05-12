@@ -1,9 +1,9 @@
 class ContractsController < ApplicationController
   before_action :require_login
-  before_action :set_contract, only: [:show, :edit, :update, :destroy, :download, :generate_pdf]
+  before_action :set_contract, only: [ :show, :edit, :update, :destroy, :download, :generate_pdf ]
 
   def index
-    @contracts = Contract.includes(room_assignment: [:room, :tenant]).all
+    @contracts = Contract.includes(room_assignment: [ :room, :tenant ]).all
   end
 
   def show
@@ -19,7 +19,7 @@ class ContractsController < ApplicationController
                     disposition: "inline"
         else
           # If generation fails, redirect to HTML view with an error
-          flash[:alert] = t('contracts.template_not_found')
+          flash[:alert] = t("contracts.template_not_found")
           redirect_to contract_path(@contract, format: :html)
         end
       end
@@ -38,7 +38,7 @@ class ContractsController < ApplicationController
     @contract = Contract.new(contract_params)
 
     if @contract.save
-      redirect_to @contract, notice: 'Contract was successfully created.'
+      redirect_to @contract, notice: "Contract was successfully created."
     else
       @room_assignments = RoomAssignment.includes(:room, :tenant)
                                        .where(active: true, is_representative_tenant: true)
@@ -53,7 +53,7 @@ class ContractsController < ApplicationController
 
   def update
     if @contract.update(contract_params)
-      redirect_to @contract, notice: 'Contract was successfully updated.'
+      redirect_to @contract, notice: "Contract was successfully updated."
     else
       @room_assignments = RoomAssignment.includes(:room, :tenant)
                                        .where(active: true, is_representative_tenant: true)
@@ -63,22 +63,22 @@ class ContractsController < ApplicationController
 
   def destroy
     @contract.destroy
-    redirect_to contracts_path, notice: 'Contract was successfully deleted.'
+    redirect_to contracts_path, notice: "Contract was successfully deleted."
   end
 
   def download
     if @contract.document.attached?
       redirect_to url_for(@contract.document)
     else
-      redirect_to @contract, alert: 'No document attached to this contract.'
+      redirect_to @contract, alert: "No document attached to this contract."
     end
   end
 
   def generate_pdf
     if @contract.generate_html_contract
-      redirect_to @contract, notice: t('contracts.generate_success')
+      redirect_to @contract, notice: t("contracts.generate_success")
     else
-      redirect_to @contract, alert: t('contracts.template_not_found')
+      redirect_to @contract, alert: t("contracts.template_not_found")
     end
   end
 
@@ -86,7 +86,8 @@ class ContractsController < ApplicationController
     room_assignment = RoomAssignment.includes(:room).find(params[:id])
 
     render json: {
-      rent_amount: room_assignment.room.monthly_rent,
+      # Thay vì lấy giá phòng từ room, lấy từ room_assignment
+      rent_amount: room_assignment.monthly_rent,
       deposit_amount: room_assignment.deposit_amount,
       start_date: room_assignment.start_date,
       tenant_name: room_assignment.tenant.name
@@ -104,11 +105,11 @@ class ContractsController < ApplicationController
   def contract_params
     # Clean up the parameters for numerical values
     if params[:contract][:rent_amount].present?
-      params[:contract][:rent_amount] = params[:contract][:rent_amount].gsub('.', '').gsub(',', '.')
+      params[:contract][:rent_amount] = params[:contract][:rent_amount].gsub(".", "").gsub(",", ".")
     end
 
     if params[:contract][:deposit_amount].present?
-      params[:contract][:deposit_amount] = params[:contract][:deposit_amount].gsub('.', '').gsub(',', '.')
+      params[:contract][:deposit_amount] = params[:contract][:deposit_amount].gsub(".", "").gsub(",", ".")
     end
 
     params.require(:contract).permit(
@@ -119,7 +120,7 @@ class ContractsController < ApplicationController
 
   def require_login
     unless session[:user_id]
-      flash[:danger] = t('auth.login_required')
+      flash[:danger] = t("auth.login_required")
       redirect_to login_path
     end
   end

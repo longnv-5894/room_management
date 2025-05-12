@@ -58,7 +58,7 @@
           <div class="detail-item">
             <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
             <div class="detail-value highlight-price">
-              <%= number_to_currency(@room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+              <%= number_to_currency(@room.latest_monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
             </div>
           </div>
         </div>
@@ -219,14 +219,18 @@
             <div class="detail-item">
               <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
               <div class="detail-value highlight-price">
-                <%= number_to_currency(@room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <%= number_to_currency(@room.latest_monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
               </div>
             </div>
             
             <div class="detail-item">
               <div class="detail-label"><%= t('rooms.per_tenant_rent') %></div>
               <div class="detail-value">
-                <%= number_to_currency(@room.monthly_rent / @current_tenants.count, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% if @current_tenants.count > 0 %>
+                  <%= number_to_currency(@room.latest_monthly_rent / @current_tenants.count, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% else %>
+                  <%= number_to_currency(0, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% end %>
               </div>
             </div>
             

@@ -174,9 +174,11 @@
             <% @rooms.each do |room| %>
               <tr>
                 <td><%= room.number %></td>
-                <td><%= room.floor.presence || t('common.none') %></td>
-                <td><%= room.area.present? ? room.area : t('common.none') %></td>
-                <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= room.floor %></td>
+                <td><%= room.area %></td>
+                <td>
+                  <%= number_to_currency(room.latest_monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                </td>
                 <td>
                   <span class="status-badge status-<%= room.status %>">
                     <%= t("rooms.statuses.#{room.status}") %>

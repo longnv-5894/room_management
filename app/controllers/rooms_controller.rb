@@ -1,13 +1,13 @@
 class RoomsController < ApplicationController
   before_action :require_login
-  before_action :set_room, only: [:show, :edit, :update, :destroy]
-  before_action :set_building, only: [:index, :new, :create]
+  before_action :set_room, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_building, only: [ :index, :new, :create ]
 
   def index
     # Check if we're viewing rooms for a specific building
     if @building && !params[:ignore_building_context]
       @rooms = @building.rooms.order(:number)
-      render 'building_rooms'
+      render "building_rooms"
     else
       @search_query = params[:search]
       @building_filter = params[:building_id]
@@ -31,7 +31,7 @@ class RoomsController < ApplicationController
         query = query.where(status: @status_filter)
       end
 
-      @rooms = query.order('buildings.name', :number)
+      @rooms = query.order("buildings.name", :number)
     end
   end
 
@@ -54,7 +54,7 @@ class RoomsController < ApplicationController
     end
 
     if @room.save
-      flash[:success] = t('rooms.create_success')
+      flash[:success] = t("rooms.create_success")
       if @building
         redirect_to building_path(@building)
       else
@@ -70,7 +70,7 @@ class RoomsController < ApplicationController
 
   def update
     if @room.update(room_params)
-      flash[:success] = t('rooms.update_success')
+      flash[:success] = t("rooms.update_success")
       redirect_to @room
     else
       render :edit, status: :unprocessable_entity
@@ -79,12 +79,12 @@ class RoomsController < ApplicationController
 
   def destroy
     if @room.room_assignments.exists?
-      flash[:danger] = t('rooms.cannot_delete_with_assignments')
+      flash[:danger] = t("rooms.cannot_delete_with_assignments")
       redirect_to @room.building || rooms_url
     else
       building = @room.building
       @room.destroy
-      flash[:success] = t('rooms.delete_success')
+      flash[:success] = t("rooms.delete_success")
       redirect_to building || rooms_url
     end
   end
@@ -100,12 +100,12 @@ class RoomsController < ApplicationController
   end
 
   def room_params
-    params.require(:room).permit(:number, :floor, :area, :monthly_rent, :status, :building_id)
+    params.require(:room).permit(:number, :floor, :area, :status, :building_id)
   end
 
   def require_login
     unless session[:user_id]
-      flash[:danger] = t('auth.login_required')
+      flash[:danger] = t("auth.login_required")
       redirect_to login_path
     end
   end

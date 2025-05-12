@@ -61,7 +61,8 @@ class RoomAssignmentsController < ApplicationController
           room: {
             id: @room_assignment.room.id,
             number: @room_assignment.room.number,
-            monthly_rent: @room_assignment.room.monthly_rent,
+            # Lấy giá phòng trực tiếp từ room_assignment thay vì từ room
+            monthly_rent: @room_assignment.monthly_rent,
             status: @room_assignment.room.status
           },
           tenant: {
@@ -110,6 +111,7 @@ class RoomAssignmentsController < ApplicationController
     tenant_ids = params[:tenant_ids] || []
     start_date = params[:room_assignment][:start_date]
     deposit_amount = params[:room_assignment][:deposit_amount]
+    monthly_rent = params[:room_assignment][:monthly_rent]
     notes = params[:room_assignment][:notes]
     room_fee_frequency = params[:room_assignment][:room_fee_frequency]
     utility_fee_frequency = params[:room_assignment][:utility_fee_frequency]
@@ -153,6 +155,8 @@ class RoomAssignmentsController < ApplicationController
         start_date: start_date,
         # Only set deposit amount for the first tenant (who will be representative)
         deposit_amount: (index == 0 && is_first_tenant) ? deposit_amount : nil,
+        # Ensure all tenants in same room have the same monthly rent
+        monthly_rent: monthly_rent,
         notes: notes,
         active: true,
         # First tenant becomes the representative
@@ -335,7 +339,7 @@ class RoomAssignmentsController < ApplicationController
   def room_assignment_params
     parameters = params.require(:room_assignment).permit(:room_id, :tenant_id, :start_date,
                                            :end_date, :deposit_amount, :active, :is_representative_tenant,
-                                           :room_fee_frequency, :utility_fee_frequency, :notes)
+                                           :room_fee_frequency, :utility_fee_frequency, :notes, :monthly_rent)
 
     # Ensure frequency fields are integers
     parameters[:room_fee_frequency] = parameters[:room_fee_frequency].to_i if parameters[:room_fee_frequency].present?

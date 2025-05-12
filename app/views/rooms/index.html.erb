@@ -1,3 +1,4 @@
+
 <div class="page-header">
   <h1 class="header-title"><%= t('rooms.title') %></h1>
   <div class="header-actions">
@@ -107,7 +108,7 @@
                 </td>
                 <td><%= room.floor %></td>
                 <td><%= room.area %></td>
-                <td><%= number_to_currency(room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
+                <td><%= number_to_currency(room.latest_monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %></td>
                 <td>
                   <span class="status-badge status-<%= room.status %>">
                     <%= t("rooms.#{room.status}") %>

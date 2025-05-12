@@ -22,15 +22,7 @@
     </div>
   </div>
   
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <%= form.label :monthly_rent, t('rooms.rent'), class: "form-label" %>
-      <div class="input-group">
-        <span class="input-group-text">VND</span>
-        <%= form.text_field :monthly_rent, class: "form-control number-format", required: true, inputmode: "numeric", pattern: "[0-9,]*" %>
-      </div>
-    </div>
-    
+  <div class="row mb-3">    
     <div class="col-md-6">
       <%= form.label :area, t('rooms.area'), class: "form-label" %>
       <div class="input-group">
@@ -38,9 +30,7 @@
         <span class="input-group-text">m²</span>
       </div>
     </div>
-  </div>
-  
-  <div class="row mb-3">
+    
     <% unless @building %>
       <div class="col-md-6">
         <%= form.label :building_id, t('rooms.building'), class: "form-label" %>
@@ -50,8 +40,10 @@
                                   { class: "form-select" } %>
       </div>
     <% end %>
-    
-    <div class="col<%= @building ? "-md-12" : "-md-6" %>">
+  </div>
+  
+  <div class="row mb-3">
+    <div class="col<%= @building ? "-md-6" : "-md-6" %>">
       <%= form.label :status, t('rooms.status'), class: "form-label" %>
       <%= form.select :status, 
                      options_for_select(Room.statuses.keys.map { |s| [t("rooms.statuses.#{s}"), s] }, room.status),

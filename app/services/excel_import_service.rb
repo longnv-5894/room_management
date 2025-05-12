@@ -556,19 +556,37 @@ class ExcelImportService
     monthly_rent = get_cell_value(row, :room_fee).to_i
     room_area = get_cell_value(row, :room_area).to_i
 
-    # Skip importing rooms without a specified monthly rent
-    if monthly_rent <= 0
-      Rails.logger.warn "Skipping room #{room_number}: No valid monthly rent specified"
+    # Kiểm tra xem phòng có dữ liệu nào khác ngoài tên phòng không
+    has_other_data = tenant_name.present? ||
+                     monthly_rent > 0 ||
+                     room_area > 0 ||
+                     co_tenant1_name.present? ||
+                     co_tenant2_name.present? ||
+                     get_cell_value(row, :elec_start).present? ||
+                     get_cell_value(row, :elec_end).present? ||
+                     get_cell_value(row, :water_start).present? ||
+                     get_cell_value(row, :water_end).present?
+
+    # Nếu phòng không có dữ liệu gì ngoài tên, bỏ qua
+    unless has_other_data
+      Rails.logger.info "Skipping room #{room_number}: No data except room number"
       return
     end
 
-    # Get or create room
-    room = building.rooms.find_or_initialize_by(number: room_number)
-
-    # Update room attributes for both new and existing rooms
-    room.monthly_rent = monthly_rent
-    room.area = room_area if room_area > 0
-    room.status = tenant_name.present? ? "occupied" : room.status || "available"
+    # Tìm hoặc tạo phòng mới với các thuộc tính hợp lệ - KHÔNG đưa monthly_rent vào
+    room = building.rooms.find_by(number: room_number)
+    if room.nil?
+      # Tạo phòng mới với chỉ các thuộc tính hợp lệ
+      room = building.rooms.new(
+        number: room_number,
+        area: room_area > 0 ? room_area : nil,
+        status: tenant_name.present? ? "occupied" : "available"
+      )
+    else
+      # Cập nhật phòng hiện có
+      room.area = room_area if room_area > 0
+      room.status = tenant_name.present? ? "occupied" : room.status || "available"
+    end
 
     if room.new_record?
       if room.save
@@ -590,7 +608,7 @@ class ExcelImportService
     # Create primary tenant and assignment if name provided
     primary_tenant = nil
     if tenant_name.present?
-      primary_tenant = create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, true) # Mark as representative tenant
+      primary_tenant = create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, true, monthly_rent) # Mark as representative tenant
 
       # Process vehicle for primary tenant
       if primary_tenant
@@ -604,7 +622,7 @@ class ExcelImportService
     # Create first co-tenant if name provided
     co_tenant1 = nil
     if co_tenant1_name.present?
-      co_tenant1 = create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false) # Not representative tenant
+      co_tenant1 = create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false, monthly_rent) # Not representative tenant
 
       # Process vehicle for first co-tenant
       if co_tenant1
@@ -617,7 +635,7 @@ class ExcelImportService
 
     # Create second co-tenant if name provided
     if co_tenant2_name.present?
-      create_tenant_with_details(co_tenant2_name, co_tenant2_phone, co_tenant2_id, room, false) # Not representative tenant
+      create_tenant_with_details(co_tenant2_name, co_tenant2_phone, co_tenant2_id, room, false, monthly_rent) # Not representative tenant
     end
 
     # Create utility readings
@@ -629,7 +647,7 @@ class ExcelImportService
     end
   end
 
-  def create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, is_representative_tenant = false)
+  def create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, is_representative_tenant = false, monthly_rent = nil)
     return nil if tenant_name.blank?
 
     # Kiểm tra ID number có tồn tại không
@@ -702,17 +720,27 @@ class ExcelImportService
 
     # Create room assignment if not exists
     unless RoomAssignment.exists?(room: room, tenant: tenant, active: true)
+      # Chỉ lưu monthly_rent và deposit_amount trong room_assignment nếu là representative tenant
+      assignment_monthly_rent = is_representative_tenant ? monthly_rent : nil
+
+      # Thiết lập tiền cọc bằng tiền thuê cho representative tenant
+      assignment_deposit = is_representative_tenant && monthly_rent ? monthly_rent : nil
+
       assignment = RoomAssignment.new(
         room: room,
         tenant: tenant,
         start_date: Date.new(@billing_year, @billing_month, 1),
         active: true,
-        is_representative_tenant: is_representative_tenant
+        is_representative_tenant: is_representative_tenant,
+        monthly_rent: assignment_monthly_rent,  # Chỉ gán monthly_rent cho representative tenant
+        deposit_amount: assignment_deposit      # Đặt tiền cọc bằng tiền thuê tháng
       )
 
       if assignment.save
         Rails.logger.info "Successfully created room assignment for #{tenant.name} in room #{room.number}" +
-                         (is_representative_tenant ? " (Representative)" : "")
+                        (is_representative_tenant ? " (Representative)" : "") +
+                        (is_representative_tenant && monthly_rent ? " with monthly rent: #{monthly_rent}" : "") +
+                        (is_representative_tenant && assignment_deposit ? " and deposit: #{assignment_deposit}" : "")
       else
         @errors << "Failed to assign tenant to room: #{assignment.errors.full_messages.join(', ')}"
         Rails.logger.error "Failed to assign tenant to room: #{assignment.errors.full_messages.join(', ')}"
@@ -720,12 +748,41 @@ class ExcelImportService
     else
       # Update existing assignment if needed
       existing_assignment = RoomAssignment.where(room: room, tenant: tenant, active: true).first
+
+      # Cập nhật giá phòng và tiền cọc chỉ khi là representative tenant
+      if is_representative_tenant
+        if monthly_rent.present? && existing_assignment.monthly_rent != monthly_rent
+          existing_assignment.monthly_rent = monthly_rent
+          # Cập nhật cả tiền cọc nếu chưa có hoặc khi tiền thuê thay đổi
+          if existing_assignment.deposit_amount.blank? || existing_assignment.deposit_amount != monthly_rent
+            existing_assignment.deposit_amount = monthly_rent
+            Rails.logger.info "Updating monthly rent and deposit for #{tenant.name} in room #{room.number} to #{monthly_rent}"
+          else
+            Rails.logger.info "Updating monthly rent for #{tenant.name} in room #{room.number} to #{monthly_rent}"
+          end
+        end
+      elsif !is_representative_tenant && (existing_assignment.monthly_rent.present? || existing_assignment.deposit_amount.present?)
+        # Nếu không phải representative tenant, đặt monthly_rent và deposit_amount về nil
+        existing_assignment.monthly_rent = nil
+        existing_assignment.deposit_amount = nil
+        Rails.logger.info "Removing monthly rent and deposit for non-representative tenant #{tenant.name} in room #{room.number}"
+      end
+
       if existing_assignment && is_representative_tenant && !existing_assignment.is_representative_tenant
         existing_assignment.is_representative_tenant = true
+        # Nếu tenant được nâng cấp thành representative, đặt monthly_rent và deposit_amount
+        if monthly_rent.present?
+          existing_assignment.monthly_rent = monthly_rent
+          existing_assignment.deposit_amount = monthly_rent
+          Rails.logger.info "Setting #{tenant.name} as representative with rent/deposit of #{monthly_rent}"
+        end
+      end
+
+      if existing_assignment.changed?
         if existing_assignment.save
-          Rails.logger.info "Updated #{tenant.name} to be the representative tenant for room #{room.number}"
+          Rails.logger.info "Updated room assignment for #{tenant.name} in room #{room.number}"
         else
-          @errors << "Failed to update tenant as representative: #{existing_assignment.errors.full_messages.join(', ')}"
+          @errors << "Failed to update room assignment: #{existing_assignment.errors.full_messages.join(', ')}"
         end
       end
     end

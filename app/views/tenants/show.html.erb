@@ -114,7 +114,11 @@
             <div class="detail-item">
               <div class="detail-label"><%= t('rooms.monthly_rent') %></div>
               <div class="detail-value">
-                <%= number_to_currency(@current_room.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% if @current_assignment && @current_assignment.monthly_rent %>
+                  <%= number_to_currency(@current_assignment.monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% elsif @current_room %>
+                  <%= number_to_currency(@current_room.latest_monthly_rent, precision: 0, delimiter: ',', unit: 'VND ') %>
+                <% end %>
               </div>
             </div>
             

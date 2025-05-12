@@ -138,8 +138,8 @@ class BillsController < ApplicationController
 
       # Set appropriate room fee
       if include_room_fee
-        # If frequency > 1, multiply the monthly rent by the frequency
-        @bill.room_fee = room_fee_frequency > 1 ? @room.monthly_rent * room_fee_frequency : @room.monthly_rent
+        # Lấy giá phòng từ room_assignment thay vì room
+        @bill.room_fee = room_fee_frequency > 1 ? @room_assignment.monthly_rent * room_fee_frequency : @room_assignment.monthly_rent
       else
         @bill.room_fee = 0
       end

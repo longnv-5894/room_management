@@ -118,6 +118,19 @@
       <div class="row g-3 mt-2">
         <div class="col-md-6">
           <div class="form-group">
+            <%= form.label :monthly_rent, t('rooms.monthly_rent') + " (VND)", class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-money-bill-wave text-success"></i>
+              </span>
+              <%= form.text_field :monthly_rent, class: "form-control number-format", min: 0, inputmode: "numeric", pattern: "[0-9,]*" %>
+              <span class="input-group-text">VND</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
             <%= form.label :deposit_amount, t('room_assignments.deposit_amount') + " (VND)", class: "form-label" %>
             <div class="input-group">
               <span class="input-group-text">
@@ -128,7 +141,9 @@
             </div>
           </div>
         </div>
+      </div>
 
+      <div class="row g-3 mt-2">
         <div class="col-md-6">
           <div class="form-group">
             <%= form.label :room_fee_frequency, t('room_assignments.room_fee_frequency'), class: "form-label" %>
@@ -146,9 +161,7 @@
             </small>
           </div>
         </div>
-      </div>
 
-      <div class="row g-3 mt-2">
         <div class="col-md-6">
           <div class="form-group">
             <%= form.label :utility_fee_frequency, t('room_assignments.utility_fee_frequency'), class: "form-label" %>

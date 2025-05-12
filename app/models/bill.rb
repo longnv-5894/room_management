@@ -118,9 +118,12 @@ class Bill < ApplicationRecord
       # If this is a billing month for room fee, multiply by frequency
       room_fee_frequency = room_assignment.effective_room_fee_frequency
 
+      # Lấy giá phòng từ room_assignment thay vì từ room
+      assignment_rent = room_assignment.monthly_rent
+
       # Only multiply if frequency is > 1 and we're using the default room fee
-      if room_fee_frequency > 1 && self.room_fee == room_assignment.room.monthly_rent
-        self.room_fee = room_assignment.room.monthly_rent * room_fee_frequency
+      if room_fee_frequency > 1 && self.room_fee == assignment_rent
+        self.room_fee = assignment_rent * room_fee_frequency
       end
     else
       # Zero out the room fee if it shouldn't be included this month

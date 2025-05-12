@@ -73,4 +73,13 @@ class Building < ApplicationRecord
   def operating_expenses
     OperatingExpense.where(building_id: id)
   end
+
+  # Tính tổng giá trị tiền thuê hàng tháng
+  def total_rent
+    # Tính tổng từ room_assignments thay vì rooms
+    # Chỉ tính các room_assignments đang active (còn hiệu lực)
+    RoomAssignment.joins(:room)
+                 .where(active: true, rooms: { building_id: id })
+                 .sum(:monthly_rent)
+  end
 end
