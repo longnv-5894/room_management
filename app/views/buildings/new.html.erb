@@ -15,3 +15,84 @@
     <%= render 'form', building: @building %>
   </div>
 </div>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    console.log('Document ready for address auto-fill');
+    
+    // Function to update full address using jQuery
+    function updateFullAddress() {
+      console.log('updateFullAddress function called');
+      
+      var countryText = $('#building_country_id option:selected').text();
+      var cityText = $('#building_city_id option:selected').text();  
+      var districtText = $('#building_district_id option:selected').text();
+      var wardText = $('#building_ward_id option:selected').text();
+      var streetValue = $('#building_street_address').val();
+      
+      console.log('Values collected:', {
+        country: countryText,
+        city: cityText,
+        district: districtText,
+        ward: wardText,
+        street: streetValue
+      });
+      
+      // Only include values that aren't empty or placeholders
+      var addressParts = [];
+      
+      if (streetValue && streetValue.trim() !== '') {
+        addressParts.push(streetValue.trim());
+      }
+      
+      // Không thêm các giá trị như "Chọn..." hoặc "Select Option"
+      if (wardText && 
+          wardText.trim() !== '' && 
+          !wardText.includes('Chọn') && 
+          !wardText.includes('Select')) {
+        addressParts.push(wardText.trim());
+      }
+      
+      if (districtText && 
+          districtText.trim() !== '' && 
+          !districtText.includes('Chọn') && 
+          !districtText.includes('Select')) {
+        addressParts.push(districtText.trim());
+      }
+      
+      if (cityText && 
+          cityText.trim() !== '' && 
+          !cityText.includes('Chọn') && 
+          !cityText.includes('Select')) { 
+        addressParts.push(cityText.trim());
+      }
+      
+      if (countryText && 
+          countryText.trim() !== '' && 
+          !countryText.includes('Chọn') && 
+          !countryText.includes('Select')) {
+        addressParts.push(countryText.trim());
+      }
+      
+      // Nếu không có phần nào hợp lệ, để trường địa chỉ trống
+      var fullAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
+      console.log('Full address generated:', fullAddress);
+      
+      $('#building_address').val(fullAddress);
+    }
+    
+    // Add event listeners using jQuery
+    $('#building_country_id, #building_city_id, #building_district_id, #building_ward_id').change(function() {
+      console.log('Dropdown changed:', this.id);
+      updateFullAddress();
+    });
+    
+    $('#building_street_address').on('input', function() {
+      console.log('Street address input changed');
+      updateFullAddress();
+    });
+    
+    // Không tự động điền trước khi người dùng chọn
+    // Chỉ gọi updateFullAddress khi người dùng đã tương tác với form
+  });
+</script>
