@@ -96,7 +96,7 @@ class TenantsController < ApplicationController
   end
 
   def tenant_params
-    params.require(:tenant).permit(:name, :phone, :email, :id_number, :move_in_date)
+    params.require(:tenant).permit(:name, :phone, :email, :id_number, :move_in_date, :id_issue_date, :id_issue_place, :permanent_address)
   end
 
   def require_login

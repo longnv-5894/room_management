@@ -35,6 +35,21 @@
           </div>
           
           <div class="detail-item">
+            <div class="detail-label"><%= t('tenants.id_issue_date', default: 'ID Issue Date') %></div>
+            <div class="detail-value"><%= @tenant.id_issue_date&.strftime("%B %d, %Y") %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('tenants.id_issue_place', default: 'ID Issue Place') %></div>
+            <div class="detail-value"><%= @tenant.id_issue_place %></div>
+          </div>
+          
+          <div class="detail-item">
+            <div class="detail-label"><%= t('tenants.permanent_address', default: 'Permanent Address') %></div>
+            <div class="detail-value"><%= @tenant.permanent_address %></div>
+          </div>
+          
+          <div class="detail-item">
             <div class="detail-label"><%= t('tenants.move_in_date') %></div>
             <div class="detail-value"><%= @tenant.move_in_date&.strftime("%B %d, %Y") %></div>
           </div>

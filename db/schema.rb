@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_12_041942) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_13_085700) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -177,6 +177,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_12_041942) do
     t.date "move_in_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "id_issue_date"
+    t.string "id_issue_place"
+    t.text "permanent_address"
     t.index ["email"], name: "index_tenants_on_email"
     t.index ["id_number"], name: "index_tenants_on_id_number", unique: true
     t.index ["phone"], name: "index_tenants_on_phone"

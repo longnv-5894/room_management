@@ -448,11 +448,17 @@ class ExcelImportService
     @column_indices[:tenant_name] = find_column(column_headers, "họ.*tên|tenant|name|người thuê")
     @column_indices[:tenant_phone] = find_column(column_headers, "số điện thoại|phone|sđt|tel|điện thoại")
     @column_indices[:id_number] = find_column(column_headers, "cccd|cmnd|id|căn cước|chứng minh")
+    @column_indices[:id_issue_date] = find_column(column_headers, "ngày cấp cccd|ngày cấp|issue date")
+    @column_indices[:id_issue_place] = find_column(column_headers, "nơi cấp cccd|nơi cấp|issue place")
+    @column_indices[:permanent_address] = find_column(column_headers, "thường trú|địa chỉ thường trú|permanent address")
 
     # Find first co-tenant information (người ở cùng 1)
     @column_indices[:co_tenant1_name] = find_column(column_headers, "người ở cùng 1|họ.*tên.*cùng 1|co-tenant 1")
     @column_indices[:co_tenant1_phone] = find_column(column_headers, "số điện thoại.*cùng 1|phone.*1|sđt.*1")
     @column_indices[:co_tenant1_id] = find_column(column_headers, "cmnd.*cùng 1|cccd.*cùng 1|id.*co.?tenant.*1")
+    @column_indices[:co_tenant1_id_issue_date] = find_column(column_headers, "ngày cấp cccd.*cùng 1|ngày cấp.*cùng 1")
+    @column_indices[:co_tenant1_id_issue_place] = find_column(column_headers, "nơi cấp cccd.*cùng 1|nơi cấp.*cùng 1")
+    @column_indices[:co_tenant1_permanent_address] = find_column(column_headers, "thường trú.*cùng 1|địa chỉ.*cùng 1")
 
     # Find second co-tenant information (người ở cùng 2)
     @column_indices[:co_tenant2_name] = find_column(column_headers, "người ở cùng 2|họ.*tên.*cùng 2|co-tenant 2")

@@ -70,8 +70,10 @@ class Contract < ApplicationRecord
       # Bên thuê (Tenant info) - Representative tenant
       ten_nguoi_thue: tenant.name,
       cmnd_nguoi_thue: tenant.id_number || 'N/A',
+      ngay_cap_cmnd: tenant.id_issue_date&.strftime('%d/%m/%Y') || 'N/A',
+      noi_cap_cmnd: tenant.id_issue_place || 'N/A',
       sdt_nguoi_thue: tenant.phone || 'N/A',
-      dia_chi_nguoi_thue: "N/A", # No permanent address field available
+      dia_chi_nguoi_thue: tenant.permanent_address || 'N/A',
 
       # Co-tenants information
       co_tenants: co_tenants,

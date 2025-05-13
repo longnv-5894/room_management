@@ -85,6 +85,46 @@
       <div class="row g-3 mt-2">
         <div class="col-md-6">
           <div class="form-group">
+            <%= form.label :id_issue_date, t('tenants.id_issue_date', default: 'ID Issue Date'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-calendar-alt"></i>
+              </span>
+              <%= form.date_field :id_issue_date, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="form-group">
+            <%= form.label :id_issue_place, t('tenants.id_issue_place', default: 'ID Issue Place'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-map-marker-alt"></i>
+              </span>
+              <%= form.text_field :id_issue_place, class: "form-control" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-12">
+          <div class="form-group">
+            <%= form.label :permanent_address, t('tenants.permanent_address', default: 'Permanent Address'), class: "form-label" %>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fas fa-home"></i>
+              </span>
+              <%= form.text_area :permanent_address, class: "form-control", rows: 3 %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-2">
+        <div class="col-md-6">
+          <div class="form-group">
             <%= form.label :move_in_date, t('tenants.move_in_date'), class: "form-label" %>
             <div class="input-group">
               <span class="input-group-text">
