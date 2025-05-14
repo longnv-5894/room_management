@@ -748,7 +748,36 @@ vi:
     draft_count: "Bản nháp"
     expired_count: "Đã hết hạn"
     terminated_count: "Đã chấm dứt"
-
+  smart_devices:
+    title: "Thiết bị thông minh"
+    new: "Thêm thiết bị thông minh mới"
+    edit: "Chỉnh sửa thiết bị thông minh"
+    list: "Danh sách thiết bị thông minh"
+    device_info: "Thông tin thiết bị"
+    device_functions: "Chức năng thiết bị"
+    device_logs: "Lịch sử thiết bị"
+    add: "Thêm thiết bị thông minh"
+    fingerprint_lock: "Khóa vân tay"
+    smart_lock: "Khóa thông minh"
+    camera: "Camera"
+    light: "Đèn thông minh"
+    switch: "Công tắc thông minh"
+    other: "Khác"
+    basic_info: "Thông tin cơ bản"
+    device_operations: "Thao tác thiết bị"
+    get_info: "Lấy thông tin thiết bị"
+    get_functions: "Lấy danh sách chức năng"
+    get_logs: "Lấy lịch sử thiết bị"
+    success:
+      created: "Thiết bị thông minh đã được tạo thành công."
+      updated: "Thiết bị thông minh đã được cập nhật thành công."
+      deleted: "Thiết bị thông minh đã được xóa thành công."
+    attributes:
+      name: "Tên thiết bị"
+      device_id: "ID thiết bị"
+      device_type: "Loại thiết bị"
+      description: "Mô tả"
+      building: "Tòa nhà"
   # Currency format
   number:
     currency:

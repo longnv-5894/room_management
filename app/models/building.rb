@@ -7,6 +7,7 @@ class Building < ApplicationRecord
   has_many :rooms, dependent: :destroy
   has_many :operating_expenses, dependent: :destroy
   has_many :utility_prices, dependent: :nullify
+  has_many :smart_devices, dependent: :nullify
 
   validates :name, presence: true
   # We're keeping address validation temporarily until data migration is complete

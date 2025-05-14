@@ -952,6 +952,15 @@
                 <%= t('nav.rooms') %>
               <% end %>
             </li>
+            <li>
+              <%= link_to smart_devices_path, 
+                  class: "nav-link #{controller_name == 'smart_devices' ? 'active' : ''}", 
+                  role: "menuitem",
+                  "aria-current" => (controller_name == 'smart_devices' ? "page" : nil) do %>
+                <i class="fas fa-fingerprint me-2"></i>
+                <%= t('nav.smart_devices') || 'Smart Devices' %>
+              <% end %>
+            </li>
             
             <!-- Tenant Management Group -->
             <li class="sidebar-group-header" role="presentation"><%= t('nav.tenant_management') %></li>

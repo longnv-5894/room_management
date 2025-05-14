@@ -1,0 +1,50 @@
+<% if @building %>
+  <h1>Danh sách thiết bị thông minh - <%= @building.name %></h1>
+<% else %>
+  <h1>Danh sách thiết bị thông minh</h1>
+<% end %>
+
+<div class="mb-4">
+  <% if @building %>
+    <%= link_to 'Thêm thiết bị thông minh mới', new_building_smart_device_path(@building), class: 'btn btn-primary' %>
+    <%= link_to 'Quay lại tòa nhà', building_path(@building), class: 'btn btn-secondary ml-2' %>
+  <% else %>
+    <%= link_to 'Thêm thiết bị thông minh mới', new_smart_device_path, class: 'btn btn-primary' %>
+  <% end %>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Tên thiết bị</th>
+            <th>Loại thiết bị</th>
+            <th>ID thiết bị</th>
+            <th>Tòa nhà</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @smart_devices.each do |device| %>
+            <tr>
+              <td><%= device.name %></td>
+              <td><%= device.device_type.humanize %></td>
+              <td><%= device.device_id %></td>
+              <td><%= device.building&.name || 'Chưa gán tòa nhà' %></td>
+              <td>
+                <%= link_to 'Xem', smart_device_path(device), class: 'btn btn-sm btn-info' %>
+                <%= link_to 'Sửa', edit_smart_device_path(device), class: 'btn btn-sm btn-warning' %>
+                <%= link_to 'Xóa', smart_device_path(device), 
+                    method: :delete, 
+                    data: { confirm: 'Bạn có chắc chắn muốn xóa thiết bị này?' }, 
+                    class: 'btn btn-sm btn-danger' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

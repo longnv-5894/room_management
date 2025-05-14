@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_13_085700) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_14_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -169,6 +169,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_085700) do
     t.index ["building_id"], name: "index_rooms_on_building_id"
   end
 
+  create_table "smart_devices", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "device_id", null: false
+    t.string "device_type", null: false
+    t.text "description"
+    t.bigint "building_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["building_id"], name: "index_smart_devices_on_building_id"
+    t.index ["device_id"], name: "index_smart_devices_on_device_id", unique: true
+  end
+
   create_table "tenants", force: :cascade do |t|
     t.string "name", null: false
     t.string "phone"
@@ -260,6 +272,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_13_085700) do
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
   add_foreign_key "rooms", "buildings"
+  add_foreign_key "smart_devices", "buildings"
   add_foreign_key "utility_prices", "buildings"
   add_foreign_key "utility_readings", "rooms"
   add_foreign_key "vehicles", "tenants"

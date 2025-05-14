@@ -98,6 +98,7 @@ en:
     tenant_management: "Tenant Management"
     billing_management: "Billing Management"
     financial_management: "Financial Management"
+    smart_devices: "Smart Devices"
   
   # Authentication
   auth:
@@ -743,7 +744,36 @@ en:
     global: "Global Configuration"
     global_configuration: "Global Configuration (applies to all buildings without specific prices)"
     building_selection_hint: "Leave blank for global prices that apply to all buildings without specific configurations"
-
+  smart_devices:
+    title: "Smart Devices"
+    new: "New Smart Device"
+    edit: "Edit Smart Device"
+    list: "Smart Device List"
+    device_info: "Device Information"
+    device_functions: "Device Functions"
+    device_logs: "Device Logs"
+    add: "Add Smart Device"
+    fingerprint_lock: "Fingerprint Lock"
+    smart_lock: "Smart Lock"
+    camera: "Camera"
+    light: "Smart Light"
+    switch: "Smart Switch"
+    other: "Other"
+    basic_info: "Basic Information"
+    device_operations: "Device Operations"
+    get_info: "Get Device Information"
+    get_functions: "Get Device Functions"
+    get_logs: "Get Device Logs"
+    success:
+      created: "Smart device was successfully created."
+      updated: "Smart device was successfully updated."
+      deleted: "Smart device was successfully deleted."
+    attributes:
+      name: "Device Name"
+      device_id: "Device ID"
+      device_type: "Device Type"
+      description: "Description"
+      building: "Building"
   # Currency format
   number:
     currency:

@@ -1,0 +1,72 @@
+<h1>Lịch sử thiết bị từ Tuya Cloud</h1>
+
+<div class="mb-4">
+  <%= link_to 'Quay lại thiết bị', smart_device_path(@smart_device), class: 'btn btn-secondary' %>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5>Lịch sử thiết bị: <%= @smart_device.name %></h5>
+      <div>
+        <%= form_with(url: device_logs_smart_device_path(@smart_device), method: :get, class: 'form-inline') do |form| %>
+          <div class="input-group">
+            <%= form.select :days, options_for_select([['1 ngày', 1], ['3 ngày', 3], ['7 ngày', 7], ['14 ngày', 14], ['30 ngày', 30]], params[:days]), {}, class: 'form-control' %>
+            <%= form.submit 'Lọc', class: 'btn btn-primary ms-2' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <% if @device_logs.is_a?(Hash) && @device_logs[:error].present? %>
+      <div class="alert alert-danger">
+        <h5>Lỗi khi lấy lịch sử thiết bị:</h5>
+        <p><%= @device_logs[:error] %></p>
+      </div>
+    <% else %>
+      <% if @device_logs['result'].present? && @device_logs['result']['logs'].present? %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Loại</th>
+                <th>Thông tin</th>
+                <th>Người sử dụng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @device_logs['result']['logs'].each do |log| %>
+                <tr>
+                  <td><%= Time.at(log['event_time']/1000).strftime("%d/%m/%Y %H:%M:%S") %></td>
+                  <td><%= log['event_type'] %></td>
+                  <td>
+                    <% if log['event_data'].present? %>
+                      <ul class="list-unstyled">
+                        <% log['event_data'].each do |key, value| %>
+                          <li><strong><%= key %>:</strong> <%= value.to_s %></li>
+                        <% end %>
+                      </ul>
+                    <% end %>
+                  </td>
+                  <td><%= log['user_name'] || 'Không xác định' %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="alert alert-warning">
+          <p>Không tìm thấy lịch sử thiết bị trong khoảng thời gian đã chọn.</p>
+        </div>
+      <% end %>
+
+      <hr>
+      <h5>Dữ liệu JSON gốc:</h5>
+      <div class="bg-light p-3 rounded">
+        <pre><code><%= JSON.pretty_generate(@device_logs) %></code></pre>
+      </div>
+    <% end %>
+  </div>
+</div>

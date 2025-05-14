@@ -1,0 +1,12 @@
+# Tuya Cloud API Configuration
+tuya:
+  # API endpoint - adjust based on your region
+  # US: https://openapi.tuyaus.com
+  # EU: https://openapi.tuyaeu.com
+  # CN: https://openapi.tuyacn.com
+  # IN: https://openapi.tuyain.com
+  api_endpoint: 'https://openapi.tuyaus.com' 
+  client_id: '85vfv3cwxqhcgtqcy8v3'
+  secret_key: 'bb339b4dc5694569870cfa187abba6fd'
+  # Optional time_offset in seconds to handle time synchronization issues with Tuya servers
+  time_offset: 0

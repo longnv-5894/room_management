@@ -1,0 +1,62 @@
+<h1>Chức năng của thiết bị từ Tuya Cloud</h1>
+
+<div class="mb-4">
+  <%= link_to 'Quay lại thiết bị', smart_device_path(@smart_device), class: 'btn btn-secondary' %>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h5>Chức năng của thiết bị: <%= @smart_device.name %></h5>
+  </div>
+  <div class="card-body">
+    <% if @device_functions.is_a?(Hash) && @device_functions[:error].present? %>
+      <div class="alert alert-danger">
+        <h5>Lỗi khi lấy chức năng của thiết bị:</h5>
+        <p><%= @device_functions[:error] %></p>
+      </div>
+    <% else %>
+      <% if @device_functions['result'].present? %>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Mã chức năng</th>
+                <th>Loại</th>
+                <th>Giá trị</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @device_functions['result'].each do |function| %>
+                <tr>
+                  <td><%= function['code'] %></td>
+                  <td><%= function['type'] %></td>
+                  <td>
+                    <% if function['values'].present? %>
+                      <ul class="list-unstyled">
+                        <% function['values'].each do |value| %>
+                          <li><code><%= value.to_s %></code></li>
+                        <% end %>
+                      </ul>
+                    <% end %>
+                  </td>
+                  <td><%= function['desc'] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="alert alert-warning">
+          <p>Không tìm thấy chức năng thiết bị.</p>
+        </div>
+      <% end %>
+
+      <hr>
+      <h5>Dữ liệu JSON gốc:</h5>
+      <div class="bg-light p-3 rounded">
+        <pre><code><%= JSON.pretty_generate(@device_functions) %></code></pre>
+      </div>
+    <% end %>
+  </div>
+</div>

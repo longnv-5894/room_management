@@ -1,0 +1,75 @@
+<h1>Thông tin chi tiết thiết bị: <%= @smart_device.name %></h1>
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="btn-group">
+      <% if @smart_device.building.present? %>
+        <%= link_to 'Quay lại tòa nhà', building_path(@smart_device.building), class: 'btn btn-secondary' %>
+        <%= link_to 'Xem tất cả thiết bị của tòa nhà', building_smart_devices_path(@smart_device.building), class: 'btn btn-secondary' %>
+      <% else %>
+        <%= link_to 'Quay lại danh sách', smart_devices_path, class: 'btn btn-secondary' %>
+      <% end %>
+      <%= link_to 'Chỉnh sửa', edit_smart_device_path(@smart_device), class: 'btn btn-warning' %>
+      <% if @smart_device.building.present? %>
+        <%= link_to 'Xóa', smart_device_path(@smart_device, redirect_to: 'building'), 
+            method: :delete, 
+            data: { confirm: 'Bạn có chắc chắn muốn xóa thiết bị này?' }, 
+            class: 'btn btn-danger' %>
+      <% else %>
+        <%= link_to 'Xóa', smart_device_path(@smart_device), 
+            method: :delete, 
+            data: { confirm: 'Bạn có chắc chắn muốn xóa thiết bị này?' }, 
+            class: 'btn btn-danger' %>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Thông tin cơ bản</h5>
+      </div>
+      <div class="card-body">
+        <table class="table">
+          <tr>
+            <th>Tên thiết bị:</th>
+            <td><%= @smart_device.name %></td>
+          </tr>
+          <tr>
+            <th>ID thiết bị:</th>
+            <td><%= @smart_device.device_id %></td>
+          </tr>
+          <tr>
+            <th>Loại thiết bị:</th>
+            <td><%= @smart_device.device_type.humanize %></td>
+          </tr>
+          <tr>
+            <th>Mô tả:</th>
+            <td><%= @smart_device.description %></td>
+          </tr>
+          <tr>
+            <th>Tòa nhà:</th>
+            <td><%= @smart_device.building&.name || 'Chưa gán tòa nhà' %></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Thao tác thiết bị</h5>
+      </div>
+      <div class="card-body">
+        <div class="list-group">
+          <%= link_to 'Lấy thông tin thiết bị từ Tuya Cloud', device_info_smart_device_path(@smart_device), class: 'list-group-item list-group-item-action' %>
+          <%= link_to 'Lấy danh sách chức năng thiết bị', device_functions_smart_device_path(@smart_device), class: 'list-group-item list-group-item-action' %>
+          <%= link_to 'Lấy lịch sử thiết bị (7 ngày qua)', device_logs_smart_device_path(@smart_device), class: 'list-group-item list-group-item-action' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -31,6 +31,7 @@ Rails.application.routes.draw do
     end
     resources :rooms, only: [:index, :new, :create]
     resources :operating_expenses, only: [:index, :new, :create]
+    resources :smart_devices, only: [:index, :new, :create]
   end
   resources :rooms
   resources :tenants do
@@ -42,6 +43,19 @@ Rails.application.routes.draw do
   post '/vehicles', to: 'vehicles#create'
   # Then define the rest of the vehicle resources
   resources :vehicles, except: [:new, :create]
+  
+  # Define non-nested smart device routes
+  get '/smart_devices/new', to: 'smart_devices#new', as: :new_smart_device
+  post '/smart_devices', to: 'smart_devices#create', as: :smart_devices
+  get '/smart_devices/debug_api', to: 'smart_devices#debug_api', as: :debug_tuya_api
+  
+  resources :smart_devices, except: [:new, :create] do
+    member do
+      get :device_info
+      get :device_functions
+      get :device_logs
+    end
+  end
 
   resources :room_assignments do
     member do
