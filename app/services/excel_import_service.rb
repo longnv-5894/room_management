@@ -614,7 +614,7 @@ class ExcelImportService
     # Create primary tenant and assignment if name provided
     primary_tenant = nil
     if tenant_name.present?
-      primary_tenant = create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, true, monthly_rent) # Mark as representative tenant
+      primary_tenant = create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, true, monthly_rent, row) # Mark as representative tenant
 
       # Process vehicle for primary tenant
       if primary_tenant
@@ -628,7 +628,8 @@ class ExcelImportService
     # Create first co-tenant if name provided
     co_tenant1 = nil
     if co_tenant1_name.present?
-      co_tenant1 = create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false, monthly_rent) # Not representative tenant
+      # Pass the row with co-tenant specific parameters
+      co_tenant1 = create_tenant_with_details(co_tenant1_name, co_tenant1_phone, co_tenant1_id, room, false, monthly_rent, row, true, 1) # Not representative tenant, is co-tenant #1
 
       # Process vehicle for first co-tenant
       if co_tenant1
@@ -641,7 +642,8 @@ class ExcelImportService
 
     # Create second co-tenant if name provided
     if co_tenant2_name.present?
-      create_tenant_with_details(co_tenant2_name, co_tenant2_phone, co_tenant2_id, room, false, monthly_rent) # Not representative tenant
+      # Pass co-tenant #2 specific parameters
+      create_tenant_with_details(co_tenant2_name, co_tenant2_phone, co_tenant2_id, room, false, monthly_rent, row, true, 2) # Not representative tenant, is co-tenant #2
     end
 
     # Create utility readings
@@ -671,7 +673,7 @@ class ExcelImportService
     current_period >= latest_bill.billing_date
   end
 
-  def create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, is_representative_tenant = false, monthly_rent = nil)
+  def create_tenant_with_details(tenant_name, tenant_phone, tenant_id, room, is_representative_tenant = false, monthly_rent = nil, row = nil, is_co_tenant = false, co_tenant_number = nil)
     return nil if tenant_name.blank?
 
     # Kiểm tra ID number có tồn tại không
@@ -687,6 +689,47 @@ class ExcelImportService
     if @tenant_cache[cache_key]
       tenant = @tenant_cache[cache_key]
     else
+      # Get additional fields for the tenant from Excel
+      if defined?(row)
+        if is_co_tenant && co_tenant_number
+          # Use co-tenant specific column keys
+          id_issue_date_key = :"co_tenant#{co_tenant_number}_id_issue_date"
+          id_issue_place_key = :"co_tenant#{co_tenant_number}_id_issue_place"
+          permanent_address_key = :"co_tenant#{co_tenant_number}_permanent_address"
+
+          id_issue_date_value = get_cell_value(row, id_issue_date_key)
+          id_issue_place_value = get_cell_value(row, id_issue_place_key)
+          permanent_address_value = get_cell_value(row, permanent_address_key)
+        else
+          # Use primary tenant column keys
+          id_issue_date_value = get_cell_value(row, :id_issue_date)
+          id_issue_place_value = get_cell_value(row, :id_issue_place)
+          permanent_address_value = get_cell_value(row, :permanent_address)
+        end
+      else
+        id_issue_date_value = nil
+        id_issue_place_value = nil
+        permanent_address_value = nil
+      end
+
+      # Convert id_issue_date to proper date if possible
+      parsed_issue_date = nil
+      if id_issue_date_value.present?
+        begin
+          if id_issue_date_value.is_a?(Date)
+            parsed_issue_date = id_issue_date_value
+          elsif id_issue_date_value.is_a?(String) && id_issue_date_value =~ /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/
+            # Format DD/MM/YYYY or DD-MM-YYYY
+            parsed_issue_date = Date.new($3.to_i, $2.to_i, $1.to_i)
+          elsif id_issue_date_value.is_a?(String) && id_issue_date_value =~ /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/
+            # Format YYYY/MM/DD or YYYY-MM-DD
+            parsed_issue_date = Date.new($1.to_i, $2.to_i, $3.to_i)
+          end
+        rescue => e
+          Rails.logger.error "Failed to parse ID issue date '#{id_issue_date_value}': #{e.message}"
+        end
+      end
+
       # Tìm kiếm tenant theo id_number
       tenant = Tenant.find_by(id_number: tenant_id)
       if tenant
@@ -697,11 +740,39 @@ class ExcelImportService
           Rails.logger.info "Tenant name in Excel (#{tenant_name}) differs from existing tenant name (#{tenant.name}). Using existing tenant."
         end
 
-        # Cập nhật số điện thoại nếu cần
+        # Cập nhật các thông tin khác nếu cần
+        tenant_updated = false
+
         if tenant_phone.present? && tenant.phone.blank?
           tenant.phone = tenant_phone
-          tenant.save
+          tenant_updated = true
           Rails.logger.info "Updated phone number for existing tenant: #{tenant_phone}"
+        end
+
+        # Update ID issue date if not already set
+        if parsed_issue_date && tenant.id_issue_date.blank?
+          tenant.id_issue_date = parsed_issue_date
+          tenant_updated = true
+          Rails.logger.info "Updated ID issue date for existing tenant: #{parsed_issue_date}"
+        end
+
+        # Update ID issue place if not already set
+        if id_issue_place_value.present? && tenant.id_issue_place.blank?
+          tenant.id_issue_place = id_issue_place_value.to_s.strip
+          tenant_updated = true
+          Rails.logger.info "Updated ID issue place for existing tenant: #{id_issue_place_value}"
+        end
+
+        # Update permanent address if not already set
+        if permanent_address_value.present? && tenant.permanent_address.blank?
+          tenant.permanent_address = permanent_address_value.to_s.strip
+          tenant_updated = true
+          Rails.logger.info "Updated permanent address for existing tenant: #{permanent_address_value}"
+        end
+
+        # Save if any updates were made
+        if tenant_updated
+          tenant.save
         end
       else
         # Nếu không tìm thấy theo id_number, tạo mới tenant
@@ -709,7 +780,10 @@ class ExcelImportService
           name: tenant_name,
           phone: tenant_phone.presence || "",
           email: "",
-          id_number: tenant_id
+          id_number: tenant_id,
+          id_issue_date: parsed_issue_date,
+          id_issue_place: id_issue_place_value.to_s.strip.presence,
+          permanent_address: permanent_address_value.to_s.strip.presence
         )
 
         # Kiểm tra xem id_number có bị trùng không
@@ -751,7 +825,8 @@ class ExcelImportService
     end
 
     # Kiểm tra xem tenant đã từng được assign vào phòng này trước đó chưa (kể cả inactive)
-    previous_assignment = RoomAssignment.where(room: room, tenant: tenant).order(start_date: :desc).first
+    # Commented out because not currently used:
+    # previous_assignment = RoomAssignment.where(room: room, tenant: tenant).order(start_date: :desc).first
 
     # Create room assignment if not exists
     unless RoomAssignment.exists?(room: room, tenant: tenant, active: true)

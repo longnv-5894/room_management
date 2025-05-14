@@ -150,8 +150,9 @@
   <p>Thông tin người ở trú cùng:</p>
   <% co_tenants.each_with_index do |ct, index| %>
   <p class="indent"><%= index + 1 %>. Ông/Bà: <%= ct[:name] %></p>
-  <p class="indent">CMND/CCCD/Hộ chiếu số: <%= ct[:id_number] %></p>
+  <p class="indent">CMND/CCCD/Hộ chiếu số: <%= ct[:id_number] %> do <%= ct[:id_issue_place] || 'N/A' %> cấp ngày <%= ct[:id_issue_date]&.strftime("%d/%m/%Y") || 'N/A' %></p>
   <p class="indent">Điện thoại: <%= ct[:phone] || 'N/A' %></p>
+  <p class="indent">Địa chỉ thường trú: <%= ct[:permanent_address] || 'N/A' %></p>
   <% end %>
   <% end %>
 
