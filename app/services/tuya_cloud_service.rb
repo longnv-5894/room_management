@@ -195,7 +195,7 @@ class TuyaCloudService
       if result["success"]
         @access_token = result["result"]["access_token"]
         @refresh_token = result["result"]["refresh_token"]
-        @uid = result["result"]["uid"] if result["result"]["uid"].present?
+        # @uid = result["result"]["uid"] if result["result"]["uid"].present?
 
         # Lưu token mới vào cache
         cache_key = "#{TOKEN_CACHE_KEY}_#{@client_id}"
@@ -226,7 +226,7 @@ class TuyaCloudService
     if result["success"]
       @access_token = result["result"]["access_token"]
       @refresh_token = result["result"]["refresh_token"] if result["result"]["refresh_token"].present?
-      @uid = result["result"]["uid"] if result["result"]["uid"].present?
+      # @uid = result["result"]["uid"] if result["result"]["uid"].present?
 
       # Lưu token vào cache nếu cache_key được cung cấp
       if cache_key
@@ -276,7 +276,7 @@ class TuyaCloudService
         if result["success"]
           Rails.logger.info("Success with time offset of #{offset} seconds")
           @access_token = result["result"]["access_token"]
-          @uid = result["result"]["uid"] if result["result"]["uid"].present?
+          # @uid = result["result"]["uid"] if result["result"]["uid"].present?
 
           # Lưu token và uid vào cache
           cache_key = "#{TOKEN_CACHE_KEY}_#{@client_id}"
