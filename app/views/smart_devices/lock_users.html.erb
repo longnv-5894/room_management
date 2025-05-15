@@ -1,0 +1,119 @@
+<div class="container mt-4">
+  <h1 class="mb-4">
+    <i class="fas fa-users text-primary"></i>
+    Danh sách người dùng khóa
+    <small class="text-muted"><%= @smart_device.name %></small>
+  </h1>
+
+  <%= link_to smart_device_path(@smart_device), class: "btn btn-outline-secondary mb-4" do %>
+    <i class="fas fa-arrow-left"></i> Quay lại thiết bị
+  <% end %>
+
+  <% if @lock_users[:error].present? %>
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-circle"></i>
+      <%= @lock_users[:error] %>
+    </div>
+  <% elsif @lock_users[:users].blank? %>
+    <div class="alert alert-info">
+      <i class="fas fa-info-circle"></i>
+      Không có người dùng nào được tìm thấy cho khóa này.
+    </div>
+  <% else %>
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-users"></i>
+          Danh sách người dùng
+          <span class="badge bg-light text-primary float-end">
+            <%= @lock_users[:count] %> người dùng
+          </span>
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên người dùng</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th>Cập nhật lần cuối</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @lock_users[:users].each do |user| %>
+                <tr>
+                  <td><%= user[:id] %></td>
+                  <td>
+                    <% if user[:avatar_url].present? %>
+                      <img src="<%= user[:avatar_url] %>" alt="<%= user[:name] %>" class="avatar-sm rounded-circle me-2">
+                    <% else %>
+                      <i class="fas fa-user-circle me-2"></i>
+                    <% end %>
+                    <%= user[:name] %>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= user[:role].include?('Quản trị') ? 'danger' : (user[:role].include?('Thành viên') ? 'primary' : 'secondary') %>">
+                      <%= user[:role] %>
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge bg-<%= user[:status] == 'active' ? 'success' : 'warning' %>">
+                      <%= user[:status] == 'active' ? 'Hoạt động' : 'Không hoạt động' %>
+                    </span>
+                  </td>
+                  <td><%= user[:create_time] || 'Không có dữ liệu' %></td>
+                  <td><%= user[:update_time] || 'Không có dữ liệu' %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <% if @lock_users[:has_more] %>
+        <div class="card-footer">
+          <div class="d-flex justify-content-between align-items-center">
+            <span>Đang hiển thị <%= @lock_users[:users].size %> trên <%= @lock_users[:count] %> người dùng</span>
+            <div>
+              <%= link_to lock_users_smart_device_path(@smart_device, page: (@lock_users[:page_no] || 1) - 1), 
+                          class: "btn btn-sm btn-outline-primary #{'disabled' if (@lock_users[:page_no] || 1) <= 1}" do %>
+                <i class="fas fa-chevron-left"></i> Trang trước
+              <% end %>
+              <%= link_to lock_users_smart_device_path(@smart_device, page: (@lock_users[:page_no] || 1) + 1), 
+                          class: "btn btn-sm btn-outline-primary" do %>
+                Trang tiếp <i class="fas fa-chevron-right"></i>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="card mt-4">
+    <div class="card-header bg-info text-white">
+      <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin về người dùng khóa</h5>
+    </div>
+    <div class="card-body">
+      <p>
+        <i class="fas fa-circle-info text-info"></i>
+        Danh sách người dùng khóa hiển thị tất cả các người dùng đã được cấp quyền sử dụng khóa cửa thông minh này.
+      </p>
+      <p>
+        <i class="fas fa-circle-info text-info"></i>
+        Người dùng có thể được thêm hoặc quản lý thông qua ứng dụng chính hãng của khóa cửa thông minh.
+      </p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .avatar-sm {
+    width: 30px;
+    height: 30px;
+    object-fit: cover;
+  }
+</style>

@@ -1,50 +1,288 @@
-<% if @building %>
-  <h1>Danh sách thiết bị thông minh - <%= @building.name %></h1>
-<% else %>
-  <h1>Danh sách thiết bị thông minh</h1>
-<% end %>
-
-<div class="mb-4">
-  <% if @building %>
-    <%= link_to 'Thêm thiết bị thông minh mới', new_building_smart_device_path(@building), class: 'btn btn-primary' %>
-    <%= link_to 'Quay lại tòa nhà', building_path(@building), class: 'btn btn-secondary ml-2' %>
-  <% else %>
-    <%= link_to 'Thêm thiết bị thông minh mới', new_smart_device_path, class: 'btn btn-primary' %>
-  <% end %>
-</div>
-
-<div class="card">
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Tên thiết bị</th>
-            <th>Loại thiết bị</th>
-            <th>ID thiết bị</th>
-            <th>Tòa nhà</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @smart_devices.each do |device| %>
-            <tr>
-              <td><%= device.name %></td>
-              <td><%= device.device_type.humanize %></td>
-              <td><%= device.device_id %></td>
-              <td><%= device.building&.name || 'Chưa gán tòa nhà' %></td>
-              <td>
-                <%= link_to 'Xem', smart_device_path(device), class: 'btn btn-sm btn-info' %>
-                <%= link_to 'Sửa', edit_smart_device_path(device), class: 'btn btn-sm btn-warning' %>
-                <%= link_to 'Xóa', smart_device_path(device), 
-                    method: :delete, 
-                    data: { confirm: 'Bạn có chắc chắn muốn xóa thiết bị này?' }, 
-                    class: 'btn btn-sm btn-danger' %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+<div class="dashboard">
+  <div class="page-header">
+    <h1 class="header-title">
+      <i class="fas fa-fingerprint me-2"></i>
+      <% if @building.present? %>
+        Thiết bị thông minh - <%= @building.name %>
+      <% else %>
+        Tất cả thiết bị thông minh
+      <% end %>
+    </h1>
+    <div class="header-actions">
+      <% if @building.present? %>
+        <%= link_to new_building_smart_device_path(@building), class: 'btn btn-primary' do %>
+          <i class="fas fa-plus-circle me-1"></i> Thêm thiết bị mới
+        <% end %>
+      <% else %>
+        <%= link_to new_smart_device_path, class: 'btn btn-primary' do %>
+          <i class="fas fa-plus-circle me-1"></i> Thêm thiết bị mới
+        <% end %>
+      <% end %>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="fs-5 mb-0 fw-semibold">Danh sách thiết bị</h2>
+      
+      <div class="filter-container">
+        <%= form_with url: @building.present? ? building_smart_devices_path(@building) : smart_devices_path, method: :get, class: 'filter-form d-flex gap-2' do |f| %>
+          <%= f.select :device_type, 
+            [['Tất cả thiết bị', ''], 
+             ['Khóa thông minh', 'smart_lock'], 
+             ['Công tắc thông minh', 'smart_switch'], 
+             ['Cảm biến nhiệt độ', 'temperature_sensor']], 
+            { selected: params[:device_type] }, 
+            { class: 'form-select filter-select', onchange: 'this.form.submit()' } 
+          %>
+          
+          <div class="input-group">
+            <%= f.text_field :search, value: params[:search], class: 'form-control', placeholder: 'Tìm theo tên...' %>
+            <button class="btn btn-outline-secondary" type="submit">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <% if @smart_devices.any? %>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <% @smart_devices.each do |device| %>
+            <div class="col">
+              <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <% 
+                      device_icon = case device.device_type
+                                    when 'smart_lock'
+                                      'fa-lock'
+                                    when 'smart_switch'
+                                      'fa-toggle-on'
+                                    when 'temperature_sensor'
+                                      'fa-thermometer-half'
+                                    else
+                                      'fa-microchip'
+                                    end
+                      
+                      icon_color = case device.device_type
+                                  when 'smart_lock'
+                                    'text-primary'
+                                  when 'smart_switch'
+                                    'text-success'
+                                  when 'temperature_sensor'
+                                    'text-warning'
+                                  else
+                                    'text-secondary'
+                                  end
+                    %>
+                    <div class="stat-icon me-3">
+                      <i class="fas <%= device_icon %> <%= icon_color %>"></i>
+                    </div>
+                    <div>
+                      <h5 class="card-title mb-0"><%= device.name %></h5>
+                      <div class="mt-1">
+                        <span class="status-badge status-<%= device.online? ? 'active' : 'inactive' %>">
+                          <%= device.online? ? 'Online' : 'Offline' %>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="device-info mb-3">
+                    <div class="row mb-2">
+                      <div class="col-5 text-secondary">Loại thiết bị:</div>
+                      <div class="col-7 fw-medium">
+                        <%= 
+                          case device.device_type
+                          when 'smart_lock'
+                            'Khóa thông minh'
+                          when 'smart_switch'
+                            'Công tắc thông minh'
+                          when 'temperature_sensor'
+                            'Cảm biến nhiệt độ'
+                          else
+                            'Thiết bị thông minh'
+                          end
+                        %>
+                      </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                      <div class="col-5 text-secondary">Phòng:</div>
+                      <div class="col-7 fw-medium">
+                        <% if device.room.present? %>
+                          <%= device.room.number %>
+                        <% else %>
+                          <span class="text-muted">Chưa gán</span>
+                        <% end %>
+                      </div>
+                    </div>
+
+                    <% if device.device_type == 'smart_lock' %>
+                      <div class="row mb-2">
+                        <div class="col-5 text-secondary">Trạng thái:</div>
+                        <div class="col-7 fw-medium">
+                          <% if device.device_status == 'locked' %>
+                            <span class="text-danger"><i class="fas fa-lock me-1"></i>Đã khóa</span>
+                          <% elsif device.device_status == 'unlocked' %>
+                            <span class="text-success"><i class="fas fa-unlock me-1"></i>Đã mở</span>
+                          <% else %>
+                            <span class="text-muted">Không xác định</span>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% elsif device.device_type == 'smart_switch' %>
+                      <div class="row mb-2">
+                        <div class="col-5 text-secondary">Trạng thái:</div>
+                        <div class="col-7 fw-medium">
+                          <% if device.device_status == 'on' %>
+                            <span class="text-success"><i class="fas fa-toggle-on me-1"></i>Đang bật</span>
+                          <% else %>
+                            <span class="text-secondary"><i class="fas fa-toggle-off me-1"></i>Đang tắt</span>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% elsif device.device_type == 'temperature_sensor' && device.device_data.present? %>
+                      <div class="row mb-2">
+                        <div class="col-5 text-secondary">Nhiệt độ:</div>
+                        <div class="col-7 fw-medium">
+                          <% if device.device_data['temperature'].present? %>
+                            <%= device.device_data['temperature'] %>°C
+                          <% else %>
+                            <span class="text-muted">--</span>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
+
+                  <div class="device-actions d-flex gap-2 mt-3">
+                    <%= link_to smart_device_path(device), class: 'btn btn-sm btn-outline-primary flex-fill' do %>
+                      <i class="fas fa-eye me-1"></i> Chi tiết
+                    <% end %>
+                    
+                    <% if device.device_type == 'smart_lock' && device.online? %>
+                      <div class="dropdown flex-fill">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" id="deviceActionDropdown<%= device.id %>" data-bs-toggle="dropdown" aria-expanded="false">
+                          <i class="fas fa-cog me-1"></i> Thao tác
+                        </button>
+                        <ul class="dropdown-menu shadow-sm" aria-labelledby="deviceActionDropdown<%= device.id %>">
+                          <li>
+                            <%= link_to unlock_door_smart_device_path(device), method: :post, class: "dropdown-item" do %>
+                              <i class="fas fa-unlock me-2 text-success"></i> Mở khóa
+                            <% end %>
+                          </li>
+                          <li>
+                            <%= link_to lock_door_smart_device_path(device), method: :post, class: "dropdown-item" do %>
+                              <i class="fas fa-lock me-2 text-danger"></i> Khóa cửa
+                            <% end %>
+                          </li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li>
+                            <%= link_to edit_smart_device_path(device), class: "dropdown-item" do %>
+                              <i class="fas fa-edit me-2 text-primary"></i> Chỉnh sửa
+                            <% end %>
+                          </li>
+                        </ul>
+                      </div>
+                    <% elsif device.device_type == 'smart_switch' && device.online? %>
+                      <div class="dropdown flex-fill">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button" id="deviceActionDropdown<%= device.id %>" data-bs-toggle="dropdown" aria-expanded="false">
+                          <i class="fas fa-cog me-1"></i> Thao tác
+                        </button>
+                        <ul class="dropdown-menu shadow-sm" aria-labelledby="deviceActionDropdown<%= device.id %>">
+                          <li>
+                            <%= link_to turn_on_smart_device_path(device), method: :post, class: "dropdown-item" do %>
+                              <i class="fas fa-power-off me-2 text-success"></i> Bật
+                            <% end %>
+                          </li>
+                          <li>
+                            <%= link_to turn_off_smart_device_path(device), method: :post, class: "dropdown-item" do %>
+                              <i class="fas fa-power-off me-2 text-danger"></i> Tắt
+                            <% end %>
+                          </li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li>
+                            <%= link_to edit_smart_device_path(device), class: "dropdown-item" do %>
+                              <i class="fas fa-edit me-2 text-primary"></i> Chỉnh sửa
+                            <% end %>
+                          </li>
+                        </ul>
+                      </div>
+                    <% else %>
+                      <%= link_to edit_smart_device_path(device), class: 'btn btn-sm btn-outline-secondary flex-fill' do %>
+                        <i class="fas fa-edit me-1"></i> Chỉnh sửa
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+          <%= paginate @smart_devices if @smart_devices.respond_to?(:total_pages) %>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          Chưa có thiết bị thông minh nào được thêm vào.
+          <% if @building.present? %>
+            <%= link_to 'Thêm thiết bị mới', new_building_smart_device_path(@building), class: 'alert-link' %>
+          <% else %>
+            <%= link_to 'Thêm thiết bị mới', new_smart_device_path, class: 'alert-link' %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+ 
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality is now handled by form submit
+
+    // Device switch toggle functionality for smart switches
+    const deviceSwitches = document.querySelectorAll('.device-switch');
+    
+    deviceSwitches.forEach(function(switchEl) {
+      switchEl.addEventListener('change', function() {
+        const deviceId = this.dataset.deviceId;
+        const isOn = this.checked;
+        const label = this.nextElementSibling;
+        
+        label.textContent = 'Đang xử lý...';
+        
+        fetch(`/smart_devices/${deviceId}/${isOn ? 'turn_on' : 'turn_off'}`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+          },
+          credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            label.textContent = isOn ? 'Bật' : 'Tắt';
+          } else {
+            this.checked = !isOn;
+            label.textContent = !isOn ? 'Bật' : 'Tắt';
+            alert('Không thể thay đổi trạng thái thiết bị. Vui lòng thử lại.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          this.checked = !isOn;
+          label.textContent = !isOn ? 'Bật' : 'Tắt';
+          alert('Đã xảy ra lỗi khi gửi yêu cầu. Vui lòng thử lại sau.');
+        });
+      });
+    });
+  });
+</script>

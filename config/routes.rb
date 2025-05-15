@@ -1,26 +1,25 @@
 Rails.application.routes.draw do
-
   # Authentication routes
-  get    '/login',   to: 'sessions#new'
-  post   '/login',   to: 'sessions#create'
-  delete '/logout',  to: 'sessions#destroy'
-  get    '/logout',  to: 'sessions#destroy'  # Adding GET route for logout to handle cases where Turbo isn't working
+  get    "/login",   to: "sessions#new"
+  post   "/login",   to: "sessions#create"
+  delete "/logout",  to: "sessions#destroy"
+  get    "/logout",  to: "sessions#destroy"  # Adding GET route for logout to handle cases where Turbo isn't working
 
   # Users routes
-  get  '/signup',  to: 'users#new'
-  post '/signup',  to: 'users#create'
-  get  '/profile', to: 'users#show', as: :profile
-  get  '/profile/edit', to: 'users#edit', as: :edit_profile
-  patch '/profile', to: 'users#update'
+  get  "/signup",  to: "users#new"
+  post "/signup",  to: "users#create"
+  get  "/profile", to: "users#show", as: :profile
+  get  "/profile/edit", to: "users#edit", as: :edit_profile
+  patch "/profile", to: "users#update"
 
   # Language switching route
-  get '/switch_language/:locale', to: 'languages#switch', as: :switch_language
+  get "/switch_language/:locale", to: "languages#switch", as: :switch_language
 
   # Location API routes for cascading dropdowns
   namespace :api do
-    get '/cities/:country_id', to: 'locations#cities', as: :cities
-    get '/districts/:city_id', to: 'locations#districts', as: :districts
-    get '/wards/:district_id', to: 'locations#wards', as: :wards
+    get "/cities/:country_id", to: "locations#cities", as: :cities
+    get "/districts/:city_id", to: "locations#districts", as: :districts
+    get "/wards/:district_id", to: "locations#wards", as: :wards
   end
 
   # Resource routes
@@ -29,31 +28,46 @@ Rails.application.routes.draw do
       get :import_form
       post :import_excel
     end
-    resources :rooms, only: [:index, :new, :create]
-    resources :operating_expenses, only: [:index, :new, :create]
-    resources :smart_devices, only: [:index, :new, :create]
+    resources :rooms, only: [ :index, :new, :create ]
+    resources :operating_expenses, only: [ :index, :new, :create ]
+    resources :smart_devices, only: [ :index, :new, :create ]
   end
   resources :rooms
   resources :tenants do
-    resources :vehicles, only: [:index, :new, :create]
+    resources :vehicles, only: [ :index, :new, :create ]
   end
 
   # Define specific vehicle routes first to ensure proper order
-  get '/vehicles/new', to: 'vehicles#new', as: :new_vehicle
-  post '/vehicles', to: 'vehicles#create'
+  get "/vehicles/new", to: "vehicles#new", as: :new_vehicle
+  post "/vehicles", to: "vehicles#create"
   # Then define the rest of the vehicle resources
-  resources :vehicles, except: [:new, :create]
-  
+  resources :vehicles, except: [ :new, :create ]
+
   # Define non-nested smart device routes
-  get '/smart_devices/new', to: 'smart_devices#new', as: :new_smart_device
-  post '/smart_devices', to: 'smart_devices#create', as: :smart_devices
-  get '/smart_devices/debug_api', to: 'smart_devices#debug_api', as: :debug_tuya_api
-  
-  resources :smart_devices, except: [:new, :create] do
+  get "/smart_devices/new", to: "smart_devices#new", as: :new_smart_device
+  post "/smart_devices", to: "smart_devices#create", as: :smart_devices
+  get "/smart_devices/debug_api", to: "smart_devices#debug_api", as: :debug_tuya_api
+
+  resources :smart_devices, except: [ :new, :create ] do
+    collection do
+      post :sync_devices
+    end
+
     member do
       get :device_info
       get :device_functions
       get :device_logs
+
+      # Thêm routes cho khóa cửa thông minh
+      get :lock_status
+      post :unlock_door
+      post :lock_door
+      get :battery_level
+      get :unlock_records
+      get :password_list
+      post :add_password
+      delete :delete_password
+      get :lock_users # Thêm route mới cho danh sách người dùng khóa
     end
   end
 
@@ -86,13 +100,13 @@ Rails.application.routes.draw do
   end
 
   # Revenues route
-  get '/revenues', to: 'revenues#index', as: :revenues
+  get "/revenues", to: "revenues#index", as: :revenues
 
   # Dashboard route
-  get '/dashboard', to: 'dashboard#index', as: :dashboard
+  get "/dashboard", to: "dashboard#index", as: :dashboard
 
   # Root path
-  root 'dashboard#index'
+  root "dashboard#index"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
