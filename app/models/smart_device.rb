@@ -6,6 +6,9 @@ class SmartDevice < ApplicationRecord
   belongs_to :building, optional: true
   belongs_to :room, optional: true
 
+  has_many :unlock_records, dependent: :destroy
+  has_many :device_users, dependent: :destroy
+
   # Check if device is currently online/active
   def online?
     begin
@@ -105,17 +108,6 @@ class SmartDevice < ApplicationRecord
     device_type == "smart_lock" || device_type == "fingerprint_lock"
   end
 
-  # Lấy trạng thái khóa
-  def get_lock_status
-    return { error: "Thiết bị không phải là khóa cửa" } unless smart_lock?
-
-    begin
-      lock_service = TuyaSmartLockService.new
-      lock_service.get_lock_status(device_id)
-    rescue => e
-      { error: e.message }
-    end
-  end
 
   # Mở khóa
   def unlock
@@ -155,6 +147,39 @@ class SmartDevice < ApplicationRecord
 
   # Lấy lịch sử mở khóa
   def get_unlock_records(days = 7)
+    return { error: "Thiết bị không phải là khóa cửa" } unless smart_lock?
+
+    # By default, use local database records
+    begin
+      start_time = Time.now - days.days
+      records = unlock_records.where("time >= ?", start_time).order(time: :desc).limit(50)
+
+      {
+        success: true,
+        records: records.map { |record|
+          {
+            id: record.record_id,
+            time: record.time.getlocal("+07:00").strftime("%Y-%m-%d %H:%M:%S"),
+            user: record.user_name,
+            user_name: record.user_name,
+            method: record.unlock_method,
+            success: record.success,
+            raw_data: record.raw_data
+          }
+        },
+        count: records.size,
+        has_more: false,
+        page_no: 1,
+        page_size: 50,
+        from_database: true
+      }
+    rescue => e
+      { error: e.message, records: [] }
+    end
+  end
+
+  # Get unlock records directly from Tuya API for sync operations
+  def get_unlock_records_from_api(days = 7)
     return { error: "Thiết bị không phải là khóa cửa" } unless smart_lock?
 
     begin
@@ -227,12 +252,74 @@ class SmartDevice < ApplicationRecord
   def get_lock_users(page = 1, page_size = 20)
     return { error: "Thiết bị không phải là khóa cửa", users: [] } unless smart_lock?
 
+    # By default, get users from database
+    begin
+      offset = (page - 1) * page_size
+      users = device_users.limit(page_size).offset(offset)
+      total_count = device_users.count
+
+      {
+        users: users.map { |user|
+          {
+            id: user.user_id,
+            name: user.name,
+            avatar_url: user.avatar_url,
+            role: user.role,
+            status: user.status || "active",
+            create_time: user.created_at&.strftime("%Y-%m-%d %H:%M:%S"),
+            update_time: user.updated_at&.strftime("%Y-%m-%d %H:%M:%S"),
+            raw_data: user.raw_data
+          }
+        },
+        count: total_count,
+        has_more: (offset + page_size) < total_count,
+        page_no: page,
+        page_size: page_size,
+        from_database: true
+      }
+    rescue => e
+      { error: e.message, users: [] }
+    end
+  end
+
+  # Get device users directly from Tuya API for sync operations
+  def get_lock_users_from_api(page = 1, page_size = 20)
+    return { error: "Thiết bị không phải là khóa cửa", users: [] } unless smart_lock?
+
     begin
       lock_service = TuyaSmartLockService.new
       lock_service.get_lock_users(device_id, page, page_size)
     rescue => e
       { error: e.message, users: [] }
     end
+  end
+
+  # Đồng bộ dữ liệu từ Tuya API cho khóa cửa thông minh
+  def sync_data_from_tuya
+    return { error: "Thiết bị không phải là khóa cửa" } unless smart_lock?
+
+    results = {}
+
+    # Lấy dữ liệu từ API Tuya và đồng bộ vào cơ sở dữ liệu
+    # Đồng bộ lịch sử mở khóa
+    unlock_results = UnlockRecord.sync_from_tuya(self)
+    results[:unlock_records] = unlock_results
+
+    # Đồng bộ người dùng
+    users_results = DeviceUser.sync_from_tuya(self)
+    results[:device_users] = users_results
+
+    results
+  end
+
+  # Lấy lịch sử mở khóa từ database
+  def local_unlock_records(limit = 50)
+    unlock_records.recent.limit(limit)
+  end
+
+  # Lấy danh sách người dùng từ database
+  def local_device_users
+    device_users
   end
 
   def self.device_types

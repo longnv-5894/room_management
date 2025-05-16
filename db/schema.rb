@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_14_000001) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_16_072713) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -117,6 +117,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_14_000001) do
     t.index ["code"], name: "index_countries_on_code", unique: true
   end
 
+  create_table "device_users", force: :cascade do |t|
+    t.bigint "smart_device_id", null: false
+    t.bigint "tenant_id"
+    t.string "user_id", null: false
+    t.string "name"
+    t.string "role"
+    t.string "status"
+    t.string "avatar_url"
+    t.datetime "last_active_at"
+    t.json "raw_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["smart_device_id", "user_id"], name: "index_device_users_on_smart_device_id_and_user_id", unique: true
+    t.index ["smart_device_id"], name: "index_device_users_on_smart_device_id"
+    t.index ["tenant_id"], name: "index_device_users_on_tenant_id"
+    t.index ["user_id"], name: "index_device_users_on_user_id"
+  end
+
   create_table "districts", force: :cascade do |t|
     t.string "name", null: false
     t.bigint "city_id", null: false
@@ -197,6 +215,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_14_000001) do
     t.index ["phone"], name: "index_tenants_on_phone"
   end
 
+  create_table "unlock_records", force: :cascade do |t|
+    t.bigint "smart_device_id", null: false
+    t.datetime "time", null: false
+    t.string "user_name"
+    t.string "unlock_method"
+    t.boolean "success", default: true
+    t.string "record_id"
+    t.json "raw_data"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id"
+    t.index ["record_id"], name: "index_unlock_records_on_record_id", unique: true
+    t.index ["smart_device_id"], name: "index_unlock_records_on_smart_device_id"
+    t.index ["time"], name: "index_unlock_records_on_time"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -267,12 +301,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_14_000001) do
   add_foreign_key "buildings", "wards"
   add_foreign_key "cities", "countries"
   add_foreign_key "contracts", "room_assignments"
+  add_foreign_key "device_users", "smart_devices"
+  add_foreign_key "device_users", "tenants"
   add_foreign_key "districts", "cities"
   add_foreign_key "operating_expenses", "buildings"
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"
   add_foreign_key "rooms", "buildings"
   add_foreign_key "smart_devices", "buildings"
+  add_foreign_key "unlock_records", "smart_devices"
   add_foreign_key "utility_prices", "buildings"
   add_foreign_key "utility_readings", "rooms"
   add_foreign_key "vehicles", "tenants"

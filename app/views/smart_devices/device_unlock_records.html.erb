@@ -1,0 +1,108 @@
+<% content_for :title, "Lịch sử mở khóa (lưu trữ)" %>
+
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mt-4">
+      <i class="fas fa-history"></i>
+      Lịch sử mở khóa: <%= @smart_device.name %>
+    </h1>
+    <div>
+      <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary me-2' do %>
+        <i class="fas fa-chevron-left me-1"></i> Quay lại
+      <% end %>
+      
+      <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: "Bạn muốn đồng bộ dữ liệu mới từ Tuya API?" } do %>
+        <i class="fas fa-sync me-1"></i> Đồng bộ dữ liệu
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+      <h6 class="m-0 font-weight-bold text-primary">Lịch sử mở khóa từ cơ sở dữ liệu</h6>
+    </div>
+    
+    <div class="card-body">
+      <% if @unlock_records.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Thời gian</th>
+                <th class="border-0">Người dùng</th>
+                <th class="border-0">Phương thức</th>
+                <th class="border-0">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @unlock_records.each do |record| %>
+                <tr>
+                  <td>
+                    <div class="fw-medium"><%= record.time.getlocal("+07:00").strftime("%Y-%m-%d") %></div>
+                    <small class="text-muted"><%= record.time.getlocal("+07:00").strftime("%H:%M:%S") %></small>
+                  </td>
+                  <td>
+                    <% if record.device_user %>
+                      <div class="d-flex align-items-center">
+                        <% if record.device_user.avatar_url.present? %>
+                          <img src="<%= record.device_user.avatar_url %>" alt="User Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                        <% else %>
+                          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <%= record.device_user.name.first.upcase rescue '?' %>
+                          </div>
+                        <% end %>
+                        <div>
+                          <div class="fw-medium"><%= record.device_user.name %></div>
+                          <small class="text-muted"><%= record.user_name %></small>
+                        </div>
+                      </div>
+                    <% else %>
+                      <%= record.user_name || "Không xác định" %>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% case record.unlock_method 
+                       when "Vân tay" %>
+                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                        <i class="fas fa-fingerprint me-1"></i> Vân tay
+                      </span>
+                    <% when "Mật khẩu" %>
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-key me-1"></i> Mật khẩu
+                      </span>
+                    <% when "Thẻ" %>
+                      <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">
+                        <i class="fas fa-id-card me-1"></i> Thẻ
+                      </span>
+                    <% when "Ứng dụng" %>
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                        <i class="fas fa-mobile-alt me-1"></i> Ứng dụng
+                      </span>
+                    <% else %>
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-question-circle me-1"></i> <%= record.unlock_method %>
+                      </span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if record.success %>
+                      <span class="badge bg-success">Thành công</span>
+                    <% else %>
+                      <span class="badge bg-danger">Thất bại</span>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> 
+          Chưa có dữ liệu lịch sử mở khóa trong cơ sở dữ liệu.
+          <%= link_to "Đồng bộ dữ liệu từ Tuya", sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

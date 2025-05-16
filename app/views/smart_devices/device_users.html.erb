@@ -1,0 +1,147 @@
+<% content_for :title, "Người dùng thiết bị (lưu trữ)" %>
+
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mt-4">
+      <i class="fas fa-users"></i>
+      Người dùng thiết bị: <%= @smart_device.name %>
+    </h1>
+    <div>
+      <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary me-2' do %>
+        <i class="fas fa-chevron-left me-1"></i> Quay lại
+      <% end %>
+      
+      <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: "Bạn muốn đồng bộ dữ liệu mới từ Tuya API?" } do %>
+        <i class="fas fa-sync me-1"></i> Đồng bộ dữ liệu
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+      <h6 class="m-0 font-weight-bold text-primary">Người dùng thiết bị từ cơ sở dữ liệu</h6>
+    </div>
+    
+    <div class="card-body">
+      <% if @device_users.any? %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="border-0">Tên</th>
+                <th class="border-0">Vai trò</th>
+                <th class="border-0">Trạng thái</th>
+                <th class="border-0">Người thuê</th>
+                <th class="border-0">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @device_users.each do |user| %>
+                <tr>
+                  <td><%= user.name || "Người dùng không tên" %></td>
+                  <td>
+                    <% case user.role 
+                       when "Quản trị viên" %>
+                      <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">
+                        <i class="fas fa-user-shield me-1"></i> <%= user.role %>
+                      </span>
+                    <% when "Thành viên" %>
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-user me-1"></i> <%= user.role %>
+                      </span>
+                    <% when "Khách" %>
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-user-friends me-1"></i> <%= user.role %>
+                      </span>
+                    <% else %>
+                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                        <i class="fas fa-user-tag me-1"></i> <%= user.role || "Không xác định" %>
+                      </span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if user.status == "active" %>
+                      <span class="badge bg-success">Hoạt động</span>
+                    <% else %>
+                      <span class="badge bg-secondary"><%= user.status %></span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if user.tenant %>
+                      <%= link_to user.tenant.name, tenant_path(user.tenant), class: "text-decoration-none" %>
+                    <% else %>
+                      <span class="text-muted">Chưa liên kết</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if user.tenant.nil? %>
+                      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkModal<%= user.id %>">
+                        <i class="fas fa-link me-1"></i> Liên kết
+                      </button>
+                    <% else %>
+                      <%= link_to unlink_user_from_tenant_smart_device_path(@smart_device, device_user_id: user.id), 
+                            method: :post, class: "btn btn-sm btn-outline-danger", 
+                            data: { turbo_method: :post, turbo_confirm: "Bạn có chắc muốn hủy liên kết người dùng này?" } do %>
+                        <i class="fas fa-unlink me-1"></i> Hủy liên kết
+                      <% end %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> 
+          Chưa có dữ liệu người dùng trong cơ sở dữ liệu.
+          <%= link_to "Đồng bộ dữ liệu từ Tuya", sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Link modals -->
+<% @device_users.each do |user| %>
+  <% if user.tenant.nil? %>
+    <div class="modal fade" id="linkModal<%= user.id %>" tabindex="-1" aria-labelledby="linkModalLabel<%= user.id %>" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="linkModalLabel<%= user.id %>">Liên kết người dùng với người thuê</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <%= form_with url: link_user_to_tenant_smart_device_path(@smart_device), method: :post do |f| %>
+            <div class="modal-body">
+              <%= f.hidden_field :device_user_id, value: user.id %>
+              <div class="mb-3">
+                <%= f.label :tenant_id, "Chọn người thuê", class: "form-label" %>
+                <%= f.collection_select :tenant_id, Tenant.order(:name), :id, :name, 
+                      { prompt: "-- Chọn người thuê --" }, 
+                      { class: "form-select select2", required: true } %>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+              <%= f.submit "Liên kết", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<% content_for :scripts do %>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 if available
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+      $('.select2').select2({
+        theme: 'bootstrap4'
+      });
+    }
+  });
+</script>
+<% end %>

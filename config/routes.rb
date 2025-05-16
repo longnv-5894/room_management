@@ -43,12 +43,8 @@ Rails.application.routes.draw do
   # Then define the rest of the vehicle resources
   resources :vehicles, except: [ :new, :create ]
 
-  # Define non-nested smart device routes
-  get "/smart_devices/new", to: "smart_devices#new", as: :new_smart_device
-  post "/smart_devices", to: "smart_devices#create", as: :smart_devices
-  get "/smart_devices/debug_api", to: "smart_devices#debug_api", as: :debug_tuya_api
-
-  resources :smart_devices, except: [ :new, :create ] do
+  # Define smart device routes
+  resources :smart_devices do
     collection do
       post :sync_devices
     end
@@ -58,16 +54,21 @@ Rails.application.routes.draw do
       get :device_functions
       get :device_logs
 
-      # Thêm routes cho khóa cửa thông minh
-      get :lock_status
+      # Smart lock routes
       post :unlock_door
       post :lock_door
       get :battery_level
-      get :unlock_records
       get :password_list
       post :add_password
       delete :delete_password
-      get :lock_users # Thêm route mới cho danh sách người dùng khóa
+      get :lock_users
+
+      # Database sync routes
+      match :sync_device_data, via: [ :get, :post ]
+      get :device_unlock_records
+      get :device_users
+      post :link_user_to_tenant
+      post :unlink_user_from_tenant
     end
   end
 

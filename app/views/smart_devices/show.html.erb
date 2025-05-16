@@ -29,6 +29,12 @@
       <%= link_to edit_smart_device_path(@smart_device), class: 'btn btn-primary' do %>
         <i class="fas fa-edit me-1"></i> <%= t('smart_devices.common.edit') %>
       <% end %>
+      
+      <% if @smart_device.device_type == 'smart_lock' %>
+        <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info' do %>
+          <i class="fas fa-sync me-1"></i> <%= t('common.sync') %>
+        <% end %>
+      <% end %>
     </div>
   </div>
 
@@ -82,8 +88,12 @@
               <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                 <%= t('smart_devices.common.status') %></div>
               <div class="h5 mb-0 font-weight-bold">
-                <span class="badge <%= @smart_device.online? ? 'bg-success' : 'bg-danger' %> rounded-pill">
-                  <%= @smart_device.online? ? t('smart_devices.common.online') : t('smart_devices.common.offline') %>
+                <% 
+                  # Use local status instead of live API check
+                  device_status = @smart_device.device_users.where('last_active_at > ?', 12.hours.ago).exists?
+                %>
+                <span class="badge <%= device_status ? 'bg-success' : 'bg-danger' %> rounded-pill">
+                  <%= device_status ? t('smart_devices.common.online') : t('smart_devices.common.offline') %>
                 </span>
               </div>
             </div>
@@ -103,7 +113,7 @@
               <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                 <%= t('smart_devices.common.last_update') %></div>
               <div class="h5 mb-0 font-weight-bold text-gray-800">
-                <%= @smart_device.updated_at.strftime("%H:%M %d/%m/%Y") %>
+                <%= @smart_device.updated_at.in_time_zone('Asia/Ho_Chi_Minh').strftime("%H:%M %d/%m/%Y") %>
               </div>
             </div>
             <div class="col-auto">
@@ -168,70 +178,6 @@
         </div>
       </div>
 
-      <% if @smart_device.device_type == 'smart_lock' && @smart_device.online? %>
-      <div class="card border-0 shadow">
-        <div class="card-header py-3 bg-white">
-          <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.lock.lock_status') %></h6>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 mb-4 mb-md-0">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h5 class="text-muted mb-3"><%= t('smart_devices.lock.current_status') %></h5>
-                  <div class="mb-2">
-                    <% if @smart_device.device_status == 'locked' %>
-                      <i class="fas fa-lock fa-4x text-danger"></i>
-                    <% else %>
-                      <i class="fas fa-unlock fa-4x text-success"></i>
-                    <% end %>
-                  </div>
-                  <div class="mt-2 h4 <%= @smart_device.device_status == 'locked' ? 'text-danger' : 'text-success' %>">
-                    <%= @smart_device.device_status == 'locked' ? t('smart_devices.lock.locked') : t('smart_devices.lock.unlocked') %>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card bg-light">
-                <div class="card-body text-center">
-                  <h5 class="text-muted mb-3"><%= t('smart_devices.lock.battery') %></h5>
-                  <div class="mb-2">
-                    <% 
-                      battery = @smart_device.device_data&.dig('battery_percentage') || 0
-                      battery_class = ''
-                      if battery > 70
-                        battery_class = 'text-success'
-                      elsif battery > 30
-                        battery_class = 'text-warning'
-                      else
-                        battery_class = 'text-danger'
-                      end
-                    %>
-                    <i class="fas fa-battery-<%= 
-                      if battery > 80
-                        'full'
-                      elsif battery > 60
-                        'three-quarters'
-                      elsif battery > 40
-                        'half'
-                      elsif battery > 20
-                        'quarter'
-                      else
-                        'empty'
-                      end
-                    %> fa-4x <%= battery_class %>"></i>
-                  </div>
-                  <div class="mt-2 h4 <%= battery_class %>">
-                    <%= battery %>%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <% end %>
     </div>
 
     <div class="col-lg-6 col-md-12 mb-4">
@@ -253,7 +199,11 @@
         <div class="card-body">
           <% case @smart_device.device_type 
             when 'smart_lock' %>
-            <% if @smart_device.online? %>
+            <% 
+              # Check if device users were active recently
+              device_active = @smart_device.device_users.where('last_active_at > ?', 12.hours.ago).exists?
+            %>
+            <% if device_active %>
               <div class="row mb-4">
                 <div class="col-md-6 mb-3 mb-md-0">
                   <%= link_to unlock_door_smart_device_path(@smart_device), method: :post, 
@@ -285,8 +235,8 @@
 
             <div class="row">
               <div class="col-md-6 mb-3 mb-md-0">
-                <%= link_to lock_users_smart_device_path(@smart_device), 
-                    class: "card shadow-sm h-100 text-decoration-none text-white bg-primary hover-shadow transition-300" do %>
+                <%= link_to device_users_smart_device_path(@smart_device), 
+                    class: "card shadow-sm h-100 text-decoration-none text-white bg-primary hover-shadow transition-300 mb-3" do %>
                   <div class="card-body text-center py-4">
                     <i class="fas fa-users fa-3x mb-3"></i>
                     <h5 class="card-title"><%= t('smart_devices.lock.user_management') %></h5>
@@ -295,8 +245,8 @@
                 <% end %>
               </div>
               <div class="col-md-6">
-                <%= link_to unlock_records_smart_device_path(@smart_device), 
-                    class: "card shadow-sm h-100 text-decoration-none text-white bg-info hover-shadow transition-300" do %>
+                <%= link_to device_unlock_records_smart_device_path(@smart_device), 
+                    class: "card shadow-sm h-100 text-decoration-none text-white bg-info hover-shadow transition-300 mb-3" do %>
                   <div class="card-body text-center py-4">
                     <i class="fas fa-history fa-3x mb-3"></i>
                     <h5 class="card-title"><%= t('smart_devices.lock.unlock_history') %></h5>
@@ -307,14 +257,22 @@
             </div>
             
           <% when 'smart_switch' %>
-            <% if @smart_device.online? %>
+            <% 
+              # Use stored metadata for switch status if available
+              device_active = @smart_device.device_users.where('last_active_at > ?', 12.hours.ago).exists?
+              device_status = "off"
+              if @smart_device.respond_to?(:metadata) && @smart_device.metadata.present?
+                device_status = @smart_device.metadata["status"] || "off"
+              end
+            %>
+            <% if device_active %>
               <div class="text-center mb-4">
                 <div class="device-status my-4">
-                  <div class="display-1 <%= @smart_device.device_status == 'on' ? 'text-success' : 'text-muted' %>">
-                    <i class="fas <%= @smart_device.device_status == 'on' ? 'fa-toggle-on' : 'fa-toggle-off' %>"></i>
+                  <div class="display-1 <%= device_status == 'on' ? 'text-success' : 'text-muted' %>">
+                    <i class="fas <%= device_status == 'on' ? 'fa-toggle-on' : 'fa-toggle-off' %>"></i>
                   </div>
-                  <h4 class="mt-3 <%= @smart_device.device_status == 'on' ? 'text-success' : 'text-muted' %>">
-                    <%= @smart_device.device_status == 'on' ? t('smart_devices.switch.on') : t('smart_devices.switch.off') %>
+                  <h4 class="mt-3 <%= device_status == 'on' ? 'text-success' : 'text-muted' %>">
+                    <%= device_status == 'on' ? t('smart_devices.switch.on') : t('smart_devices.switch.off') %>
                   </h4>
                 </div>
                 
@@ -322,11 +280,11 @@
                   <div class="col-md-8">
                     <div class="d-flex justify-content-around">
                       <%= link_to turn_on_smart_device_path(@smart_device), method: :post, 
-                          class: "btn btn-lg #{@smart_device.device_status == 'on' ? 'btn-success' : 'btn-outline-success'} px-4" do %>
+                          class: "btn btn-lg #{device_status == 'on' ? 'btn-success' : 'btn-outline-success'} px-4" do %>
                         <i class="fas fa-power-off me-2"></i> <%= t('smart_devices.switch.turn_on') %>
                       <% end %>
                       <%= link_to turn_off_smart_device_path(@smart_device), method: :post, 
-                          class: "btn btn-lg #{@smart_device.device_status == 'off' ? 'btn-danger' : 'btn-outline-danger'} px-4" do %>
+                          class: "btn btn-lg #{device_status == 'off' ? 'btn-danger' : 'btn-outline-danger'} px-4" do %>
                         <i class="fas fa-power-off me-2"></i> <%= t('smart_devices.switch.turn_off') %>
                       <% end %>
                     </div>
@@ -341,24 +299,32 @@
             <% end %>
 
           <% when 'temperature_sensor' %>
-            <% if @smart_device.online? && @smart_device.device_data.present? %>
+            <% 
+              # Use stored metadata for temperature/humidity if available
+              device_active = @smart_device.device_users.where('last_active_at > ?', 12.hours.ago).exists?
+              sensor_data = {}
+              if @smart_device.respond_to?(:metadata) && @smart_device.metadata.present?
+                sensor_data = @smart_device.metadata
+              end
+            %>
+            <% if device_active && sensor_data.present? %>
               <div class="row">
                 <div class="col-md-6 mb-4">
                   <div class="card bg-primary text-white shadow h-100">
                     <div class="card-body text-center py-4">
                       <i class="fas fa-temperature-high fa-3x mb-3"></i>
-                      <h2 class="display-4"><%= @smart_device.device_data['temperature'] || '0' %> °C</h2>
+                      <h2 class="display-4"><%= sensor_data['temperature'] || '0' %> °C</h2>
                       <h5 class="text-white-50 mt-3"><%= t('smart_devices.sensor.temperature') %></h5>
                     </div>
                   </div>
                 </div>
                 
-                <% if @smart_device.device_data['humidity'].present? %>
+                <% if sensor_data['humidity'].present? %>
                 <div class="col-md-6 mb-4">
                   <div class="card bg-info text-white shadow h-100">
                     <div class="card-body text-center py-4">
                       <i class="fas fa-tint fa-3x mb-3"></i>
-                      <h2 class="display-4"><%= @smart_device.device_data['humidity'] || '0' %> %</h2>
+                      <h2 class="display-4"><%= sensor_data['humidity'] || '0' %> %</h2>
                       <h5 class="text-white-50 mt-3"><%= t('smart_devices.sensor.humidity') %></h5>
                     </div>
                   </div>
@@ -382,40 +348,106 @@
     </div>
   </div>
 
-  <% if @smart_device.device_type == 'smart_lock' && @device_logs.present? %>
+  <% if @smart_device.device_type == 'smart_lock' %>
   <div class="row">
     <div class="col-12">
       <div class="card border-0 shadow mb-4">
-        <div class="card-header py-3 bg-white">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
           <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.history.activity_history') %></h6>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="border-0"><%= t('smart_devices.history.time') %></th>
-                  <th class="border-0"><%= t('smart_devices.history.event') %></th>
-                  <th class="border-0"><%= t('smart_devices.history.user') %></th>
-                  <th class="border-0"><%= t('smart_devices.history.notes') %></th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @device_logs.each do |log| %>
-                  <tr>
-                    <td><%= log.created_at.strftime("%H:%M %d/%m/%Y") %></td>
-                    <td>
-                      <span class="badge <%= log.event_type == 'unlock' ? 'bg-success' : 'bg-danger' %>">
-                        <%= log.event_type == 'unlock' ? t('smart_devices.history.unlock') : t('smart_devices.history.lock') %>
-                      </span>
-                    </td>
-                    <td><%= log.user_name.presence || t('smart_devices.common.system') %></td>
-                    <td><%= log.notes.presence || '-' %></td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
+          <div>
+            <%= link_to device_unlock_records_smart_device_path(@smart_device), class: 'btn btn-sm btn-outline-primary' do %>
+              <i class="fas fa-list me-1"></i> <%= t('smart_devices.history.view_all') %>
+            <% end %>
           </div>
+        </div>
+        <div class="card-body">
+          <% 
+            # Get recent unlock records from the database
+            recent_records = @smart_device.local_unlock_records(10)
+          %>
+          
+          <% if recent_records.any? %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="border-0"><%= t('smart_devices.history.time') %></th>
+                    <th class="border-0"><%= t('smart_devices.history.user') %></th>
+                    <th class="border-0"><%= t('smart_devices.history.method') %></th>
+                    <th class="border-0"><%= t('smart_devices.history.status') %></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% recent_records.each do |record| %>
+                    <tr>
+                      <td>
+                        <div class="fw-medium"><%= record.time.getlocal("+07:00").strftime("%Y-%m-%d") %></div>
+                        <small class="text-muted"><%= record.time.getlocal("+07:00").strftime("%H:%M:%S") %></small>
+                      </td>
+                      <td>
+                        <% if record.device_user %>
+                          <div class="d-flex align-items-center">
+                            <% if record.device_user.avatar_url.present? %>
+                              <img src="<%= record.device_user.avatar_url %>" alt="<%= t('smart_devices.history.user_avatar') %>" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                            <% else %>
+                              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                <%= record.device_user.name.first.upcase rescue '?' %>
+                              </div>
+                            <% end %>
+                            <div>
+                              <div class="fw-medium"><%= record.device_user.name %></div>
+                            
+                              <small class="text-muted"><%= record.user_name %></small>
+
+                            </div>
+                          </div>
+                        <% else %>
+                          <%= record.user_name || t('smart_devices.history.unknown_user') %>
+                        <% end %>
+                      </td>
+                      <td>
+                        <% case record.unlock_method 
+                           when "Vân tay", t('smart_devices.history.fingerprint') %>
+                          <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                            <i class="fas fa-fingerprint me-1"></i> <%= t('smart_devices.history.fingerprint') %>
+                          </span>
+                        <% when "Mật khẩu", t('smart_devices.history.password') %>
+                          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                            <i class="fas fa-key me-1"></i> <%= t('smart_devices.history.password') %>
+                          </span>
+                        <% when "Thẻ", t('smart_devices.history.card') %>
+                          <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">
+                            <i class="fas fa-id-card me-1"></i> <%= t('smart_devices.history.card') %>
+                          </span>
+                        <% when "Ứng dụng", t('smart_devices.history.app') %>
+                          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                            <i class="fas fa-mobile-alt me-1"></i> <%= t('smart_devices.history.app') %>
+                          </span>
+                        <% else %>
+                          <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                            <i class="fas fa-question-circle me-1"></i> <%= record.unlock_method %>
+                          </span>
+                        <% end %>
+                      </td>
+                      <td>
+                        <% if record.success %>
+                          <span class="badge bg-success"><%= t('smart_devices.history.success') %></span>
+                        <% else %>
+                          <span class="badge bg-danger"><%= t('smart_devices.history.failed') %></span>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% else %>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i> 
+              <%= t('smart_devices.history.no_records') %>
+              <%= link_to t('smart_devices.history.sync_from_tuya'), sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>

@@ -1,15 +1,21 @@
-<div class="dashboard">
-  <div class="page-header">
-    <h1 class="header-title">
-      <i class="fas fa-fingerprint me-2"></i>
+<% content_for :title, @building.present? ? "#{t('smart_devices.title')} - #{@building.name}" : t('smart_devices.list') %>
+
+<div class="container-fluid px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mt-4">
+      <i class="fas fa-fingerprint"></i>
       <% if @building.present? %>
         <%= t('smart_devices.title') %> - <%= @building.name %>
       <% else %>
         <%= t('smart_devices.list') %>
       <% end %>
     </h1>
-    <div class="header-actions">
+    <div>
       <% if @building.present? %>
+        <%= link_to building_path(@building), class: 'btn btn-outline-secondary me-2' do %>
+          <i class="fas fa-chevron-left me-1"></i> <%= t('common.back') %>
+        <% end %>
+        
         <%= link_to new_building_smart_device_path(@building), class: 'btn btn-primary' do %>
           <i class="fas fa-plus-circle me-1"></i> <%= t('smart_devices.new') %>
         <% end %>
@@ -18,61 +24,56 @@
           <i class="fas fa-plus-circle me-1"></i> <%= t('smart_devices.new') %>
         <% end %>
       <% end %>
-    </div>
-  </div>
-
-  <div class="card mb-4">
-    <div class="card-body">
-      <%= form_with url: @building.present? ? building_smart_devices_path(@building) : smart_devices_path, method: :get, class: 'search-form' do |f| %>
-        <div class="filter-container">
-          <!-- Device type filter -->
-          <div class="filter-select-container">
-            <%= f.select :device_type, 
-              [
-                [t('common.all_items', items: t('smart_devices.management.device_management')), ''], 
-                [t('smart_devices.types.smart_lock'), 'smart_lock'], 
-                [t('smart_devices.types.smart_switch'), 'smart_switch'], 
-                [t('smart_devices.types.temperature_sensor'), 'temperature_sensor']
-              ], 
-              { selected: params[:device_type] }, 
-              { class: 'form-select filter-select', id: 'device-type-filter' } 
-            %>
-          </div>
-          
-          <!-- Search input -->
-          <div class="search-input-container">
-            <%= f.text_field :search, value: params[:search], class: 'form-control', placeholder: t('common.search_by_name') %>
-          </div>
-          
-          <!-- Action buttons -->
-          <div class="filter-actions">
-            <button type="submit" class="btn btn-primary filter-btn">
-              <i class="fas fa-search me-1"></i><%= t('common.search', default: 'Tìm kiếm') %>
-            </button>
-            
-            <% if params[:search].present? || params[:device_type].present? %>
-              <%= link_to @building.present? ? building_smart_devices_path(@building) : smart_devices_path, class: 'btn btn-outline-secondary filter-clear-btn' do %>
-                <i class="fas fa-times me-1"></i><%= t('common.clear', default: 'Xóa bộ lọc') %>
-              <% end %>
-            <% end %>
-          </div>
-        </div>
+      
+      <%= link_to sync_devices_smart_devices_path, method: :post, class: 'btn btn-info ms-2', data: { turbo_method: :post, turbo_confirm: t('smart_devices.confirm_sync') } do %>
+        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_with_cloud') %>
       <% end %>
     </div>
   </div>
 
-  <div class="card">
+  <div class="card border-0 shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+      <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.list') %></h6>
+      
+      <div>
+        <%= form_with url: @building.present? ? building_smart_devices_path(@building) : smart_devices_path, method: :get, class: 'd-flex' do |f| %>
+          <%= f.select :device_type, 
+            [
+              [t('common.all_items', items: t('smart_devices.common.device_type')), ''], 
+              [t('smart_devices.types.smart_lock'), 'smart_lock'], 
+              [t('smart_devices.types.smart_switch'), 'smart_switch'], 
+              [t('smart_devices.types.temperature_sensor'), 'temperature_sensor']
+            ], 
+            { selected: params[:device_type] }, 
+            { class: 'form-select me-2', style: 'width: auto;' } 
+          %>
+          
+          <%= f.text_field :search, value: params[:search], class: 'form-control me-2', placeholder: t('common.search_by_name'), style: 'width: auto;' %>
+          
+          <button type="submit" class="btn btn-sm btn-primary me-2">
+            <i class="fas fa-search me-1"></i><%= t('common.search') %>
+          </button>
+          
+          <% if params[:search].present? || params[:device_type].present? %>
+            <%= link_to @building.present? ? building_smart_devices_path(@building) : smart_devices_path, class: 'btn btn-sm btn-outline-secondary' do %>
+              <i class="fas fa-times me-1"></i><%= t('common.clear') %>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+    
     <div class="card-body">
       <% if @smart_devices.any? %>
         <div class="table-responsive">
-          <table class="data-table">
-            <thead>
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
               <tr>
-                <th><%= t('smart_devices.common.name') %></th>
-                <th><%= t('smart_devices.common.device_type') %></th>
-                <th><%= t('smart_devices.common.room') %></th>
-                <th><%= t('smart_devices.common.status') %></th>
-                <th><%= t('common.actions') %></th>
+                <th class="border-0"><%= t('smart_devices.common.name') %></th>
+                <th class="border-0"><%= t('smart_devices.common.device_type') %></th>
+                <th class="border-0"><%= t('smart_devices.common.room') %></th>
+                <th class="border-0"><%= t('smart_devices.common.status') %></th>
+                <th class="border-0"><%= t('common.actions') %></th>
               </tr>
             </thead>
             <tbody>
@@ -89,84 +90,63 @@
                                 'fa-microchip'
                               end
                   
-                  status_class = device.online? ? 'status-active' : 'status-inactive'
+                  # Check if device is active (for demonstration - adapt to your actual logic)
+                  is_active = device.try(:device_users).try(:where, 'last_active_at > ?', 12.hours.ago).try(:exists?) || false
                 %>
                 <tr>
                   <td>
                     <div class="d-flex align-items-center">
-                      <div class="device-icon me-2">
+                      <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
                         <i class="fas <%= device_icon %>"></i>
                       </div>
                       <div>
-                        <%= device.name %>
+                        <div class="fw-medium"><%= device.name %></div>
+                        <small class="text-muted"><code><%= device.device_id %></code></small>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <%= t("smart_devices.types.#{device.device_type}", default: device.device_type.humanize) %>
+                    <% case device.device_type %>
+                    <% when 'smart_lock' %>
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-lock me-1"></i> <%= t('smart_devices.types.smart_lock') %>
+                      </span>
+                    <% when 'smart_switch' %>
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
+                        <i class="fas fa-toggle-on me-1"></i> <%= t('smart_devices.types.smart_switch') %>
+                      </span>
+                    <% when 'temperature_sensor' %>
+                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                        <i class="fas fa-thermometer-half me-1"></i> <%= t('smart_devices.types.temperature_sensor') %>
+                      </span>
+                    <% else %>
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
+                        <i class="fas fa-microchip me-1"></i> <%= t('smart_devices.types.smart_device', default: device.device_type.humanize) %>
+                      </span>
+                    <% end %>
                   </td>
                   <td>
                     <% if device.room.present? %>
-                      <%= link_to device.room.number, room_path(device.room) %>
+                      <%= link_to device.room.number, room_path(device.room), class: 'text-decoration-none' %>
                     <% else %>
                       <span class="text-muted"><%= t('smart_devices.common.not_assigned') %></span>
                     <% end %>
                   </td>
                   <td>
-                    <span class="status-badge <%= status_class %>">
-                      <% if device.online? %>
-                        <i class="fas fa-circle me-1 status-icon"></i>
-                        <%= t('smart_devices.common.online') %>
-                        
-                        <% if device.device_type == 'smart_lock' %>
-                          <% if device.device_status == 'locked' %>
-                            - <i class="fas fa-lock me-1"></i><%= t('smart_devices.lock.locked') %>
-                          <% elsif device.device_status == 'unlocked' %>
-                            - <i class="fas fa-unlock me-1"></i><%= t('smart_devices.lock.unlocked') %>
-                          <% end %>
-                        <% elsif device.device_type == 'smart_switch' %>
-                          <% if device.device_status == 'on' %>
-                            - <i class="fas fa-toggle-on me-1"></i><%= t('smart_devices.switch.on') %>
-                          <% else %>
-                            - <i class="fas fa-toggle-off me-1"></i><%= t('smart_devices.switch.off') %>
-                          <% end %>
-                        <% elsif device.device_type == 'temperature_sensor' && device.device_data.present? %>
-                          <% if device.device_data['temperature'].present? %>
-                            - <i class="fas fa-thermometer-half me-1"></i><%= device.device_data['temperature'] %>°C
-                          <% end %>
-                        <% end %>
-                      <% else %>
-                        <i class="fas fa-circle me-1 status-icon"></i>
-                        <%= t('smart_devices.common.offline') %>
-                      <% end %>
-                    </span>
+                    <% if is_active %>
+                      <span class="badge bg-success">Online</span>
+                    <% else %>
+                      <span class="badge bg-danger">Offline</span>
+                    <% end %>
                   </td>
                   <td>
-                    <div class="d-flex">
-                      <%= link_to smart_device_path(device), class: 'btn btn-sm btn-light me-1' do %>
-                        <i class="fas fa-eye"></i> <%= t('common.view') %>
+                    <div class="btn-group">
+                      <%= link_to smart_device_path(device), class: 'btn btn-sm btn-outline-primary' do %>
+                        <i class="fas fa-eye me-1"></i> <%= t('common.view') %>
                       <% end %>
                       
-                      <% if device.device_type == 'smart_lock' && device.online? %>
-                        <%= link_to unlock_door_smart_device_path(device), method: :post, class: 'btn btn-sm btn-light me-1', title: t('smart_devices.lock.temp_unlock') do %>
-                          <i class="fas fa-unlock"></i>
-                        <% end %>
-                        
-                        <%= link_to lock_door_smart_device_path(device), method: :post, class: 'btn btn-sm btn-light me-1', title: t('smart_devices.lock.lock_door') do %>
-                          <i class="fas fa-lock"></i>
-                        <% end %>
-                      <% elsif device.device_type == 'smart_switch' && device.online? %>
-                        <%= link_to turn_on_smart_device_path(device), method: :post, class: 'btn btn-sm btn-light me-1', title: t('smart_devices.switch.turn_on') do %>
-                          <i class="fas fa-power-off"></i>
-                        <% end %>
-                        
-                        <%= link_to turn_off_smart_device_path(device), method: :post, class: 'btn btn-sm btn-light me-1', title: t('smart_devices.switch.turn_off') do %>
-                          <i class="fas fa-power-off"></i>
-                        <% end %>
-                      <% end %>
-                      
-                      <%= link_to edit_smart_device_path(device), class: 'btn btn-sm btn-light' do %>
-                        <i class="fas fa-edit"></i> <%= t('common.edit') %>
+                      <%= link_to edit_smart_device_path(device), class: 'btn btn-sm btn-outline-secondary' do %>
+                        <i class="fas fa-edit me-1"></i> <%= t('common.edit') %>
                       <% end %>
                     </div>
                   </td>
@@ -180,20 +160,13 @@
           <%= paginate @smart_devices if @smart_devices.respond_to?(:total_pages) %>
         </div>
       <% else %>
-        <div class="empty-state">
-          <div class="empty-state-icon">
-            <i class="fas fa-fingerprint"></i>
-          </div>
-          <h3><%= t('smart_devices.no_devices') %></h3>
-          <p><%= t('smart_devices.no_devices_description', default: 'Add smart devices to manage them') %></p>
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i> 
+          <%= t('smart_devices.no_devices') %>
           <% if @building.present? %>
-            <%= link_to new_building_smart_device_path(@building), class: 'btn btn-primary' do %>
-              <i class="fas fa-plus-circle me-1"></i> <%= t('smart_devices.add') %>
-            <% end %>
+            <%= link_to t('smart_devices.add'), new_building_smart_device_path(@building), class: "alert-link" %>
           <% else %>
-            <%= link_to new_smart_device_path, class: 'btn btn-primary' do %>
-              <i class="fas fa-plus-circle me-1"></i> <%= t('smart_devices.add') %>
-            <% end %>
+            <%= link_to t('smart_devices.add'), new_smart_device_path, class: "alert-link" %>
           <% end %>
         </div>
       <% end %>

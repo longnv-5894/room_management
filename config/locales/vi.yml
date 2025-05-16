@@ -817,7 +817,6 @@ vi:
       smart_device: "Thiết bị thông minh"
     
     lock:
-      lock_status: "Trạng thái khóa"
       current_status: "Trạng thái hiện tại"
       battery: "Pin"
       locked: "Đã khóa"

@@ -1,7 +1,7 @@
 class TuyaCloudService
   RETRY_TIME_OFFSETS = [ -60, 60, -120, 120, -180, 180, -300, 300 ].freeze
   TOKEN_CACHE_KEY = "tuya_api_token".freeze
-  TOKEN_CACHE_EXPIRY = 23.hours # Để an toàn, đặt thời gian hết hạn cache ít hơn thời gian hết hạn token Tuya (24h)
+  TOKEN_CACHE_EXPIRY = 2.hours # Để an toàn, đặt thời gian hết hạn cache ít hơn thời gian hết hạn token Tuya (24h)
   REFRESH_TOKEN_CACHE_KEY = "tuya_refresh_token".freeze
 
   # Use constants defined in initializer
@@ -654,11 +654,22 @@ class TuyaCloudService
     if result["success"]
       # Xử lý kết quả tùy thuộc vào loại endpoint
       devices = if options[:user_id].present?
-        result["result"] || []
+        # User endpoint trả về mảng thiết bị trực tiếp trong "result"
+        result["result"]
       else
-        result["result"]["devices"] || []
+        # Endpoint chính trả về object có chứa mảng "devices"
+        if result["result"].is_a?(Hash) && result["result"]["devices"]
+          result["result"]["devices"]
+        elsif result["result"].is_a?(Array)
+          # Trường hợp result trả về là một mảng thiết bị trực tiếp
+          result["result"]
+        else
+          # Trường hợp cấu trúc không xác định, trả về mảng rỗng
+          []
+        end
       end
 
+      devices = [] if devices.nil? # Đảm bảo không trả về nil
       Rails.logger.info("Successfully fetched #{devices.count} devices from Tuya API")
       devices
     else

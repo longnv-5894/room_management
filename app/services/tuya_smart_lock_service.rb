@@ -5,7 +5,6 @@ class TuyaSmartLockService
   LOCK_CODES = {
     open_door: "unlock", # Mở cửa
     lock_door: "lock", # Khóa cửa
-    get_lock_status: "lock_status", # Kiểm tra trạng thái khóa
     get_battery: "battery_percentage", # Kiểm tra pin
     get_password_records: "password_records", # Lấy danh sách mật khẩu
     add_password: "add_password", # Thêm mật khẩu
@@ -18,7 +17,6 @@ class TuyaSmartLockService
   DOOR_LOCK_ENDPOINTS = {
     unlock: "/v1.0/devices/%{device_id}/door-lock/unlock",
     lock: "/v1.0/devices/%{device_id}/door-lock/lock",
-    state: "/v1.0/devices/%{device_id}/door-lock/state",
     passwords: "/v1.0/devices/%{device_id}/door-lock/passwords",
     password: "/v1.0/devices/%{device_id}/door-lock/passwords/%{password_id}",
     open_logs: "/v1.0/devices/%{device_id}/door-lock/open-logs",
@@ -42,43 +40,6 @@ class TuyaSmartLockService
     door_lock_api_call("POST", path)
   end
 
-  # Lấy trạng thái khóa sử dụng API chuyên biệt
-  def get_lock_status(device_id)
-    path = DOOR_LOCK_ENDPOINTS[:state] % { device_id: device_id }
-    result = door_lock_api_call("GET", path)
-
-    if result && result[:success] && result[:data]
-      data = result[:data]
-      {
-        status: data["locked"] || false,
-        locked: data["locked"] || false,
-        battery_level: data["battery_level"],
-        online: data["online"] || false,
-        timestamp: Time.now,
-        raw_data: data
-      }
-    else
-      # Fallback thử lấy từ device info nếu API chuyên biệt không hoạt động
-      device_info = @tuya_service.get_device_info(device_id)
-
-      if device_info && device_info["status"]
-        status = device_info["status"].find { |s| s["code"] == LOCK_CODES[:get_lock_status] }
-
-        if status
-          {
-            status: status["value"],
-            locked: status["value"],
-            timestamp: Time.now,
-            via: "device_info"
-          }
-        else
-          { error: "Không tìm thấy thông tin trạng thái khóa" }
-        end
-      else
-        { error: "Không thể lấy thông tin thiết bị" }
-      end
-    end
-  end
 
   # Kiểm tra pin - sử dụng API state hoặc thông tin thiết bị
   def get_battery_level(device_id)
@@ -683,7 +644,6 @@ class TuyaSmartLockService
       vietnam_time = Time.at(timestamp).getlocal("+07:00").strftime("%Y-%m-%d %H:%M:%S")
 
       {
-        id: record["id"] || SecureRandom.uuid,
         time: vietnam_time,
         user: user_name,
         unlock_name: unlock_name, # Thêm trường unlock_name
@@ -725,7 +685,6 @@ class TuyaSmartLockService
         id: user["uid"] || user["user_id"] || SecureRandom.uuid,
         name: user["name"] || user["nick_name"] || "Người dùng không tên",
         avatar_url: user["avatar"] || user["avatar_url"],
-        role: determine_user_role(user["role"] || user["user_role"]),
         status: user["status"] || "active",
         create_time: format_timestamp(user["create_time"]),
         update_time: format_timestamp(user["update_time"]),

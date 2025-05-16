@@ -1,5 +1,5 @@
 class SmartDevicesController < ApplicationController
-  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :lock_status, :unlock_door, :lock_door, :battery_level, :unlock_records, :password_list, :add_password, :delete_password, :lock_users ]
+  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :unlock_door, :lock_door, :battery_level, :unlock_records, :password_list, :add_password, :delete_password, :lock_users, :sync_device_data, :device_unlock_records, :device_users, :link_user_to_tenant, :unlink_user_from_tenant ]
   before_action :set_building, only: [ :index, :new, :create ]
 
   def index
@@ -11,11 +11,6 @@ class SmartDevicesController < ApplicationController
   end
 
   def show
-    # Nếu là khóa cửa thông minh, lấy thêm thông tin trạng thái khóa và pin
-    if @smart_device.smart_lock?
-      @lock_status = @smart_device.get_lock_status
-      @battery_level = @smart_device.get_battery_level
-    end
   end
 
   def new
@@ -127,14 +122,6 @@ class SmartDevicesController < ApplicationController
     end
   end
 
-  def lock_status
-    @lock_status = @smart_device.get_lock_status
-
-    respond_to do |format|
-      format.html
-      format.json { render json: @lock_status }
-    end
-  end
 
   def unlock_door
     result = @smart_device.unlock
@@ -178,12 +165,13 @@ class SmartDevicesController < ApplicationController
     page = params[:page].present? ? params[:page].to_i : 1
     page_size = params[:page_size].present? ? params[:page_size].to_i : 50
 
-    # Gọi hàm get_unlock_records đã được cập nhật trong model
+    # Get records from database by default
     @unlock_records = @smart_device.get_unlock_records(days)
 
-    # Nếu có thêm records và người dùng muốn tải thêm trang tiếp theo
-    if params[:load_more].present? && @unlock_records[:has_more] && page > 1
-      # Chuẩn bị options truyền vào service
+    # If explicitly asked to load more and database has no more records,
+    # we sync more records from Tuya API
+    if params[:load_more].present? && !@unlock_records[:has_more] && page > 1 && params[:force_api].present?
+      # Explicitly call the API for more records
       options = {
         start_time: (Time.now - days.days).to_i * 1000,
         end_time: Time.now.to_i * 1000,
@@ -191,15 +179,15 @@ class SmartDevicesController < ApplicationController
         page_size: page_size
       }
 
-      # Gọi service trực tiếp với tham số page_no
-      lock_service = TuyaSmartLockService.new
-      more_records = lock_service.get_unlock_records(@smart_device.device_id, options)
+      # Get records from API and sync them to database
+      api_records = @smart_device.get_unlock_records_from_api(days)
 
-      if more_records[:success] && more_records[:records].present?
-        # Nối thêm records mới vào kết quả hiện tại
-        @unlock_records[:records] += more_records[:records]
-        @unlock_records[:has_more] = more_records[:has_more]
-        @unlock_records[:page_no] = more_records[:page_no]
+      if api_records[:success] && api_records[:records].present?
+        # Sync these records to database
+        UnlockRecord.sync_from_tuya(@smart_device, days)
+
+        # Get updated records from database
+        @unlock_records = @smart_device.get_unlock_records(days)
       end
     end
 
@@ -258,7 +246,18 @@ class SmartDevicesController < ApplicationController
   def lock_users
     page = params[:page].present? ? params[:page].to_i : 1
     page_size = params[:page_size].present? ? params[:page_size].to_i : 20
+
+    # Get users from database by default
     @lock_users = @smart_device.get_lock_users(page, page_size)
+
+    # Only force API fetch if explicitly requested
+    if params[:force_api].present?
+      # Sync users from API
+      DeviceUser.sync_from_tuya(@smart_device)
+
+      # Refresh the data from database
+      @lock_users = @smart_device.get_lock_users(page, page_size)
+    end
 
     respond_to do |format|
       format.html
@@ -337,6 +336,77 @@ class SmartDevicesController < ApplicationController
     end
 
     redirect_to smart_devices_path
+  end
+
+  # Đồng bộ dữ liệu từ Tuya API vào cơ sở dữ liệu
+  def sync_device_data
+    @smart_device = SmartDevice.find(params[:id])
+    results = @smart_device.sync_data_from_tuya
+
+    respond_to do |format|
+      if results[:error].present?
+        format.html { redirect_to @smart_device, alert: "Không thể đồng bộ dữ liệu: #{results[:error]}" }
+        format.json { render json: { success: false, error: results[:error] }, status: :unprocessable_entity }
+      else
+        unlock_record_msg = "Đã đồng bộ #{results[:unlock_records][:synced]} bản ghi mở khóa mới"
+        users_msg = "Đã đồng bộ #{results[:device_users][:synced]} người dùng mới, cập nhật #{results[:device_users][:updated]} người dùng"
+
+        format.html {
+          flash[:notice] = "Đồng bộ dữ liệu thành công. #{unlock_record_msg}. #{users_msg}."
+          redirect_to device_unlock_records_smart_device_path(@smart_device)
+        }
+        format.json { render json: results, status: :ok }
+      end
+    end
+  end
+
+  # Hiển thị lịch sử mở khóa từ cơ sở dữ liệu
+  def device_unlock_records
+    @smart_device = SmartDevice.find(params[:id])
+    @unlock_records = @smart_device.local_unlock_records(100)
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @unlock_records }
+    end
+  end
+
+  # Hiển thị danh sách người dùng từ cơ sở dữ liệu
+  def device_users
+    @smart_device = SmartDevice.find(params[:id])
+    @device_users = @smart_device.local_device_users
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @device_users }
+    end
+  end
+
+  # Liên kết người dùng thiết bị với tenant
+  def link_user_to_tenant
+    @device_user = DeviceUser.find(params[:device_user_id])
+    @tenant = Tenant.find(params[:tenant_id])
+
+    if @device_user.associate_with_tenant(@tenant)
+      redirect_to device_users_smart_device_path(@device_user.smart_device),
+                  notice: "Đã liên kết người dùng #{@device_user.name} với người thuê #{@tenant.name}"
+    else
+      redirect_to device_users_smart_device_path(@device_user.smart_device),
+                  alert: "Không thể liên kết người dùng với người thuê"
+    end
+  end
+
+  # Hủy liên kết người dùng thiết bị với tenant
+  def unlink_user_from_tenant
+    @device_user = DeviceUser.find(params[:device_user_id])
+
+    if @device_user.remove_tenant_association
+      redirect_to device_users_smart_device_path(@device_user.smart_device),
+                  notice: "Đã hủy liên kết người dùng #{@device_user.name} với người thuê"
+    else
+      redirect_to device_users_smart_device_path(@device_user.smart_device),
+                  alert: "Không thể hủy liên kết người dùng"
+    end
   end
 
   private
