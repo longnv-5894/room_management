@@ -162,7 +162,15 @@ class SmartDevice < ApplicationRecord
       end_time = Time.now.to_i * 1000
       start_time = (Time.now - days.days).to_i * 1000
 
-      lock_service.get_unlock_records(device_id, start_time, end_time)
+      # Truyền tham số dưới dạng options hash thay vì tham số riêng biệt
+      options = {
+        start_time: start_time,
+        end_time: end_time,
+        page_no: 1,
+        page_size: 50 # Lấy số lượng bản ghi lớn hơn mặc định
+      }
+
+      lock_service.get_unlock_records(device_id, options)
     rescue => e
       { error: e.message, records: [] }
     end

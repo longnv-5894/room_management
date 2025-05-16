@@ -34,6 +34,7 @@ vi:
     confirmation: "Xác nhận"
     ok: "Ok"
     search: "Tìm kiếm"
+    search_by_name: "Tìm theo tên"
     status: "Trạng thái"
     date: "Ngày"
     amount: "Số tiền"
@@ -53,6 +54,7 @@ vi:
     danger_zone: "Khu vực nguy hiểm"
     total: "Tổng cộng: %{count}"
     confirm_delete: "Bạn có chắc muốn xóa mục này không?"
+    all_items: "Tất cả %{items}"
   
   # Navigation
   nav:
@@ -77,6 +79,7 @@ vi:
     tenant_management: "Quản lý người thuê"
     billing_management: "Quản lý hóa đơn"
     financial_management: "Quản lý tài chính"
+    smart_devices: "Thiết bị thông minh"
   
   # Authentication
   auth:
@@ -778,6 +781,144 @@ vi:
       device_type: "Loại thiết bị"
       description: "Mô tả"
       building: "Tòa nhà"
+    common:
+      back_to_device: "Quay lại thiết bị"
+      back_to_list: "Quay lại danh sách"
+      edit: "Chỉnh sửa"
+      device_type: "Loại thiết bị"
+      status: "Trạng thái"
+      last_update: "Cập nhật lần cuối"
+      room: "Phòng"
+      not_assigned: "Chưa gán"
+      device_info: "Thông tin thiết bị"
+      device_id: "ID thiết bị"
+      display_name: "Tên hiển thị"
+      building: "Tòa nhà"
+      none: "Không có"
+      online: "Trực tuyến"
+      offline: "Ngoại tuyến"
+      no_data: "Không có dữ liệu"
+      system: "Hệ thống"
+      days: "ngày"
+      days_ago: "%{count} ngày trước"
+      confirm_delete: "Xác nhận xóa thiết bị"
+      delete_confirmation_message: "Bạn có chắc muốn xóa thiết bị \"%{name}\"?"
+      cannot_undo: "Hành động này không thể hoàn tác."
+      cancel: "Hủy"
+      delete_device: "Xóa thiết bị"
+      edit_info: "Chỉnh sửa thông tin"
+      apply: "Áp dụng"
+      loading: "Đang tải..."
+    
+    types:
+      smart_lock: "Khóa thông minh"
+      smart_switch: "Công tắc thông minh"
+      temperature_sensor: "Cảm biến nhiệt độ"
+      smart_device: "Thiết bị thông minh"
+    
+    lock:
+      lock_status: "Trạng thái khóa"
+      current_status: "Trạng thái hiện tại"
+      battery: "Pin"
+      locked: "Đã khóa"
+      unlocked: "Đã mở"
+      lock_control: "Điều khiển khóa"
+      temp_unlock: "Mở tạm thời"
+      temp_unlock_desc: "Mở khóa từ xa cho khách hoặc người thuê"
+      lock_door: "Khóa cửa"
+      lock_door_desc: "Khóa cửa từ xa để đảm bảo an ninh"
+      user_management: "Quản lý người dùng"
+      user_management_desc: "Xem và quản lý quyền truy cập"
+      unlock_history: "Lịch sử mở khóa"
+      unlock_history_desc: "Xem nhật ký chi tiết từ thiết bị"
+      device_offline: "Thiết bị đang ngoại tuyến. Không thể điều khiển khóa."
+      unlock_record_title: "Lịch sử mở khóa - %{name}"
+      filter: "Bộ lọc"
+      time_period: "Khoảng thời gian:"
+      days_placeholder: "Số ngày"
+      showing_records: "Hiển thị %{shown} trong tổng số %{total} bản ghi"
+      load_more: "Tải thêm dữ liệu"
+      error_title: "Lỗi:"
+      no_records_message: "Không tìm thấy bản ghi mở khóa nào trong khoảng thời gian đã chọn."
+      unlock_methods:
+        fingerprint: "Vân tay"
+        password: "Mật khẩu"
+        card: "Thẻ"
+        app: "Ứng dụng"
+        key: "Chìa khóa"
+        remote: "Từ xa"
+        method: "Phương thức"
+      unlock_statuses:
+        success: "Thành công"
+        failure: "Thất bại"
+      timestamp: "Thời gian"
+      user: "Người dùng"
+      method: "Phương thức"
+      status: "Trạng thái"
+    
+    lock_users:
+      title: "Người dùng khóa - %{name}"
+      total_users: "Tổng số người dùng"
+      users: "người dùng"
+      admins: "Quản trị viên"
+      active_users: "Người dùng đang hoạt động"
+      error_loading: "Không thể tải danh sách người dùng"
+      error_message: "Lỗi tải danh sách người dùng"
+      no_users_title: "Không tìm thấy người dùng"
+      no_users_message: "Không tìm thấy người dùng cho khóa này. Người dùng có thể được thêm thông qua ứng dụng chính thức của nhà sản xuất khóa."
+      authorized_users: "Người dùng được ủy quyền"
+      role: "Vai trò"
+      status: "Trạng thái"
+      created: "Được tạo"
+      updated: "Cập nhật"
+      admin: "Quản trị viên"
+      member: "Thành viên"
+      active: "Hoạt động"
+      inactive: "Không hoạt động"
+      no_data: "Không có dữ liệu"
+      prev_page: "Trước"
+      next_page: "Tiếp theo"
+      info_title: "Thông tin người dùng khóa"
+      info_message_1: "Danh sách người dùng khóa hiển thị tất cả người dùng đã được cấp quyền truy cập vào khóa thông minh này."
+      info_message_2: "Người dùng có thể được thêm hoặc quản lý thông qua ứng dụng chính thức của nhà sản xuất khóa thông minh."
+    
+    switch:
+      switch_control: "Điều khiển công tắc"
+      on: "BẬT"
+      off: "TẮT"
+      turn_on: "BẬT LÊN"
+      turn_off: "TẮT ĐI"
+      device_offline: "Thiết bị đang ngoại tuyến. Không thể điều khiển."
+      control_error: "Không thể điều khiển thiết bị. Vui lòng thử lại sau."
+    
+    sensor:
+      sensor_data: "Dữ liệu cảm biến"
+      temperature: "Nhiệt độ"
+      humidity: "Độ ẩm"
+      device_offline: "Thiết bị đang ngoại tuyến hoặc không có dữ liệu. Không thể hiển thị các thông số."
+    
+    common_device:
+      no_control: "Thiết bị này không có tùy chọn điều khiển cụ thể."
+    
+    history:
+      activity_history: "Lịch sử hoạt động"
+      time: "Thời gian"
+      event: "Sự kiện"
+      user: "Người dùng"
+      notes: "Ghi chú"
+      unlock: "Mở khóa"
+      lock: "Khóa"
+    
+    management:
+      device_management: "Quản lý thiết bị"
+    form:
+      device_from_tuya: "Thiết bị từ Tuya"
+      select_device: "Chọn thiết bị"
+      select_device_help: "Chọn thiết bị Tuya đã được kết nối với tài khoản của bạn"
+      no_devices_help: "Nhập ID thiết bị Tuya thủ công (thiết bị phải được kết nối với tài khoản Tuya của bạn)"
+      select_building: "Chọn tòa nhà"
+      create_device: "Tạo thiết bị mới"
+      update_device: "Cập nhật thiết bị"
   # Currency format
   number:
     currency:

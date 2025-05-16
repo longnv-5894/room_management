@@ -175,7 +175,33 @@ class SmartDevicesController < ApplicationController
 
   def unlock_records
     days = params[:days].present? ? params[:days].to_i : 7
+    page = params[:page].present? ? params[:page].to_i : 1
+    page_size = params[:page_size].present? ? params[:page_size].to_i : 50
+
+    # Gọi hàm get_unlock_records đã được cập nhật trong model
     @unlock_records = @smart_device.get_unlock_records(days)
+
+    # Nếu có thêm records và người dùng muốn tải thêm trang tiếp theo
+    if params[:load_more].present? && @unlock_records[:has_more] && page > 1
+      # Chuẩn bị options truyền vào service
+      options = {
+        start_time: (Time.now - days.days).to_i * 1000,
+        end_time: Time.now.to_i * 1000,
+        page_no: page,
+        page_size: page_size
+      }
+
+      # Gọi service trực tiếp với tham số page_no
+      lock_service = TuyaSmartLockService.new
+      more_records = lock_service.get_unlock_records(@smart_device.device_id, options)
+
+      if more_records[:success] && more_records[:records].present?
+        # Nối thêm records mới vào kết quả hiện tại
+        @unlock_records[:records] += more_records[:records]
+        @unlock_records[:has_more] = more_records[:has_more]
+        @unlock_records[:page_no] = more_records[:page_no]
+      end
+    end
 
     respond_to do |format|
       format.html

@@ -115,7 +115,7 @@ class TuyaSmartLockService
   end
 
   # Lấy lịch sử mở khóa sử dụng API chuyên biệt
-  def get_unlock_records(device_id, start_time = nil, end_time = nil, size = 20)
+  def get_unlock_records(device_id, options = {})
     begin
       # Đảm bảo đã có token xác thực
       @tuya_service.get_access_token unless @tuya_service.instance_variable_get(:@access_token)
@@ -123,15 +123,32 @@ class TuyaSmartLockService
       # Chuẩn bị các tham số
       timestamp = @tuya_service.generate_timestamp
 
-      # Sử dụng endpoint đúng cho khóa cửa thông minh
-      path = DOOR_LOCK_ENDPOINTS[:open_logs] % { device_id: device_id }
+      # Sử dụng endpoint đúng từ hằng số DOOR_LOCK_ENDPOINTS cho khóa cửa thông minh
+      # Thêm v1.1 vào đường dẫn nếu API yêu cầu phiên bản mới hơn
+      path = DOOR_LOCK_ENDPOINTS[:open_logs].gsub("/v1.0/", "/v1.1/") % { device_id: device_id }
 
-      # Tham số truy vấn
-      query_params = {
-        start_time: start_time || (Time.now - 7.days).to_i * 1000,
-        end_time: end_time || Time.now.to_i * 1000,
-        size: size
+      # Thiết lập giá trị mặc định cho các tham số
+      default_options = {
+        page_no: 1,
+        page_size: 20,
+        start_time: (Time.now - 30.days).to_i * 1000,
+        end_time: Time.now.to_i * 1000
       }
+
+      # Kết hợp options từ người dùng và giá trị mặc định
+      query_params = default_options.merge(options.compact)
+
+      # Thêm unlock_codes nếu được chỉ định
+      if options[:unlock_codes].present?
+        if options[:unlock_codes].is_a?(Array)
+          query_params[:codes] = options[:unlock_codes].join(",")
+        else
+          query_params[:codes] = options[:unlock_codes]
+        end
+      end
+
+      # Loại bỏ các tham số không được API hỗ trợ
+      query_params.delete(:unlock_codes)
 
       # Sắp xếp tham số để tạo query string
       query_params = query_params.sort.to_h
@@ -181,23 +198,34 @@ class TuyaSmartLockService
       Rails.logger.info("Door Lock Logs response: #{result}")
 
       if result["success"]
-        logs_data = result["result"] || {}
-        records = logs_data["logs"] || []
+        records_data = result["result"] || {}
+
+        # Theo tài liệu API, dữ liệu có thể nằm trong result.records hoặc result.logs
+        records = records_data["records"] || records_data["logs"] || []
+        has_more = records_data["has_more"].nil? ? (records_data["total"] || 0) > records.size : records_data["has_more"]
 
         {
+          success: true,
           records: format_unlock_records_from_api(records),
-          count: logs_data["total"] || records.size,
-          has_more: (logs_data["total"] || 0) > records.size,
-          raw_data: logs_data
+          count: records_data["total"] || records.size,
+          has_more: has_more,
+          page_no: query_params[:page_no],
+          page_size: query_params[:page_size],
+          raw_data: records_data
         }
       else
-        Rails.logger.error("Failed to get door lock logs: #{result["msg"]}")
-        { error: result["msg"] || "Không thể lấy lịch sử mở khóa", records: [] }
+        Rails.logger.error("Failed to get door lock logs: #{result["msg"] || result["code"]}")
+        {
+          success: false,
+          error: result["msg"] || "Không thể lấy lịch sử mở khóa",
+          code: result["code"],
+          records: []
+        }
       end
     rescue => e
       Rails.logger.error("Door Lock Logs error: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
-      { error: e.message, records: [] }
+      { success: false, error: e.message, records: [] }
     end
   end
 
@@ -650,9 +678,13 @@ class TuyaSmartLockService
       user_name = record["user_name"] || record["username"] || record["user_id"] || "Không xác định"
       unlock_name = record["unlock_name"] || record["open_name"] || user_name
 
+      # Chuyển đổi timestamp sang múi giờ Việt Nam (UTC+7)
+      timestamp = (record["update_time"] || record["time"] || Time.now.to_f * 1000) / 1000
+      vietnam_time = Time.at(timestamp).getlocal("+07:00").strftime("%Y-%m-%d %H:%M:%S")
+
       {
         id: record["id"] || SecureRandom.uuid,
-        time: Time.at((record["update_time"] || record["time"] || Time.now.to_f * 1000) / 1000).strftime("%Y-%m-%d %H:%M:%S"),
+        time: vietnam_time,
         user: user_name,
         unlock_name: unlock_name, # Thêm trường unlock_name
         method: determine_unlock_method(record["unlock_method"] || record["method_type"]),

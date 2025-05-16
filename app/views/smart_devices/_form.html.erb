@@ -1,4 +1,4 @@
-<h1><%= @smart_device.new_record? ? 'Thêm thiết bị thông minh mới' : 'Chỉnh sửa thiết bị thông minh' %></h1>
+<h1><%= @smart_device.new_record? ? t('smart_devices.new') : t('smart_devices.edit') %></h1>
 
 <div class="card">
   <div class="card-body">
@@ -6,7 +6,7 @@
     <%= form_with(model: @smart_device, url: url, local: true) do |form| %>
       <% if @smart_device.errors.any? %>
         <div class="alert alert-danger">
-          <h4><%= pluralize(@smart_device.errors.count, "lỗi") %> xảy ra:</h4>
+          <h4><%= pluralize(@smart_device.errors.count, t('errors.messages.error')) %> <%= t('errors.messages.occurred') %>:</h4>
           <ul>
             <% @smart_device.errors.full_messages.each do |message| %>
               <li><%= message %></li>
@@ -16,49 +16,49 @@
       <% end %>
 
       <div class="form-group mb-3">
-        <%= form.label :name, 'Tên thiết bị' %>
+        <%= form.label :name, t('smart_devices.attributes.name') %>
         <%= form.text_field :name, class: 'form-control', required: true, id: 'smart_device_name' %>
       </div>
 
       <div class="form-group mb-3">
-        <%= form.label :device_id, 'Thiết bị (từ Tuya Cloud)' %>
+        <%= form.label :device_id, t('smart_devices.form.device_from_tuya') %>
         <% if @tuya_devices.present? %>
           <%= form.select :device_id,
             options_for_select(
               @tuya_devices.map { |device| ["#{device['name']} (#{device['category']})", device['id'], {'data-name': device['name']}] },
               @smart_device.device_id
             ),
-            { include_blank: 'Chọn thiết bị từ Tuya Cloud' },
+            { include_blank: t('smart_devices.form.select_device') },
             { class: 'form-control', required: true, id: 'tuya_device_selector' }
           %>
-          <small class="form-text text-muted">Chọn thiết bị từ danh sách các thiết bị đã được kết nối với tài khoản Tuya Cloud</small>
+          <small class="form-text text-muted"><%= t('smart_devices.form.select_device_help') %></small>
         <% else %>
           <%= form.text_field :device_id, class: 'form-control', required: true %>
-          <small class="form-text text-muted">Không thể lấy danh sách thiết bị từ Tuya Cloud. Vui lòng nhập ID thiết bị thủ công hoặc thử lại sau.</small>
+          <small class="form-text text-muted"><%= t('smart_devices.form.no_devices_help') %></small>
         <% end %>
       </div>
 
       <div class="form-group mb-3">
-        <%= form.label :device_type, 'Loại thiết bị' %>
-        <%= form.select :device_type, options_for_select(@device_types.map { |type| [type.humanize, type] }, @smart_device.device_type), {}, class: 'form-control', id: 'smart_device_device_type' %>
+        <%= form.label :device_type, t('smart_devices.common.device_type') %>
+        <%= form.select :device_type, options_for_select(@device_types.map { |type| [t("smart_devices.types.#{type}", default: type.humanize), type] }, @smart_device.device_type), {}, class: 'form-control', id: 'smart_device_device_type' %>
       </div>
 
       <div class="form-group mb-3">
-        <%= form.label :description, 'Mô tả' %>
+        <%= form.label :description, t('smart_devices.attributes.description') %>
         <%= form.text_area :description, class: 'form-control', rows: 3 %>
       </div>
 
       <div class="form-group mb-3">
-        <%= form.label :building_id, 'Tòa nhà' %>
-        <%= form.select :building_id, options_from_collection_for_select(@buildings, :id, :name, @smart_device.building_id), { include_blank: 'Chọn tòa nhà' }, class: 'form-control' %>
+        <%= form.label :building_id, t('smart_devices.common.building') %>
+        <%= form.select :building_id, options_from_collection_for_select(@buildings, :id, :name, @smart_device.building_id), { include_blank: t('smart_devices.form.select_building') }, class: 'form-control' %>
       </div>
 
       <div class="form-group mt-4">
-        <%= form.submit @smart_device.new_record? ? 'Tạo thiết bị' : 'Cập nhật thiết bị', class: 'btn btn-primary' %>
+        <%= form.submit @smart_device.new_record? ? t('smart_devices.form.create_device') : t('smart_devices.form.update_device'), class: 'btn btn-primary' %>
         <% if @building && @smart_device.new_record? %>
-          <%= link_to 'Hủy', building_smart_devices_path(@building), class: 'btn btn-secondary' %>
+          <%= link_to t('common.cancel'), building_smart_devices_path(@building), class: 'btn btn-secondary' %>
         <% else %>
-          <%= link_to 'Hủy', @smart_device.new_record? ? smart_devices_path : smart_device_path(@smart_device), class: 'btn btn-secondary' %>
+          <%= link_to t('common.cancel'), @smart_device.new_record? ? smart_devices_path : smart_device_path(@smart_device), class: 'btn btn-secondary' %>
         <% end %>
       </div>
     <% end %>
