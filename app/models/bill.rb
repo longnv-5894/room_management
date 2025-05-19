@@ -5,6 +5,13 @@ class Bill < ApplicationRecord
   validates :due_date, presence: true
   validates :total_amount, numericality: { greater_than_or_equal_to: 0 }
 
+  # Đảm bảo các giá trị thanh toán là hợp lệ
+  validates :paid_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :remaining_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Tự động cập nhật số tiền còn thiếu khi lưu
+  before_save :update_remaining_amount
+
   enum :status, { unpaid: "unpaid", partial: "partial", paid: "paid" }, prefix: true
 
   before_save :calculate_total
@@ -44,7 +51,22 @@ class Bill < ApplicationRecord
   end
 
   def mark_as_paid
-    update(status: "paid")
+    # Cập nhật số tiền đã thanh toán và còn thiếu
+    update(
+      status: "paid",
+      paid_amount: total_amount,
+      remaining_amount: 0
+    )
+
+    # Thêm vào lịch sử thanh toán
+    payment_records = payment_history_json || []
+    payment_records << {
+      date: Date.today,
+      amount: total_amount - (paid_amount || 0),
+      note: "Đánh dấu là đã thanh toán đủ"
+    }
+    update(payment_history: payment_records.to_json)
+
     # When one tenant pays, mark all other tenants' bills for the same room and period as paid
     mark_other_tenant_bills_as_paid if status == "paid"
   end
@@ -61,6 +83,109 @@ class Bill < ApplicationRecord
   # Virtual payment_date method - returns updated_at if status is paid, otherwise nil
   def payment_date
     updated_at if status == "paid"
+  end
+
+  # Phương thức thanh toán một phần
+  def record_payment(amount)
+    return false if amount <= 0
+
+    # Chuyển đổi sang decimal để đảm bảo tính toán chính xác
+    amount = amount.to_d
+
+    # Tính toán số tiền đã thanh toán mới và số tiền còn lại
+    new_paid_amount = paid_amount + amount
+    new_remaining_amount = total_amount - new_paid_amount
+
+    # Cập nhật lịch sử thanh toán
+    payment_records = payment_history_json || []
+    payment_records << {
+      date: Date.today,
+      amount: amount,
+      note: "Thanh toán hóa đơn"
+    }
+
+    # Cập nhật trạng thái thanh toán
+    new_status = if new_paid_amount >= total_amount
+                  "paid"
+    elsif new_paid_amount > 0
+                  "partial"
+    else
+                  "unpaid"
+    end
+
+    # Lưu các thay đổi
+    update(
+      paid_amount: new_paid_amount,
+      remaining_amount: new_remaining_amount,
+      status: new_status,
+      payment_history: payment_records.to_json
+    )
+  end
+
+  # Lấy lịch sử thanh toán dưới dạng mảng các hash
+  def payment_history_json
+    return [] if payment_history.blank?
+
+    begin
+      JSON.parse(payment_history)
+    rescue JSON::ParserError
+      []
+    end
+  end
+
+  # Phương thức hoàn tiền
+  def refund(amount)
+    return false if amount <= 0 || paid_amount < amount
+
+    # Chuyển đổi sang decimal để đảm bảo tính toán chính xác
+    amount = amount.to_d
+
+    # Tính toán số tiền đã thanh toán mới và số tiền còn lại
+    new_paid_amount = paid_amount - amount
+    new_remaining_amount = total_amount - new_paid_amount
+
+    # Cập nhật lịch sử thanh toán
+    payment_records = payment_history_json || []
+    payment_records << {
+      date: Date.today,
+      amount: -amount,
+      note: "Hoàn tiền"
+    }
+
+    # Cập nhật trạng thái thanh toán
+    new_status = if new_paid_amount >= total_amount
+                  "paid"
+    elsif new_paid_amount > 0
+                  "partial"
+    else
+                  "unpaid"
+    end
+
+    # Lưu các thay đổi
+    update(
+      paid_amount: new_paid_amount,
+      remaining_amount: new_remaining_amount,
+      status: new_status,
+      payment_history: payment_records.to_json
+    )
+  end
+
+  # Kiểm tra xem hóa đơn đã thanh toán đủ chưa
+  def fully_paid?
+    paid_amount >= total_amount
+  end
+
+  # Kiểm tra xem hóa đơn đã thanh toán một phần chưa
+  def partially_paid?
+    paid_amount > 0 && paid_amount < total_amount
+  end
+
+  # Tính tổng nợ của người thuê
+  def self.total_debt_for_tenant(tenant)
+    joins(:room_assignment)
+      .where(room_assignments: { tenant_id: tenant.id })
+      .where.not(status: "paid")
+      .sum(:remaining_amount)
   end
 
   # Additional helper methods for view
@@ -161,6 +286,13 @@ class Bill < ApplicationRecord
 
       # Mark as paid
       other_bills.update_all(status: "paid")
+    end
+  end
+
+  def update_remaining_amount
+    # Chỉ cập nhật remaining_amount khi paid_amount có giá trị
+    if self.paid_amount.present?
+      self.remaining_amount = self.total_amount - self.paid_amount
     end
   end
 end

@@ -510,6 +510,12 @@ class ExcelImportService
     # Find payment status
     @column_indices[:payment_status] = find_column(column_headers, "trạng thái|thanh toán|status|payment|paid")
 
+    # Thêm mapping cho các cột liên quan đến thanh toán
+    @column_indices[:paid_amount] = find_column(column_headers, "đã thanh toán|paid amount|paid|thanh toán")
+    @column_indices[:remaining_amount] = find_column(column_headers, "còn thiếu|còn lại|remaining|remaining amount")
+    @column_indices[:payment_date] = find_column(column_headers, "ngày thanh toán|payment date|date paid")
+    @column_indices[:payment_notes] = find_column(column_headers, "ghi chú thanh toán|payment notes|notes")
+
     # Debug log
     Rails.logger.debug "Mapped columns: #{@column_indices.inspect}"
   end
@@ -1182,7 +1188,32 @@ class ExcelImportService
     total_amount = get_cell_value(row, :total_amount).to_i
     payment_status = get_cell_value(row, :payment_status).to_s.strip.downcase
 
+    # Thêm thông tin thanh toán mới
+    paid_amount = get_cell_value(row, :paid_amount).to_i
+    remaining_amount = get_cell_value(row, :remaining_amount).to_i
+    payment_date_str = get_cell_value(row, :payment_date).to_s.strip
+    payment_notes = get_cell_value(row, :payment_notes).to_s.strip
+
+    # Parse payment date if available
+    payment_date = nil
+    if payment_date_str.present?
+      begin
+        if payment_date_str.is_a?(Date)
+          payment_date = payment_date_str
+        elsif payment_date_str =~ /(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/
+          # Format DD/MM/YYYY or DD-MM-YYYY
+          payment_date = Date.new($3.to_i, $2.to_i, $1.to_i)
+        elsif payment_date_str =~ /(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/
+          # Format YYYY/MM/DD or YYYY-MM-DD
+          payment_date = Date.new($1.to_i, $2.to_i, $3.to_i)
+        end
+      rescue => e
+        Rails.logger.error "Failed to parse payment date '#{payment_date_str}': #{e.message}"
+      end
+    end
+
     Rails.logger.info "Bill values: room_fee=#{room_fee}, elec=#{elec_amount}, water=#{water_amount}, service=#{service_fee}, prev_debt=#{prev_debt}, overpayment=#{overpayment}, total=#{total_amount}"
+    Rails.logger.info "Payment values: status=#{payment_status}, paid=#{paid_amount}, remaining=#{remaining_amount}, date=#{payment_date}"
 
     # Use provided tenant or find current tenant for bill
     unless tenant
@@ -1198,12 +1229,6 @@ class ExcelImportService
 
     # Find the active room assignment between tenant and room
     room_assignment = RoomAssignment.where(room: room, tenant: tenant).first
-
-    # unless room_assignment
-    #   @errors << "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
-    #   Rails.logger.error "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
-    #   return
-    # end
 
     # Now use room_assignment_id instead of room_id and match by billing_date instead of period start/end
     begin
@@ -1250,11 +1275,65 @@ class ExcelImportService
       if payment_status.present?
         if payment_status.include?("đã thanh toán") || payment_status.include?("paid")
           bill.status = "paid"
+        elsif payment_status.include?("thanh toán một phần") || payment_status.include?("partial")
+          bill.status = "partial"
         else
           bill.status = "unpaid"
         end
       else
         bill.status = "unpaid"
+      end
+
+      # Cập nhật thông tin thanh toán
+      if paid_amount <= 0
+        # Nếu trạng thái là paid, đặt paid_amount = total_amount
+        if bill.status == "paid"
+          paid_amount = bill.total_amount
+          remaining_amount = 0
+        # Nếu trạng thái là partial, tính paid_amount từ total_amount và previous_debt
+        elsif bill.status == "partial"
+          # Giả định: paid_amount = tổng cộng - nợ cũ
+          paid_amount = bill.total_amount - prev_debt
+          remaining_amount = prev_debt
+        # Nếu là unpaid nhưng có overpayment, dùng overpayment làm paid_amount
+        elsif bill.status == "unpaid" && overpayment > 0
+          paid_amount = overpayment
+          remaining_amount = bill.total_amount - paid_amount
+        end
+      end
+
+      bill.paid_amount = paid_amount > 0 ? paid_amount : 0
+      bill.remaining_amount = bill.total_amount - bill.paid_amount
+
+      # Đảm bảo trạng thái phản ánh đúng tình trạng thanh toán
+      if bill.paid_amount >= bill.total_amount
+        bill.status = "paid"
+      elsif bill.paid_amount > 0
+        bill.status = "partial"
+      else
+        bill.status = "unpaid"
+      end
+
+      # Tạo lịch sử thanh toán nếu có paid_amount > 0
+      if bill.paid_amount > 0
+        if bill.payment_history.blank?
+          payment_records = []
+        else
+          begin
+            payment_records = JSON.parse(bill.payment_history)
+          rescue
+            payment_records = []
+          end
+        end
+
+        # Sử dụng payment_date nếu có, hoặc ngày billing_date làm mặc định
+        payment_records << {
+          date: (payment_date || billing_date).to_s,
+          amount: bill.paid_amount,
+          note: payment_notes.presence || "Imported from Excel"
+        }
+
+        bill.payment_history = payment_records.to_json
       end
 
       # Set notes with breakdown of fees
@@ -1265,6 +1344,9 @@ class ExcelImportService
       notes << "Service Fee: #{service_fee}" if service_fee && service_fee > 0
       notes << "Previous Debt: #{prev_debt}" if prev_debt && prev_debt > 0
       notes << "Overpayment Credit: #{overpayment}" if overpayment && overpayment > 0
+      notes << "Paid Amount: #{paid_amount}" if paid_amount > 0
+      notes << "Payment Date: #{payment_date}" if payment_date.present?
+      notes << payment_notes if payment_notes.present?
       bill.notes = notes.join(", ")
 
       if bill.save

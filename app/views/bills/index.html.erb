@@ -114,9 +114,9 @@
               <th><%= t('bills.tenants', default: 'Tenants') %></th>
               <th><%= t('bills.billing_date') %></th>
               <th><%= t('bills.billing_period') %></th>
-              <th><%= t('bills.monthly_rent') %></th>
-              <th><%= t('bills.utility_charges') %></th>
               <th><%= t('bills.total_amount') %></th>
+              <th><%= t('bills.paid_amount', default: 'Đã thanh toán') %></th>
+              <th><%= t('bills.remaining_amount', default: 'Còn thiếu') %></th>
               <th><%= t('bills.status') %></th>
               <th><%= t('common.actions') %></th>
             </tr>
@@ -131,18 +131,17 @@
                   <% end %>
                 </td>
                 <td><%= l room_bill[:billing_date], format: :short %></td>
-                <td>
-                  <%= l room_bill[:billing_period_start], format: :short %> - 
+                <td><%= l room_bill[:billing_period_start], format: :short %> - 
                   <%= l room_bill[:billing_period_end], format: :short %>
                 </td>
                 <td>
-                  <span class="currency-amount"><%= number_to_currency(room_bill[:rent_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
-                </td>
-                <td>
-                  <span class="currency-amount"><%= number_to_currency(room_bill[:utility_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
-                </td>
-                <td>
                   <span class="currency-amount"><%= number_to_currency(room_bill[:total_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </td>
+                <td>
+                  <span class="currency-amount text-success"><%= number_to_currency(room_bill[:paid_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
+                </td>
+                <td>
+                  <span class="currency-amount text-danger"><%= number_to_currency(room_bill[:remaining_amount], precision: 0, delimiter: ',', unit: 'VND ') %></span>
                 </td>
                 <td>
                   <span class="status-badge status-<%= room_bill[:status] %>">
@@ -270,6 +269,66 @@
   .empty-state p {
     color: #6c757d;
     margin-bottom: 15px;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .status-unpaid {
+    background-color: #fecaca;
+    color: #b91c1c;
+  }
+  
+  .status-partial {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  
+  .status-paid {
+    background-color: #c6f6d5;
+    color: #166534;
+  }
+  
+  /* Thêm CSS cho bảng thanh toán */
+  .payment-section {
+    background-color: #f9fafb;
+  }
+  
+  .currency-amount {
+    font-family: monospace;
+    font-weight: 500;
+  }
+  
+  /* CSS cho phần lịch sử thanh toán */
+  .payment-history-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .payment-history-table th,
+  .payment-history-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .payment-history-table th {
+    background-color: #f3f4f6;
+    text-align: left;
+    font-weight: 600;
+  }
+  
+  .payment-form .input-group {
+    display: flex;
+  }
+  
+  .payment-form .form-floating {
+    flex: 1;
   }
 </style>
 

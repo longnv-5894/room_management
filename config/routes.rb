@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   # get "import_histories/index"
   # get "import_histories/show"
   # get "import_histories/revert"
-  
+
   # Authentication routes
   get    "/login",   to: "sessions#new"
   post   "/login",   to: "sessions#create"
@@ -39,7 +39,7 @@ Rails.application.routes.draw do
     # Thêm nested route cho import_histories
     resources :import_histories, only: [ :index ]
   end
-  
+
   # Thêm routes cho import_histories
   resources :import_histories, only: [ :show ] do
     member do
@@ -100,6 +100,7 @@ Rails.application.routes.draw do
     member do
       patch :mark_as_paid  # This creates mark_as_paid_bill_path
       get :mark_as_paid    # Adding GET route to handle direct link clicks
+      post :record_payment # Thêm route mới để xử lý thanh toán một phần
     end
   end
   resources :operating_expenses

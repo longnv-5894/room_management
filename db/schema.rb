@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_19_023118) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_19_061936) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_19_023118) do
     t.decimal "service_fee", precision: 12, scale: 2, default: "0.0"
     t.decimal "previous_debt", precision: 10, scale: 2, default: "0.0"
     t.decimal "overpayment", precision: 10, scale: 2, default: "0.0"
+    t.decimal "paid_amount", precision: 10, scale: 2, default: "0.0"
+    t.decimal "remaining_amount", precision: 10, scale: 2, default: "0.0"
+    t.text "payment_history"
     t.index ["room_assignment_id", "billing_date"], name: "index_bills_on_room_assignment_id_and_billing_date", unique: true
     t.index ["room_assignment_id"], name: "index_bills_on_room_assignment_id"
   end

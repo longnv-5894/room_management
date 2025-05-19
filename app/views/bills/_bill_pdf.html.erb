@@ -104,12 +104,20 @@
     <p style="margin-top: 0; margin-bottom: 10px; color: #2f855a; font-weight: bold;"><%= t('bills.payment_summary', default: 'Tổng hợp thanh toán') %>:</p>
     <table style="width: 100%; border-collapse: collapse;">
       <tr>
-        <td style="padding: 4px; color: #4a5568;"><%= t('bills.previous_month_debt', default: 'Nợ tháng trước') %>:</td>
-        <td style="text-align: right; padding: 4px; color: #2d3748;"><%= number_to_currency(0, precision: 0, delimiter: ',', unit: '') %> đ</td>
+        <td style="padding: 4px; color: #4a5568;"><%= t('bills.total_amount', default: 'Tổng tiền') %>:</td>
+        <td style="text-align: right; padding: 4px; color: #2d3748;"><%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
       </tr>
       <tr>
-        <td style="padding: 4px; font-weight: bold; color: #2c5282;"><%= t('bills.grand_total', default: 'Tổng phải trả') %>:</td>
-        <td style="text-align: right; padding: 4px; font-weight: bold; color: #e53e3e;"><%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
+        <td style="padding: 4px; color: #4a5568;"><%= t('bills.paid_amount', default: 'Đã thanh toán') %>:</td>
+        <td style="text-align: right; padding: 4px; color: #38a169;"><%= number_to_currency(@bill.paid_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px; color: #4a5568;"><%= t('bills.remaining_amount', default: 'Còn thiếu') %>:</td>
+        <td style="text-align: right; padding: 4px; color: #e53e3e;"><%= number_to_currency(@bill.remaining_amount, precision: 0, delimiter: ',', unit: '') %> đ</td>
+      </tr>
+      <tr>
+        <td style="padding: 4px; font-weight: bold; color: #2c5282;"><%= t('bills.status', default: 'Trạng thái') %>:</td>
+        <td style="text-align: right; padding: 4px; font-weight: bold; color: <%= @bill.status == 'paid' ? '#38a169' : (@bill.status == 'partial' ? '#dd6b20' : '#e53e3e') %>;"><%= t("bills.#{@bill.status}", default: @bill.status.humanize) %></td>
       </tr>
     </table>
   </div>

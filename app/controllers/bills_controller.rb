@@ -1,6 +1,6 @@
 class BillsController < ApplicationController
   before_action :require_login
-  before_action :set_bill, only: [ :show, :edit, :update, :destroy, :mark_as_paid ]
+  before_action :set_bill, only: [ :show, :edit, :update, :destroy, :mark_as_paid, :record_payment ]
 
   def index
     # Get all bills
@@ -53,6 +53,8 @@ class BillsController < ApplicationController
         total_amount: bill.total_amount,
         rent_amount: bill.rent_amount,
         utility_amount: bill.utility_amount,
+        paid_amount: bill.paid_amount,
+        remaining_amount: bill.remaining_amount,
         status: bill.status,
         representative_bill: bill.room_assignment.is_representative_tenant ? bill : nil # Use bill for representative tenant if available
       }
@@ -186,6 +188,25 @@ class BillsController < ApplicationController
   def mark_as_paid
     @bill.mark_as_paid
     flash[:success] = t("bills.mark_paid_success")
+    redirect_to @bill
+  end
+
+  def record_payment
+    @bill = Bill.find(params[:id])
+    amount = params[:amount].to_f
+
+    if amount <= 0
+      flash[:danger] = t("bills.invalid_payment_amount")
+      redirect_to @bill
+      return
+    end
+
+    if @bill.record_payment(amount)
+      flash[:success] = t("bills.payment_recorded_success")
+    else
+      flash[:danger] = t("bills.payment_record_failed")
+    end
+
     redirect_to @bill
   end
 

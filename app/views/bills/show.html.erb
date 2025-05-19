@@ -178,8 +178,60 @@
                 <%= number_to_currency(@bill.total_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
               </td>
             </tr>
+            
+            <!-- Thêm thông tin thanh toán -->
+            <tr class="payment-section bg-light">
+              <td><strong class="text-success"><%= t('bills.paid_amount', default: 'Đã thanh toán') %></strong></td>
+              <td class="text-right text-success">
+                <%= number_to_currency(@bill.paid_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
+            <tr class="payment-section bg-light">
+              <td><strong class="text-danger"><%= t('bills.remaining_amount', default: 'Còn thiếu') %></strong></td>
+              <td class="text-right text-danger">
+                <%= number_to_currency(@bill.remaining_amount, precision: 0, delimiter: ',', unit: 'VND ') %>
+              </td>
+            </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+    
+    <!-- Thêm phần hiển thị lịch sử thanh toán -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h2 class="card-title mb-0"><%= t('bills.payment_history', default: 'Lịch sử thanh toán') %></h2>
+      </div>
+      <div class="card-body">
+        <% if @bill.payment_history_json.present? && @bill.payment_history_json.any? %>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th><%= t('bills.payment_date', default: 'Ngày thanh toán') %></th>
+                  <th><%= t('bills.payment_amount', default: 'Số tiền') %></th>
+                  <th><%= t('common.notes', default: 'Ghi chú') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @bill.payment_history_json.each do |payment| %>
+                  <tr>
+                    <td><%= l Date.parse(payment['date']), format: :short %></td>
+                    <td class="<%= payment['amount'].to_f >= 0 ? 'text-success' : 'text-danger' %>">
+                      <%= number_to_currency(payment['amount'].to_f.abs, precision: 0, delimiter: ',', unit: 'VND ') %>
+                      <%= payment['amount'].to_f < 0 ? '(hoàn tiền)' : '' %>
+                    </td>
+                    <td><%= payment['note'] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i> <%= t('bills.no_payment_history', default: 'Chưa có lịch sử thanh toán') %>
+          </div>
+        <% end %>
       </div>
     </div>
     
@@ -306,6 +358,28 @@
               <i class="fas fa-edit me-2"></i> <%= t('common.edit') %>
             <% end %>
           </div>
+          
+          <% if @bill.status != "paid" %>
+            <!-- Chức năng thanh toán một phần -->
+            <div class="action-group mb-3">
+              <h6 class="text-primary mb-2"><%= t('bills.record_payment', default: 'Ghi nhận thanh toán') %></h6>
+              <%= form_with url: record_payment_bill_path(@bill), method: :post, class: "payment-form" do |form| %>
+                <div class="input-group mb-2">
+                  <div class="form-floating">
+                    <%= form.number_field :amount, class: "form-control", placeholder: "0", min: 1, step: "1000", required: true %>
+                    <label for="amount"><%= t('bills.payment_amount', default: 'Số tiền') %> (VND)</label>
+                  </div>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check me-1"></i> <%= t('bills.record', default: 'Ghi nhận') %>
+                  </button>
+                </div>
+                <div class="form-text text-muted small">
+                  <i class="fas fa-info-circle me-1"></i>
+                  <%= t('bills.payment_help', default: 'Nhập số tiền đã thanh toán để ghi nhận vào lịch sử thanh toán') %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
           
           <% if @bill.status == "unpaid" %>
             <!-- Mark as paid action -->
