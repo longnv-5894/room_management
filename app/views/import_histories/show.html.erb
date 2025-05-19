@@ -1,0 +1,243 @@
+<!-- Hiển thị chi tiết một lần import -->
+
+<div class="page-header">
+  <h1 class="header-title"><%= t('import_histories.show.title') %></h1>
+  <div class="header-actions">
+    <%= link_to building_import_histories_path(@building), class: "btn btn-outline me-2" do %>
+      <i class="fas fa-arrow-left"></i> <%= t('common.back') || 'Back' %>
+    <% end %>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-12">
+    <p class="text-muted"><%= t('import_histories.show.description') %></p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><%= t('import_histories.show.basic_info') %></h5>
+        <div>
+          <%= link_to t('import_histories.show.back_to_list'), building_import_histories_path(@building), class: 'btn btn-outline-secondary' %>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <tr>
+              <th width="30%"><%= t('import_histories.show.file_name') %></th>
+              <td><%= @import_history.file_name %></td>
+            </tr>
+            <tr>
+              <th><%= t('import_histories.show.import_date') %></th>
+              <td><%= l(@import_history.import_date, format: :long) if @import_history.import_date %></td>
+            </tr>
+            <tr>
+              <th><%= t('import_histories.show.status') %></th>
+              <td>
+                <span class="badge <%= status_badge_class(@import_history.status) %>">
+                  <%= t("import_histories.statuses.#{@import_history.status}") %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th><%= t('import_histories.show.billing_period') %></th>
+              <td>
+                <% if @import_history.import_params['billing_month'].present? && @import_history.import_params['billing_year'].present? %>
+                  <%= t('import_histories.show.month_year', month: @import_history.import_params['billing_month'], year: @import_history.import_params['billing_year']) %>
+                <% else %>
+                  <%= t('import_histories.show.unknown_period') %>
+                <% end %>
+              </td>
+            </tr>
+            <tr>
+              <th><%= t('import_histories.show.building') %></th>
+              <td><%= link_to @building.name, @building %></td>
+            </tr>
+            <tr>
+              <th><%= t('import_histories.show.imported_by') %></th>
+              <td><%= @import_history.user&.name || t('import_histories.show.unknown_user') %></td>
+            </tr>
+            <% if @import_history.notes.present? %>
+              <tr>
+                <th><%= t('import_histories.show.notes') %></th>
+                <td><%= simple_format(@import_history.notes) %></td>
+              </tr>
+            <% end %>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <% if @import_history.imported_count.present? && @import_history.imported_count.values.sum > 0 %>
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0"><%= t('import_histories.show.imported_data') %></h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th><%= t('import_histories.show.data_type') %></th>
+                  <th><%= t('import_histories.show.count') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if @import_history.imported_count['rooms'] && @import_history.imported_count['rooms'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.rooms') %></td>
+                    <td><%= @import_history.imported_count['rooms'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['tenants'] && @import_history.imported_count['tenants'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.tenants') %></td>
+                    <td><%= @import_history.imported_count['tenants'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['utility_readings'] && @import_history.imported_count['utility_readings'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.utility_readings') %></td>
+                    <td><%= @import_history.imported_count['utility_readings'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['bills'] && @import_history.imported_count['bills'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.bills') %></td>
+                    <td><%= @import_history.imported_count['bills'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['expenses'] && @import_history.imported_count['expenses'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.expenses') %></td>
+                    <td><%= @import_history.imported_count['expenses'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['utility_prices'] && @import_history.imported_count['utility_prices'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.utility_prices') %></td>
+                    <td><%= @import_history.imported_count['utility_prices'] %></td>
+                  </tr>
+                <% end %>
+                
+                <% if @import_history.imported_count['vehicles'] && @import_history.imported_count['vehicles'] > 0 %>
+                  <tr>
+                    <td><%= t('import_histories.show.vehicles') %></td>
+                    <td><%= @import_history.imported_count['vehicles'] %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0"><%= t('import_histories.show.actions') %></h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <% if @import_history.file_path.present? && File.exist?(@import_history.file_path) %>
+            <%= link_to t('import_histories.show.download_file'), download_import_history_path(@import_history), class: 'btn btn-primary' %>
+          <% else %>
+            <button type="button" class="btn btn-secondary" disabled><%= t('import_histories.show.file_not_available') %></button>
+          <% end %>
+          
+          <% if @import_history.status != 'reverted' && @import_history.imported_count.present? && @import_history.imported_count.values.sum > 0 %>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#revertModal">
+              <%= t('import_histories.show.revert_data') %>
+            </button>
+          <% else %>
+            <button type="button" class="btn btn-secondary" disabled><%= t('import_histories.show.cannot_revert') %></button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><%= t('import_histories.show.warnings') %></h5>
+      </div>
+      <div class="card-body">
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <%= t('import_histories.show.revert_warning') %>
+        </div>
+        
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle-fill me-2"></i>
+          <%= t('import_histories.show.data_will_be_reverted') %>:
+          <ul class="mb-0 mt-2">
+            <li><%= t('import_histories.show.revert_bills') %></li>
+            <li><%= t('import_histories.show.revert_utility_readings') %></li>
+            <li><%= t('import_histories.show.revert_expenses') %></li>
+            <li><%= t('import_histories.show.revert_utility_prices') %></li>
+            <li><%= t('import_histories.show.revert_vehicles') || 'Vehicles created during this import' %></li>
+            <li><%= t('import_histories.show.revert_room_assignments') || 'Room assignments created during this import' %></li>
+            <li><%= t('import_histories.show.revert_rooms') || 'Rooms created during this import' %></li>
+          </ul>
+        </div>
+        
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <%= t('import_histories.show.not_revert_warning') %>:
+          <ul class="mb-0 mt-2">
+            <li><%= t('import_histories.show.not_revert_tenants') %></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal for Revert -->
+<div class="modal fade" id="revertModal" tabindex="-1" aria-labelledby="revertModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="revertModalLabel"><%= t('import_histories.show.confirm_revert') %></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-danger"><%= t('import_histories.show.revert_confirm_message') %></p>
+        <p><%= t('import_histories.show.revert_cannot_undo') %></p>
+        
+        <% if @import_history.import_params['billing_month'].present? && @import_history.import_params['billing_year'].present? %>
+          <p>
+            <%= t('import_histories.show.revert_billing_period', 
+                  month: @import_history.import_params['billing_month'], 
+                  year: @import_history.import_params['billing_year']) %>
+          </p>
+        <% end %>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><%= t('import_histories.show.cancel') %></button>
+        <%= button_to t('import_histories.show.confirm_revert'), revert_import_history_path(@import_history), class: 'btn btn-danger', method: :post, data: { turbo_confirm: t('import_histories.show.revert_final_confirm') } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Back button at the bottom of the page -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="d-flex justify-content-between">
+      <%= link_to building_import_histories_path(@building), class: "btn btn-secondary" do %>
+        <i class="bi bi-arrow-left me-1"></i> <%= t('common.back') || 'Back to Import History List' %>
+      <% end %>
+    </div>
+  </div>
+</div>

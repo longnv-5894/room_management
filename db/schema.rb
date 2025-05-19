@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_16_072713) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_19_023118) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -142,6 +142,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_072713) do
     t.datetime "updated_at", null: false
     t.index ["city_id"], name: "index_districts_on_city_id"
     t.index ["name", "city_id"], name: "index_districts_on_name_and_city_id", unique: true
+  end
+
+  create_table "import_histories", force: :cascade do |t|
+    t.bigint "building_id", null: false
+    t.string "file_name"
+    t.datetime "import_date"
+    t.bigint "user_id", null: false
+    t.string "status"
+    t.text "imported_count"
+    t.text "notes"
+    t.string "file_path"
+    t.text "import_params"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["building_id"], name: "index_import_histories_on_building_id"
+    t.index ["user_id"], name: "index_import_histories_on_user_id"
   end
 
   create_table "operating_expenses", force: :cascade do |t|
@@ -304,6 +320,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_16_072713) do
   add_foreign_key "device_users", "smart_devices"
   add_foreign_key "device_users", "tenants"
   add_foreign_key "districts", "cities"
+  add_foreign_key "import_histories", "buildings"
+  add_foreign_key "import_histories", "users"
   add_foreign_key "operating_expenses", "buildings"
   add_foreign_key "room_assignments", "rooms"
   add_foreign_key "room_assignments", "tenants"

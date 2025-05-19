@@ -112,9 +112,12 @@ class BuildingsController < ApplicationController
       end
 
       # Process the file
-      service = ExcelImportService.new(file_path.to_s, @building)
+      service = ExcelImportService.new(file_path.to_s, @building, current_user)
 
       if service.import
+        # Lưu lịch sử import thành công
+        import_history = ImportHistory.create_from_import(@building, file_path.to_s, service, current_user, "success")
+
         flash[:success] = t("buildings.import.success",
                           rooms: service.imported_count[:rooms],
                           tenants: service.imported_count[:tenants],
@@ -126,22 +129,38 @@ class BuildingsController < ApplicationController
                           year: service.billing_year)
         redirect_to @building
       else
+        # Lưu lịch sử import thất bại (hoặc một phần) nếu có bất kỳ dữ liệu nào được import
+        status = service.imported_count.values.sum > 0 ? "partial" : "failed"
+        import_history = ImportHistory.create_from_import(@building, file_path.to_s, service, current_user, status)
+
         error_message = service.errors.join(", ")
         flash[:danger] = t("buildings.import.failed", errors: error_message)
         redirect_to import_form_building_path(@building)
       end
 
     rescue => e
+      # Lưu lịch sử import lỗi
       error_msg = "#{e.class.name}: #{e.message}"
+
+      # Tạo một service giả để lưu lịch sử với thông tin lỗi
+      error_service = ExcelImportService.new(file_path.to_s, @building, current_user)
+      error_service.instance_variable_set(:@billing_month, month) if month
+      error_service.instance_variable_set(:@billing_year, year) if year
+      error_service.instance_variable_set(:@errors, [ error_msg ])
+
+      import_history = ImportHistory.create_from_import(@building, file_path.to_s, error_service, current_user, "failed")
+
       if month && year
         error_msg += " (Tháng #{month}/#{year})"
       end
       flash[:danger] = t("buildings.import.error", message: error_msg)
       redirect_to import_form_building_path(@building)
-    ensure
-      # Clean up temporary file
-      File.delete(file_path) if file_path && File.exist?(file_path)
     end
+    # Không xóa file tạm thời để có thể tải xuống sau này
+    # ensure
+    #   # Clean up temporary file
+    #   File.delete(file_path) if file_path && File.exist?(file_path)
+    # end
   end
 
   def new

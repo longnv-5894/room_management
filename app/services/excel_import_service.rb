@@ -1,19 +1,26 @@
 class ExcelImportService
-  attr_reader :file_path, :building, :errors, :imported_count, :billing_month, :billing_year
+  attr_reader :file_path, :building, :errors, :imported_count, :billing_month, :billing_year, :user, :created_room_assignments, :updated_room_assignments, :created_rooms, :created_tenants
 
-  def initialize(file_path, building)
+  def initialize(file_path, building, user = nil)
     @file_path = file_path
     @building = building
+    @user = user
     @errors = []
     @imported_count = { rooms: 0, tenants: 0, utility_readings: 0, bills: 0, expenses: 0, utility_prices: 0, vehicles: 0 }
     @billing_month = nil
     @billing_year = nil
     @column_indices = {}
     @tenant_cache = {} # Cache để tránh truy vấn lại tenant nhiều lần
+    @created_room_assignments = [] # Array để lưu ID các room_assignments mới tạo trong quá trình import
+    @updated_room_assignments = [] # Array để lưu ID các room_assignments đã cập nhật trong quá trình import
+    @created_rooms = [] # Array để lưu ID các rooms mới tạo trong quá trình import
+    @created_tenants = [] # Array để lưu ID các tenants mới tạo trong quá trình import
   end
 
   def import
     return false unless valid_file?
+
+    import_success = false
 
     begin
       # Sử dụng caching để tăng tốc độ xử lý
@@ -43,6 +50,8 @@ class ExcelImportService
         unless @errors.empty?
           raise ActiveRecord::Rollback, "Import errors: #{@errors.join(', ')}"
         end
+
+        import_success = true
       end
 
       # If we've made it here without raising an exception, the transaction was successful
@@ -55,6 +64,12 @@ class ExcelImportService
   end
 
   private
+
+  # Phương thức này không còn được sử dụng bởi vì lịch sử import sẽ được tạo từ controller
+  # def create_import_history(status, error_message = nil)
+  #   notes = error_message || @errors.join(", ")
+  #   ImportHistory.create_from_import(@building, @file_path, self, @user, status, notes)
+  # end
 
   def extract_period_from_filename(file_path)
     filename = File.basename(file_path, ".*")
@@ -597,6 +612,8 @@ class ExcelImportService
     if room.new_record?
       if room.save
         @imported_count[:rooms] += 1
+        @created_rooms << room.id  # Lưu ID của phòng mới tạo
+        Rails.logger.info "Successfully created room #{room.number} (ID: #{room.id})"
       else
         @errors << "Failed to create room #{room_number}: #{room.errors.full_messages.join(', ')}"
         return
@@ -605,6 +622,7 @@ class ExcelImportService
       # Room exists but had changes
       if room.save
         # We don't increment imported_count for updates
+        Rails.logger.info "Updated existing room #{room.number} (ID: #{room.id})"
       else
         @errors << "Failed to update room #{room_number}: #{room.errors.full_messages.join(', ')}"
         return
@@ -795,6 +813,7 @@ class ExcelImportService
 
         if tenant.save
           @imported_count[:tenants] += 1
+          @created_tenants << tenant.id  # Lưu ID của tenant mới tạo
           Rails.logger.info "Successfully created tenant: #{tenant.name} with ID: #{tenant.id_number}"
         else
           @errors << "Failed to create tenant #{tenant_name}: #{tenant.errors.full_messages.join(', ')}"
@@ -806,14 +825,19 @@ class ExcelImportService
       # Lưu vào cache để tái sử dụng
       @tenant_cache[cache_key] = tenant
     end
+    active = true
+    start_date = Date.new(@billing_year, @billing_month, 1)
 
     # Kiểm tra xem đã có representative tenant cho phòng này chưa nếu tenant này được đánh dấu là representative
     if is_representative_tenant
-      existing_rep = RoomAssignment.where(room: room, active: true, is_representative_tenant: true).first
+      existing_rep = RoomAssignment.where(room: room, active: true, is_representative_tenant: true).order(start_date: "desc").first
       if existing_rep && existing_rep.tenant_id != tenant.id
         Rails.logger.warn "Room #{room.number} already has a representative tenant. Setting #{tenant.name} as a regular tenant."
-        is_representative_tenant = false
+        active = false
       end
+    else
+      older_rep = RoomAssignment.where(room: room, active: false, start_date: start_date).order(start_date: "desc").first
+      active = false if older_rep
     end
 
     # Kiểm tra xem kỳ hóa đơn hiện tại có phải là kỳ mới nhất không
@@ -829,7 +853,7 @@ class ExcelImportService
     # previous_assignment = RoomAssignment.where(room: room, tenant: tenant).order(start_date: :desc).first
 
     # Create room assignment if not exists
-    unless RoomAssignment.exists?(room: room, tenant: tenant, active: true)
+    unless RoomAssignment.exists?(room: room, tenant: tenant)
       # Set rent amount only if we are in the latest billing period or this is a new tenant (don't have assignment yet)
       assignment_monthly_rent = nil
       assignment_deposit = nil
@@ -844,13 +868,12 @@ class ExcelImportService
       end
 
       # Luôn sử dụng ngày bắt đầu từ dữ liệu import - không sử dụng lại ngày cũ
-      start_date = Date.new(@billing_year, @billing_month, 1)
 
       assignment = RoomAssignment.new(
         room: room,
         tenant: tenant,
         start_date: start_date,
-        active: true,
+        active: active,
         is_representative_tenant: is_representative_tenant,
         monthly_rent: assignment_monthly_rent,
         deposit_amount: assignment_deposit
@@ -861,13 +884,14 @@ class ExcelImportService
                         (is_representative_tenant ? " (Representative)" : "") +
                         (is_representative_tenant && assignment_monthly_rent ? " with monthly rent: #{assignment_monthly_rent}" : "") +
                         (is_representative_tenant && assignment_deposit ? " and deposit: #{assignment_deposit}" : "")
+        @created_room_assignments << assignment.id
       else
         @errors << "Failed to assign tenant to room: #{assignment.errors.full_messages.join(', ')}"
         Rails.logger.error "Failed to assign tenant to room: #{assignment.errors.full_messages.join(', ')}"
       end
     else
       # Update existing assignment if needed
-      existing_assignment = RoomAssignment.where(room: room, tenant: tenant, active: true).first
+      existing_assignment = RoomAssignment.where(room: room, tenant: tenant).first
 
       # Cập nhật start_date từ file Excel nếu start_date mới cũ hơn start_date hiện tại
       # Mục đích: Đảm bảo start_date luôn là ngày sớm nhất mà tenant thuê phòng
@@ -914,6 +938,7 @@ class ExcelImportService
       if existing_assignment.changed?
         if existing_assignment.save
           Rails.logger.info "Updated room assignment for #{tenant.name} in room #{room.number}"
+          @updated_room_assignments << existing_assignment.id
         else
           @errors << "Failed to update room assignment: #{existing_assignment.errors.full_messages.join(', ')}"
         end
@@ -1172,13 +1197,13 @@ class ExcelImportService
     Rails.logger.info "Creating bill for tenant: #{tenant.name}"
 
     # Find the active room assignment between tenant and room
-    room_assignment = RoomAssignment.where(room: room, tenant: tenant, active: true).first
+    room_assignment = RoomAssignment.where(room: room, tenant: tenant).first
 
-    unless room_assignment
-      @errors << "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
-      Rails.logger.error "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
-      return
-    end
+    # unless room_assignment
+    #   @errors << "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
+    #   Rails.logger.error "No active room assignment found for tenant #{tenant.name} in room #{room.number}. Bill cannot be created."
+    #   return
+    # end
 
     # Now use room_assignment_id instead of room_id and match by billing_date instead of period start/end
     begin

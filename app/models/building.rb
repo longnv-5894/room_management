@@ -8,6 +8,7 @@ class Building < ApplicationRecord
   has_many :operating_expenses, dependent: :destroy
   has_many :utility_prices, dependent: :nullify
   has_many :smart_devices, dependent: :nullify
+  has_many :import_histories, dependent: :destroy
 
   validates :name, presence: true
   # We're keeping address validation temporarily until data migration is complete

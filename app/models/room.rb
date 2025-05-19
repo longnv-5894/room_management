@@ -53,7 +53,7 @@ class Room < ApplicationRecord
   # Phương thức mới để lấy giá phòng gần nhất từ các room assignments
   def latest_monthly_rent
     # Ưu tiên lấy giá từ room_assignment có is_representative_tenant = true
-    representative_assignment = room_assignments.where(active: true, is_representative_tenant: true).first
+    representative_assignment = room_assignments.where(active: true, is_representative_tenant: true).order(start_date: "desc").first
     return representative_assignment.monthly_rent if representative_assignment&.monthly_rent.present?
 
     # Nếu không có representative tenant, lấy từ assignment hoạt động gần nhất

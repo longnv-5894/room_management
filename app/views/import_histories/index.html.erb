@@ -1,0 +1,89 @@
+<!-- Hiển thị danh sách lịch sử import của tòa nhà -->
+
+<div class="row mb-3">
+  <div class="col-12">
+    <h1>
+      <%= t('import_histories.index.title') %>
+      <small class="text-muted"><%= @building.name %></small>
+    </h1>
+    <p class="text-muted"><%= t('import_histories.index.description') %></p>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><%= t('import_histories.index.list_title') %></h5>
+        <div>
+          <%= link_to t('import_histories.index.back_to_building'), @building, class: 'btn btn-outline-secondary' %>
+          <%= link_to t('import_histories.index.import_new'), import_form_building_path(@building), class: 'btn btn-primary' %>
+        </div>
+      </div>
+      <div class="card-body">
+        <% if @import_histories.any? %>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th><%= t('import_histories.index.file_name') %></th>
+                  <th><%= t('import_histories.index.import_date') %></th>
+                  <th><%= t('import_histories.index.user') %></th>
+                  <th><%= t('import_histories.index.period') %></th>
+                  <th><%= t('import_histories.index.status') %></th>
+                  <th><%= t('import_histories.index.count') %></th>
+                  <th><%= t('import_histories.index.actions') %></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @import_histories.each do |history| %>
+                  <tr>
+                    <td><%= history.file_name %></td>
+                    <td><%= l(history.import_date, format: :short) if history.import_date %></td>
+                    <td><%= history.user&.name || t('import_histories.index.unknown_user') %></td>
+                    <td>
+                      <% if history.import_params['billing_month'].present? && history.import_params['billing_year'].present? %>
+                        <%= t('import_histories.index.month_year', month: history.import_params['billing_month'], year: history.import_params['billing_year']) %>
+                      <% else %>
+                        <%= t('import_histories.index.unknown_period') %>
+                      <% end %>
+                    </td>
+                    <td>
+                      <span class="badge <%= status_badge_class(history.status) %>">
+                        <%= t("import_histories.statuses.#{history.status}") %>
+                      </span>
+                    </td>
+                    <td>
+                      <% if history.imported_count.present? %>
+                        <%= t('import_histories.index.items_count', 
+                              bills: history.imported_count['bills'] || 0,
+                              rooms: history.imported_count['rooms'] || 0,
+                              tenants: history.imported_count['tenants'] || 0) %>
+                      <% else %>
+                        <%= t('import_histories.index.no_data') %>
+                      <% end %>
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <%= link_to t('import_histories.index.details'), import_history_path(history), class: 'btn btn-sm btn-outline-primary' %>
+                        <% if history.status != 'reverted' && history.file_path.present? && File.exist?(history.file_path) %>
+                          <%= link_to t('import_histories.index.download'), download_import_history_path(history), class: 'btn btn-sm btn-outline-secondary' %>
+                        <% end %>
+                      </div>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Xóa phần phân trang vì không sử dụng gem Kaminari -->
+        <% else %>
+          <div class="alert alert-info">
+            <%= t('import_histories.index.no_histories') %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

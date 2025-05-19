@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  # Xóa các route tự động được tạo ra
+  # get "import_histories/index"
+  # get "import_histories/show"
+  # get "import_histories/revert"
+  
   # Authentication routes
   get    "/login",   to: "sessions#new"
   post   "/login",   to: "sessions#create"
@@ -31,7 +36,18 @@ Rails.application.routes.draw do
     resources :rooms, only: [ :index, :new, :create ]
     resources :operating_expenses, only: [ :index, :new, :create ]
     resources :smart_devices, only: [ :index, :new, :create ]
+    # Thêm nested route cho import_histories
+    resources :import_histories, only: [ :index ]
   end
+  
+  # Thêm routes cho import_histories
+  resources :import_histories, only: [ :show ] do
+    member do
+      post :revert
+      get :download # Cho phép tải xuống file Excel đã import
+    end
+  end
+
   resources :rooms
   resources :tenants do
     resources :vehicles, only: [ :index, :new, :create ]
