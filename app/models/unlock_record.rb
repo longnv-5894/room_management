@@ -1,9 +1,9 @@
 class UnlockRecord < ApplicationRecord
   belongs_to :smart_device
-  belongs_to :device_user, foreign_key: 'user_id', primary_key: 'user_id', optional: true
+  belongs_to :device_user, foreign_key: "user_id", primary_key: "user_id", optional: true
 
   validates :time, presence: true
-  validates :record_id, uniqueness: true, allow_nil: true
+  # validates :record_id, uniqueness: true, allow_nil: true
 
   scope :recent, -> { order(time: :desc) }
   # Scope to get recent records

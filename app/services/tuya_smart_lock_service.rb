@@ -851,7 +851,7 @@ class TuyaSmartLockService
 
       # Chuyển đổi timestamp sang múi giờ Việt Nam (UTC+7)
       timestamp = (record["update_time"] || record["time"] || Time.now.to_f * 1000) / 1000
-      vietnam_time = Time.at(timestamp).getlocal("+07:00").strftime("%Y-%m-%d %H:%M:%S")
+      vietnam_time = Time.at(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
       {
         time: vietnam_time,

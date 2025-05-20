@@ -353,7 +353,7 @@ class SmartDevicesController < ApplicationController
 
         format.html {
           flash[:notice] = "Đồng bộ dữ liệu thành công. #{unlock_record_msg}. #{users_msg}."
-          redirect_to device_unlock_records_smart_device_path(@smart_device)
+          redirect_to @smart_device
         }
         format.json { render json: results, status: :ok }
       end

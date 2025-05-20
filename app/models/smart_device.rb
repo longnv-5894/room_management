@@ -158,7 +158,6 @@ class SmartDevice < ApplicationRecord
         success: true,
         records: records.map { |record|
           {
-            id: record.record_id,
             time: record.time.getlocal("+07:00").strftime("%Y-%m-%d %H:%M:%S"),
             user: record.user_name,
             user_name: record.user_name,
