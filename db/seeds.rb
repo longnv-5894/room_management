@@ -21,6 +21,10 @@ UtilityPrice.destroy_all
 Building.destroy_all
 User.destroy_all
 OperatingExpense.destroy_all
+DeviceUser.destroy_all
+UnlockRecord.destroy_all
+SmartDevice.destroy_all
+
 
 # Note: We don't clear location data here as it's handled in the locations seed file
 

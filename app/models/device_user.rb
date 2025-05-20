@@ -22,25 +22,68 @@ class DeviceUser < ApplicationRecord
       api_response[:users].each do |user|
         next unless user[:id].present?
 
-        # Look for existing device user
-        device_user = DeviceUser.find_or_initialize_by(
-          smart_device: smart_device,
-          user_id: user[:id]
-        )
+        # Kiểm tra nếu người dùng có nhiều phương thức mở khóa
+        if user[:raw_data].present? && user[:raw_data]["unlock_methods"].present? && user[:raw_data]["unlock_methods"].is_a?(Array)
+          # Xử lý mỗi phương thức mở khóa như một bản ghi DeviceUser riêng biệt
+          user[:raw_data]["unlock_methods"].each do |method|
+            # Tạo khóa duy nhất cho mỗi phương thức mở khóa là sự kết hợp của user_id và unlock_sn
+            unlock_id = "#{user[:id]}_#{method['unlock_sn']}"
 
-        # Update attributes
-        is_new_record = device_user.new_record?
-        device_user.name = user[:name]
-        device_user.status = user[:status] || "active"
-        device_user.avatar_url = user[:avatar_url]
-        device_user.raw_data = user[:raw_data] || user
-        device_user.last_active_at = Time.now
+            # Look for existing device user with this specific unlock method
+            device_user = DeviceUser.find_or_initialize_by(
+              smart_device: smart_device,
+              user_id: unlock_id  # Sử dụng khóa duy nhất thay vì chỉ user_id
+            )
 
-        if device_user.save
-          if is_new_record
-            users_synced += 1
-          else
-            users_updated += 1
+            # Update attributes
+            is_new_record = device_user.new_record?
+            device_user.name = user[:name]
+            device_user.status = user[:status] || "active"
+            device_user.avatar_url = user[:avatar_url]
+
+            # Lưu các thông tin về phương thức mở khóa
+            device_user.unlock_sn = method["unlock_sn"]
+            device_user.dp_code = method["dp_code"]
+            device_user.unlock_name = method["unlock_name"]
+            device_user.user_type = method["user_type"]
+
+            # Lưu thông tin gốc của người dùng vào raw_data
+            device_user.raw_data = {
+              user: user[:raw_data],
+              method: method
+            }
+
+            device_user.last_active_at = Time.now
+
+            if device_user.save
+              if is_new_record
+                users_synced += 1
+              else
+                users_updated += 1
+              end
+            end
+          end
+        else
+          # Trường hợp không có unlock_methods, xử lý như thông thường
+          device_user = DeviceUser.find_or_initialize_by(
+            smart_device: smart_device,
+            user_id: user[:id]
+          )
+
+          # Update attributes
+          is_new_record = device_user.new_record?
+          device_user.name = user[:name]
+          device_user.status = user[:status] || "active"
+          device_user.avatar_url = user[:avatar_url]
+          device_user.raw_data = user[:raw_data] || user
+          device_user.last_active_at = Time.now
+
+          if device_user.save
+            if is_new_record
+              users_synced += 1
+            else
+              users_updated += 1
+            end
           end
         end
       end

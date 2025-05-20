@@ -29,8 +29,9 @@
             <thead class="table-light">
               <tr>
                 <th class="border-0">Tên</th>
-                <th class="border-0">Vai trò</th>
-                <th class="border-0">Trạng thái</th>
+                <th class="border-0">Thông tin mở khóa</th>
+                <th class="border-0">Mã mở khóa</th>
+                <th class="border-0">Loại</th>
                 <th class="border-0">Người thuê</th>
                 <th class="border-0">Thao tác</th>
               </tr>
@@ -40,30 +41,29 @@
                 <tr>
                   <td><%= user.name || "Người dùng không tên" %></td>
                   <td>
-                    <% case user.role 
-                       when "Quản trị viên" %>
-                      <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">
-                        <i class="fas fa-user-shield me-1"></i> <%= user.role %>
-                      </span>
-                    <% when "Thành viên" %>
-                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
-                        <i class="fas fa-user me-1"></i> <%= user.role %>
-                      </span>
-                    <% when "Khách" %>
-                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">
-                        <i class="fas fa-user-friends me-1"></i> <%= user.role %>
+                    <% if user.unlock_name.present? %>
+                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                        <%= user.unlock_name %>
                       </span>
                     <% else %>
-                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
-                        <i class="fas fa-user-tag me-1"></i> <%= user.role || "Không xác định" %>
-                      </span>
+                      <span class="text-muted">Không có</span>
                     <% end %>
                   </td>
                   <td>
-                    <% if user.status == "active" %>
-                      <span class="badge bg-success">Hoạt động</span>
+                    <% if user.unlock_sn.present? %>
+                      <div class="d-flex align-items-center">
+                        <span class="badge bg-secondary me-2">#<%= user.unlock_sn %></span>
+                        <small class="text-muted"><%= user.dp_code %></small>
+                      </div>
                     <% else %>
-                      <span class="badge bg-secondary"><%= user.status %></span>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if user.user_type.present? %>
+                      <span class="badge bg-primary">Loại <%= user.user_type %></span>
+                    <% else %>
+                      <span class="text-muted">-</span>
                     <% end %>
                   </td>
                   <td>
@@ -79,9 +79,11 @@
                         <i class="fas fa-link me-1"></i> Liên kết
                       </button>
                     <% else %>
-                      <%= link_to unlink_user_from_tenant_smart_device_path(@smart_device, device_user_id: user.id), 
-                            method: :post, class: "btn btn-sm btn-outline-danger", 
-                            data: { turbo_method: :post, turbo_confirm: "Bạn có chắc muốn hủy liên kết người dùng này?" } do %>
+                      <%= button_to unlink_user_from_tenant_smart_device_path(@smart_device),
+                          method: :post,
+                          params: { device_user_id: user.id },
+                          form: { data: { turbo_confirm: "Bạn có chắc muốn hủy liên kết người dùng này?" }, class: "d-inline" },
+                          class: "btn btn-sm btn-outline-danger" do %>
                         <i class="fas fa-unlink me-1"></i> Hủy liên kết
                       <% end %>
                     <% end %>
@@ -112,14 +114,18 @@
             <h5 class="modal-title" id="linkModalLabel<%= user.id %>">Liên kết người dùng với người thuê</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <%= form_with url: link_user_to_tenant_smart_device_path(@smart_device), method: :post do |f| %>
+          <%= form_with url: link_user_to_tenant_smart_device_path(@smart_device), method: :post, local: true do |f| %>
             <div class="modal-body">
               <%= f.hidden_field :device_user_id, value: user.id %>
               <div class="mb-3">
                 <%= f.label :tenant_id, "Chọn người thuê", class: "form-label" %>
-                <%= f.collection_select :tenant_id, Tenant.order(:name), :id, :name, 
+                <%= f.select :tenant_id, 
+                      Tenant.order(:name).map { |t| [t.name, t.id] }, 
                       { prompt: "-- Chọn người thuê --" }, 
-                      { class: "form-select select2", required: true } %>
+                      { class: "form-select", required: true } %>
+              </div>
+              <div class="small text-muted">
+                Tổng số người thuê: <%= Tenant.count %>
               </div>
             </div>
             <div class="modal-footer">

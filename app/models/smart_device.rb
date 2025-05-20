@@ -288,7 +288,38 @@ class SmartDevice < ApplicationRecord
 
     begin
       lock_service = TuyaSmartLockService.new
-      lock_service.get_lock_users(device_id, page, page_size)
+      api_response = lock_service.get_lock_users(device_id, page, page_size)
+
+      # Nếu có lỗi, trả về luôn
+      return api_response if api_response[:error].present?
+
+      # Xử lý dữ liệu trả về để đảm bảo mỗi người dùng có thông tin về các unlock_methods
+      if api_response[:users].present?
+        modified_users = api_response[:users].map do |user|
+          # Đảm bảo raw_data chứa thông tin original và unlock_methods (nếu có)
+          if user[:raw_data].blank?
+            user[:raw_data] = user.except(:raw_data)
+          end
+
+          # Thêm thông tin về các phương thức mở khóa
+          if user[:unlock_sn].present? || user[:dp_code].present?
+            # Nếu thông tin về phương thức mở khóa đã được gán trực tiếp vào user
+            user[:raw_data]["unlock_methods"] ||= []
+            user[:raw_data]["unlock_methods"] << {
+              "unlock_sn" => user[:unlock_sn],
+              "dp_code" => user[:dp_code],
+              "unlock_name" => user[:unlock_name],
+              "user_type" => user[:user_type]
+            }.compact
+          end
+
+          user
+        end
+
+        api_response[:users] = modified_users
+      end
+
+      api_response
     rescue => e
       { error: e.message, users: [] }
     end

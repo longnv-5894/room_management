@@ -20,7 +20,7 @@ class TuyaSmartLockService
     passwords: "/v1.0/devices/%{device_id}/door-lock/passwords",
     password: "/v1.0/devices/%{device_id}/door-lock/passwords/%{password_id}",
     open_logs: "/v1.0/devices/%{device_id}/door-lock/open-logs",
-    users: "/v1.0/devices/%{device_id}/users" # Thêm endpoint mới để lấy danh sách người dùng
+    users: "/v1.1/devices/%{device_id}/users" # Thêm endpoint mới để lấy danh sách người dùng
   }
 
   # Khởi tạo service
@@ -382,27 +382,47 @@ class TuyaSmartLockService
       result = JSON.parse(response.body)
       Rails.logger.info("Lock Users API response: #{result}")
 
+      # Lấy danh sách đầy đủ các phương thức mở khóa của mỗi người dùng
+      if result["success"] && result["result"] && result["result"]["records"].present?
+        # Lấy người dùng đầu tiên từ danh sách để lấy thông tin mở khóa
+        user_records = result["result"]["records"] || []
+
+        if user_records.any?
+          user_records.each do |user|
+            # Lấy user_id để gọi API lấy chi tiết các phương thức mở khóa
+            if user["user_id"].present?
+              unlock_methods = get_user_unlock_methods(device_id, user["user_id"])
+
+              # Thêm thông tin phương thức mở khóa vào user nếu API trả về thành công
+              if unlock_methods[:success] && unlock_methods[:methods].present?
+                # Thêm thông tin vào user hiện tại
+                user["unlock_methods"] = unlock_methods[:methods]
+              end
+            end
+          end
+        end
+      end
+
       if result["success"]
         # Phần này chính là nơi xảy ra lỗi - cần xử lý cấu trúc response đúng
-        # API trả về một mảng trực tiếp trong trường "result" thay vì một object có trường "list"
-        users = result["result"]
-        # Kiểm tra xem result có phải là mảng không
-        if users.is_a?(Array)
-          users_list = users
-          total = users.size
+        if result["result"].is_a?(Hash) && result["result"]["records"].present?
+          users_list = result["result"]["records"]
+          total = result["result"]["total"] || users_list.size
+        elsif result["result"].is_a?(Array)
+          users_list = result["result"]
+          total = users_list.size
         else
-          # Trường hợp API thay đổi và trả về cấu trúc có trường "list"
-          users_list = users["list"] || []
-          total = users["total"] || users_list.size
+          users_list = []
+          total = 0
         end
 
         {
           users: format_lock_users(users_list),
           count: total,
-          has_more: false, # Không có thông tin phân trang rõ ràng từ API
+          has_more: result["result"]["has_more"] == true,
           page_no: page_no,
           page_size: page_size,
-          raw_data: users
+          raw_data: result["result"]
         }
       else
         Rails.logger.error("Failed to get lock users: #{result["msg"]}")
@@ -414,6 +434,196 @@ class TuyaSmartLockService
       { error: e.message, users: [] }
     end
   end
+
+  # Lấy danh sách các phương thức mở khóa của một người dùng cụ thể
+  def get_user_unlock_methods(device_id, user_id)
+    begin
+      # Đảm bảo đã có token xác thực
+      @tuya_service.get_access_token unless @tuya_service.instance_variable_get(:@access_token)
+      client_id = @tuya_service.instance_variable_get(:@client_id)
+      access_token = @tuya_service.instance_variable_get(:@access_token)
+      # Tạo đường dẫn API cho OPModes
+      path = "/v1.0/smart-lock/devices/#{device_id}/opmodes/#{user_id}"
+
+      # Tham số truy vấn
+      query_params = {
+        codes: "unlock_fingerprint,unlock_password,unlock_card",
+        page_no: 1,
+        page_size: 20
+      }
+
+      # Sắp xếp tham số theo bảng chữ cái
+      query_params = query_params.sort.to_h
+      query = query_params.map { |k, v| "#{k}=#{v}" }.join("&")
+
+      string_to_sign = @tuya_service.create_string_to_sign("GET", path, query)
+
+      timestamp = @tuya_service.generate_timestamp # Sử dụng timestamp từ curl command
+
+
+      # Tạo chữ ký
+      sign = @tuya_service.generate_sign(
+        string_to_sign,
+        timestamp,
+        @tuya_service.instance_variable_get(:@access_token)
+      )
+
+      # Chuẩn bị headers
+      headers = {
+        "client_id" => client_id,
+        "sign" => sign,
+        "t" => timestamp,
+        "sign_method" => "HMAC-SHA256",
+        "access_token" => access_token,
+        "Content-Type" => "application/json"
+      }
+
+      # Tạo URI đầy đủ
+      uri = URI("#{@tuya_service.instance_variable_get(:@api_endpoint)}#{path}?#{query}")
+
+      # Log thông tin request
+      Rails.logger.info("User Unlock Methods API Call - URI: #{uri}")
+      Rails.logger.info("User Unlock Methods API Call - Headers: #{headers.inspect}")
+
+      # Gửi request
+      request = Net::HTTP::Get.new(uri)
+
+      # Thêm các header
+      headers.each do |key, value|
+        request[key] = value
+      end
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+        http.open_timeout = 10
+        http.read_timeout = 30
+        http.request(request)
+      end
+
+      # Xử lý response
+      result = JSON.parse(response.body)
+      Rails.logger.info("User Unlock Methods API response: #{result}")
+
+      if result["success"] && result["result"] && result["result"]["records"].present?
+        {
+          success: true,
+          methods: result["result"]["records"],
+          total: result["result"]["total"] || result["result"]["records"].size
+        }
+      else
+        Rails.logger.error("Failed to get user unlock methods: #{result["msg"]}")
+        { success: false, error: result["msg"] || "Không thể lấy phương thức mở khóa", methods: [] }
+      end
+    rescue => e
+      Rails.logger.error("User Unlock Methods API error: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
+      { success: false, error: e.message, methods: [] }
+    end
+  end
+
+  # Phương thức thử nghiệm để gọi API lấy danh sách chìa khóa đã gán cho người dùng
+  def test_assigned_keys_api(device_id, user_id)
+    begin
+      # Đảm bảo đã có token xác thực
+      @tuya_service.get_access_token unless @tuya_service.instance_variable_get(:@access_token)
+
+      # Tạo đường dẫn API mới cho OPModes - đúng với tài liệu API
+      path = "/v1.0/smart-lock/devices/#{device_id}/opmodes/#{user_id}"
+
+      # Tham số truy vấn - khớp chính xác với curl command
+      query_params =  { codes: "unlock_fingerprint,unlock_card", page_no: 1, page_size: 20 }
+
+      # Sắp xếp tham số để tạo query string
+      query_params = query_params.sort.to_h
+      query = query_params.map { |k, v| "#{k}=#{v}" }.join("&")
+
+      string_to_sign = @tuya_service.create_string_to_sign("GET", path, query)
+
+      timestamp = @tuya_service.generate_timestamp # Sử dụng timestamp từ curl command
+
+
+      # Tạo chữ ký
+      sign = @tuya_service.generate_sign(
+        string_to_sign,
+        timestamp,
+        @tuya_service.instance_variable_get(:@access_token)
+      )
+      # Log các tham số trước khi ký
+      Rails.logger.info("=== TEST API DEBUG ===")
+      Rails.logger.info("API Path: #{path}")
+      Rails.logger.info("API Query: #{query}")
+
+      # Tạo đầy đủ URI
+      uri = URI("#{@tuya_service.instance_variable_get(:@api_endpoint)}#{path}?#{query}")
+
+      # Chuẩn bị headers với sign từ curl command
+      headers = {
+        "client_id" =>  @tuya_service.instance_variable_get(:@client_id), # client_id từ curl command
+        "sign" => sign,
+        "t" => timestamp,
+        "sign_method" => "HMAC-SHA256",
+        "access_token" => @tuya_service.instance_variable_get(:@access_token),
+        "Content-Type" => "application/json",
+        "mode" => "cors"
+      }
+
+      # Ghi lại curl command đã sử dụng
+      Rails.logger.info("=== CURL COMMAND USED ===")
+      Rails.logger.info("curl --location '#{@tuya_service.instance_variable_get(:@api_endpoint)}#{path}?#{query}' \\")
+      Rails.logger.info("--header 'sign_method: HMAC-SHA256' \\")
+      Rails.logger.info("--header 'client_id: #{headers['client_id']}' \\")
+      Rails.logger.info("--header 't: #{headers['t']}' \\")
+      Rails.logger.info("--header 'mode: cors' \\")
+      Rails.logger.info("--header 'Content-Type: application/json' \\")
+      Rails.logger.info("--header 'sign: #{headers['sign']}' \\")
+      Rails.logger.info("--header 'access_token: #{headers['access_token']}'")
+
+      # Gửi request
+      Rails.logger.info("=== TEST API CALL ===")
+      Rails.logger.info("OPModes API Call - URI: #{uri}")
+      Rails.logger.info("OPModes API Call - Headers: #{headers.inspect}")
+
+      request = Net::HTTP::Get.new(uri)
+
+      # Thêm các header
+      headers.each do |key, value|
+        request[key] = value
+      end
+
+      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+        http.open_timeout = 10
+        http.read_timeout = 30
+        http.request(request)
+      end
+
+      # Xử lý và log response
+      begin
+        result = JSON.parse(response.body)
+        Rails.logger.info("=== TEST API RESPONSE ===")
+        Rails.logger.info("OPModes API response status: #{response.code}")
+        Rails.logger.info("OPModes API response: #{result.inspect}")
+
+        if result["success"]
+          Rails.logger.info("===== API CALL SUCCESSFUL =====")
+
+
+          result
+        else
+          Rails.logger.info("===== API CALL FAILED =====")
+          Rails.logger.info("Error code: #{result['code']}")
+          Rails.logger.info("Error message: #{result['msg']}")
+        end
+      rescue JSON::ParserError => e
+        Rails.logger.error("=== TEST API ERROR ===")
+        Rails.logger.error("Failed to parse OPModes API response: #{e.message}")
+        Rails.logger.error("Response body: #{response.body}")
+      end
+    rescue => e
+      Rails.logger.error("=== TEST API ERROR ===")
+      Rails.logger.error("OPModes API error: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
+    end
+  end
+
 
   private
 
@@ -676,21 +886,45 @@ class TuyaSmartLockService
 
   # Format dữ liệu người dùng từ API
   def format_lock_users(users)
-    users.map do |user|
+    formatted_users = []
+
+    users.each do |user|
       # Log thông tin người dùng để debug
       Rails.logger.debug("Lock user raw data: #{user}")
 
-      # Trích xuất thông tin người dùng
-      {
+      # Trích xuất thông tin người dùng cơ bản
+      base_user = {
         id: user["uid"] || user["user_id"] || SecureRandom.uuid,
-        name: user["name"] || user["nick_name"] || "Người dùng không tên",
+        name: user["name"] || user["nick_name"] || user["user_name"] || "Người dùng không tên",
         avatar_url: user["avatar"] || user["avatar_url"],
         status: user["status"] || "active",
         create_time: format_timestamp(user["create_time"]),
-        update_time: format_timestamp(user["update_time"]),
-        raw_data: user
+        update_time: format_timestamp(user["update_time"])
       }
+
+      # Kiểm tra nếu người dùng có thông tin phương thức mở khóa
+      if user["unlock_methods"].present?
+        # Với mỗi phương thức mở khóa, tạo một entry riêng
+        user["unlock_methods"].each do |method|
+          # Tạo bản sao của thông tin người dùng cơ bản
+          user_with_method = base_user.dup
+
+          # Thêm thông tin phương thức mở khóa
+          user_with_method[:unlock_sn] = method["unlock_sn"]
+          user_with_method[:dp_code] = method["dp_code"]
+          user_with_method[:unlock_name] = method["unlock_name"]
+          user_with_method[:user_type] = method["user_type"]
+
+          # Thêm vào danh sách kết quả
+          formatted_users << user_with_method
+        end
+      else
+        # Nếu không có thông tin phương thức mở khóa, sử dụng thông tin cơ bản
+        formatted_users << base_user
+      end
     end
+
+    formatted_users
   end
 
   # Xác định vai trò người dùng

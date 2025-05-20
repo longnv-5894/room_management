@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_19_061936) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_20_061452) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -132,6 +132,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_19_061936) do
     t.json "raw_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "unlock_sn"
+    t.string "dp_code"
+    t.string "unlock_name"
+    t.integer "user_type"
     t.index ["smart_device_id", "user_id"], name: "index_device_users_on_smart_device_id_and_user_id", unique: true
     t.index ["smart_device_id"], name: "index_device_users_on_smart_device_id"
     t.index ["tenant_id"], name: "index_device_users_on_tenant_id"
