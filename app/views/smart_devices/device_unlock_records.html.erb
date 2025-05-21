@@ -28,10 +28,12 @@
             <div class="mb-3">
               <label class="form-label"><%= t('smart_devices.lock.time_period') %></label>
               <div class="input-group">
-                <%= f.number_field :days, value: params[:days] || 7, min: 1, max: 90, class: "form-control", placeholder: t('smart_devices.lock.days_placeholder') %>
-                <span class="input-group-text"><%= t('smart_devices.common.days') %></span>
+                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                <%= f.date_field :start_date, value: params[:start_date] || Date.today.beginning_of_month.strftime('%Y-%m-%d'), class: "form-control", placeholder: "Từ ngày" %>
+                <span class="input-group-text">đến</span>
+                <%= f.date_field :end_date, value: params[:end_date] || Date.today.strftime('%Y-%m-%d'), class: "form-control", placeholder: "Đến ngày" %>
               </div>
-              <small class="form-text text-muted"><%= t('smart_devices.lock.filter_hint', default: 'Shows records within the selected time period.') %></small>
+              <small class="form-text text-muted"><%= t('smart_devices.lock.date_filter_hint', default: 'Chọn khoảng thời gian để xem các bản ghi mở khóa.') %></small>
             </div>
             
             <div class="mb-3">
@@ -76,13 +78,13 @@
             <div class="row g-0">
               <div class="col-6 border-end">
                 <div class="p-3 text-center">
-                  <h5 class="mb-0"><%= @unlock_records.count %></h5>
+                  <h5 class="mb-0"><%= @total_count %></h5>
                   <small class="text-muted"><%= t('smart_devices.lock.total_records', default: 'Total Records') %></small>
                 </div>
               </div>
               <div class="col-6">
                 <div class="p-3 text-center">
-                  <h5 class="mb-0"><%= @unlock_records.where(success: true).count %></h5>
+                  <h5 class="mb-0"><%= @successful_count %></h5>
                   <small class="text-muted"><%= t('smart_devices.lock.successful_unlocks', default: 'Successful Unlocks') %></small>
                 </div>
               </div>
@@ -185,6 +187,23 @@
                 </tbody>
               </table>
             </div>
+            
+            <div class="d-flex justify-content-center mt-4">
+              <%= will_paginate @unlock_records, 
+                    renderer: BootstrapPaginationRenderer,
+                    previous_label: '&laquo;', 
+                    next_label: '&raquo;' %>
+            </div>
+            
+            <div class="text-center text-muted mt-2">
+              <small>
+                <%= t('pagination.showing_entries', 
+                    from: [@per_page * ((@unlock_records.current_page || 1) - 1) + 1, @total_count].min, 
+                    to: [@per_page * (@unlock_records.current_page || 1), @total_count].min, 
+                    total: @total_count,
+                    default: 'Showing %{from} to %{to} of %{total} entries') %>
+              </small>
+            </div>
           <% else %>
             <div class="alert alert-info">
               <i class="fas fa-info-circle me-2"></i> 
@@ -213,9 +232,18 @@
         });
       }
       
-      const daysInput = filterForm.querySelector('input[name="days"]');
-      if (daysInput) {
-        daysInput.addEventListener('change', function() {
+      // Add event listeners for date fields
+      const startDateInput = filterForm.querySelector('input[name="start_date"]');
+      const endDateInput = filterForm.querySelector('input[name="end_date"]');
+      
+      if (startDateInput) {
+        startDateInput.addEventListener('change', function() {
+          filterForm.submit();
+        });
+      }
+      
+      if (endDateInput) {
+        endDateInput.addEventListener('change', function() {
           filterForm.submit();
         });
       }

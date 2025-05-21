@@ -160,42 +160,6 @@ class SmartDevicesController < ApplicationController
     end
   end
 
-  def unlock_records
-    days = params[:days].present? ? params[:days].to_i : 7
-    page = params[:page].present? ? params[:page].to_i : 1
-    page_size = params[:page_size].present? ? params[:page_size].to_i : 50
-
-    # Get records from database by default
-    @unlock_records = @smart_device.get_unlock_records(days)
-
-    # If explicitly asked to load more and database has no more records,
-    # we sync more records from Tuya API
-    if params[:load_more].present? && !@unlock_records[:has_more] && page > 1 && params[:force_api].present?
-      # Explicitly call the API for more records
-      options = {
-        start_time: (Time.now - days.days).to_i * 1000,
-        end_time: Time.now.to_i * 1000,
-        page_no: page,
-        page_size: page_size
-      }
-
-      # Get records from API and sync them to database
-      api_records = @smart_device.get_unlock_records_from_api(days)
-
-      if api_records[:success] && api_records[:records].present?
-        # Sync these records to database
-        UnlockRecord.sync_from_tuya(@smart_device, days)
-
-        # Get updated records from database
-        @unlock_records = @smart_device.get_unlock_records(days)
-      end
-    end
-
-    respond_to do |format|
-      format.html
-      format.json { render json: @unlock_records }
-    end
-  end
 
   def password_list
     @password_list = @smart_device.get_password_list
@@ -364,32 +328,42 @@ class SmartDevicesController < ApplicationController
   def device_unlock_records
     @smart_device = SmartDevice.find(params[:id])
     records_query = @smart_device.unlock_records.recent
-    
+
     # Apply filters if present
     if params[:user_id].present?
       records_query = records_query.where(user_id: params[:user_id])
     end
-    
+
     if params[:unlock_sn].present? && params[:unlock_sn].to_i > 0
       # Filter by unlock_sn from the raw_data if present
       records_query = records_query.where("(raw_data->'status'->>'value') = ?", params[:unlock_sn].to_s)
     end
-    
+
     if params[:tenant_id].present?
       # Filter by tenant_id through device_user association
       records_query = records_query.joins("LEFT JOIN device_users ON device_users.user_id = unlock_records.user_id")
-                               .where(device_users: {tenant_id: params[:tenant_id]})
+                               .where(device_users: { tenant_id: params[:tenant_id] })
     end
-    
-    # Apply days filter if present
-    if params[:days].present?
-      days = params[:days].to_i
-      start_time = Time.now - days.days
-      records_query = records_query.where("time >= ?", start_time)
+
+    # Apply date range filter if present
+    if params[:start_date].present? || params[:end_date].present?
+      start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.today.beginning_of_month
+      end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.today
+
+      # Convert dates to time with proper beginning and end of day
+      start_time = start_date.beginning_of_day
+      end_time = end_date.end_of_day
+
+      records_query = records_query.where("time BETWEEN ? AND ?", start_time, end_time)
     end
-    
-    # Get the final result set
-    @unlock_records = records_query.limit(100)
+
+    # Calculate successful unlocks count for statistics (before pagination)
+    @total_count = records_query.count
+    @successful_count = records_query.where(success: true).count
+
+    # Apply will_paginate for pagination
+    @per_page = 25
+    @unlock_records = records_query.paginate(page: params[:page], per_page: @per_page)
 
     respond_to do |format|
       format.html

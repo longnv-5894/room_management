@@ -53,6 +53,10 @@ gem 'wkhtmltopdf-binary' # Provides the binary for PDF generation
 # Excel file processing
 gem 'roo', '~> 2.10.0'
 
+# Phân trang
+gem 'will_paginate', '~> 4.0'
+gem 'bootstrap-will_paginate' # Bootstrap styling for will_paginate
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

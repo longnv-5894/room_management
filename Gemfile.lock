@@ -81,6 +81,8 @@ GEM
     bindex (0.8.1)
     bootsnap (1.18.4)
       msgpack (~> 1.2)
+    bootstrap-will_paginate (1.0.0)
+      will_paginate
     brakeman (7.0.2)
       racc
     builder (3.3.0)
@@ -333,6 +335,7 @@ GEM
     wicked_pdf (2.8.2)
       activesupport
       ostruct
+    will_paginate (4.0.1)
     wkhtmltopdf-binary (0.12.6.8)
     zeitwerk (2.7.2)
 
@@ -342,6 +345,7 @@ PLATFORMS
 DEPENDENCIES
   bcrypt (~> 3.1.7)
   bootsnap
+  bootstrap-will_paginate
   brakeman
   caracal
   debug
@@ -367,6 +371,7 @@ DEPENDENCIES
   tzinfo-data
   web-console
   wicked_pdf
+  will_paginate (~> 4.0)
   wkhtmltopdf-binary
 
 BUNDLED WITH
