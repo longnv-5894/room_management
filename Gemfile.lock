@@ -336,7 +336,7 @@ GEM
       activesupport
       ostruct
     will_paginate (4.0.1)
-    wkhtmltopdf-binary (0.12.6.8)
+    wkhtmltopdf-binary (0.12.6.9)
     zeitwerk (2.7.2)
 
 PLATFORMS
