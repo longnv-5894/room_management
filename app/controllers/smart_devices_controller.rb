@@ -30,7 +30,7 @@ class SmartDevicesController < ApplicationController
 
       devices = service.get_devices
       if devices.empty?
-        flash.now[:alert] = "Không tìm thấy thiết bị nào trong tài khoản Tuya Cloud. Vui lòng đảm bảo thiết bị đã được thêm vào ứng dụng Smart Life trước."
+        flash.now[:alert] = t("smart_devices.alerts.no_devices_found")
       end
       devices
     rescue => e
@@ -38,13 +38,13 @@ class SmartDevicesController < ApplicationController
       Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
 
       if e.message.include?("Thiếu cấu hình Tuya API")
-        flash.now[:alert] = "#{e.message}. Vui lòng liên hệ quản trị viên để cấu hình kết nối Tuya API."
+        flash.now[:alert] = t("smart_devices.alerts.missing_api_config")
       elsif e.message.include?("request time is invalid")
-        flash.now[:alert] = "Lỗi đồng bộ thời gian với máy chủ Tuya. Hệ thống đang thử nhiều giá trị offset khác nhau."
+        flash.now[:alert] = t("smart_devices.alerts.time_sync_error")
       elsif e.message.include?("token is expired") || e.message.include?("token is invalid")
-        flash.now[:alert] = "Access token đã hết hạn hoặc không hợp lệ. Đang thử lại với token mới."
+        flash.now[:alert] = t("smart_devices.alerts.token_expired")
       else
-        flash.now[:alert] = "Không thể lấy dữ liệu thiết bị từ Tuya Cloud: #{e.message}"
+        flash.now[:alert] = t("smart_devices.alerts.cannot_fetch_devices", error: e.message)
       end
       []
     end
@@ -55,7 +55,7 @@ class SmartDevicesController < ApplicationController
     @smart_device.building = @building if @building && !params[:smart_device][:building_id].present?
 
     if @smart_device.save
-      redirect_to smart_device_path(@smart_device), notice: "Thiết bị thông minh đã được tạo thành công."
+      redirect_to smart_device_path(@smart_device), notice: t("smart_devices.success.created")
     else
       @buildings = Building.all
       @device_types = SmartDevice.device_types
@@ -72,7 +72,7 @@ class SmartDevicesController < ApplicationController
 
   def update
     if @smart_device.update(smart_device_params)
-      redirect_to smart_device_path(@smart_device), notice: "Thiết bị thông minh đã được cập nhật thành công."
+      redirect_to smart_device_path(@smart_device), notice: t("smart_devices.success.updated")
     else
       @buildings = Building.all
       @device_types = SmartDevice.device_types
@@ -86,11 +86,11 @@ class SmartDevicesController < ApplicationController
     @smart_device.destroy
 
     if params[:redirect_to] == "building" && building.present?
-      redirect_to building_path(building), notice: "Thiết bị thông minh đã được xóa thành công."
+      redirect_to building_path(building), notice: t("smart_devices.success.deleted")
     elsif building.present?
-      redirect_to building_smart_devices_path(building), notice: "Thiết bị thông minh đã được xóa thành công."
+      redirect_to building_smart_devices_path(building), notice: t("smart_devices.success.deleted")
     else
-      redirect_to smart_devices_path, notice: "Thiết bị thông minh đã được xóa thành công."
+      redirect_to smart_devices_path, notice: t("smart_devices.success.deleted")
     end
   end
 
@@ -128,10 +128,10 @@ class SmartDevicesController < ApplicationController
 
     respond_to do |format|
       if result[:error].blank?
-        format.html { redirect_to @smart_device, notice: "Đã mở khóa thành công." }
-        format.json { render json: { success: true, message: "Đã mở khóa thành công" } }
+        format.html { redirect_to @smart_device, notice: t("smart_devices.lock.unlock_success") }
+        format.json { render json: { success: true, message: t("smart_devices.lock.unlock_success") } }
       else
-        format.html { redirect_to @smart_device, alert: "Không thể mở khóa: #{result[:error]}" }
+        format.html { redirect_to @smart_device, alert: t("smart_devices.lock.unlock_error", error: result[:error]) }
         format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
       end
     end
@@ -142,10 +142,10 @@ class SmartDevicesController < ApplicationController
 
     respond_to do |format|
       if result[:error].blank?
-        format.html { redirect_to @smart_device, notice: "Đã khóa thành công." }
-        format.json { render json: { success: true, message: "Đã khóa thành công" } }
+        format.html { redirect_to @smart_device, notice: t("smart_devices.lock.lock_success") }
+        format.json { render json: { success: true, message: t("smart_devices.lock.lock_success") } }
       else
-        format.html { redirect_to @smart_device, alert: "Không thể khóa: #{result[:error]}" }
+        format.html { redirect_to @smart_device, alert: t("smart_devices.lock.lock_error", error: result[:error]) }
         format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
       end
     end
@@ -219,10 +219,10 @@ class SmartDevicesController < ApplicationController
 
     respond_to do |format|
       if result[:success]
-        format.html { redirect_to password_list_smart_device_path(@smart_device), notice: "Đã thêm mật khẩu thành công." }
+        format.html { redirect_to password_list_smart_device_path(@smart_device), notice: t("smart_devices.lock.password_added") }
         format.json { render json: { success: true } }
       else
-        format.html { redirect_to password_list_smart_device_path(@smart_device), alert: "Không thể thêm mật khẩu: #{result[:error]}" }
+        format.html { redirect_to password_list_smart_device_path(@smart_device), alert: t("smart_devices.lock.password_add_error", error: result[:error]) }
         format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
       end
     end
@@ -234,10 +234,10 @@ class SmartDevicesController < ApplicationController
 
     respond_to do |format|
       if result[:success]
-        format.html { redirect_to password_list_smart_device_path(@smart_device), notice: "Đã xóa mật khẩu thành công." }
+        format.html { redirect_to password_list_smart_device_path(@smart_device), notice: t("smart_devices.lock.password_deleted") }
         format.json { render json: { success: true } }
       else
-        format.html { redirect_to password_list_smart_device_path(@smart_device), alert: "Không thể xóa mật khẩu: #{result[:error]}" }
+        format.html { redirect_to password_list_smart_device_path(@smart_device), alert: t("smart_devices.lock.password_delete_error", error: result[:error]) }
         format.json { render json: { success: false, error: result[:error] }, status: :unprocessable_entity }
       end
     end
@@ -276,7 +276,7 @@ class SmartDevicesController < ApplicationController
       @error = nil
 
       if time_offset.present? && time_offset != 0
-        flash.now[:success] = "Kết nối thành công với time_offset là #{time_offset}. Bạn có thể cập nhật file config/tuya.yml để sử dụng giá trị này."
+        flash.now[:success] = t("smart_devices.alerts.successful_connection_with_offset", offset: time_offset)
       end
     rescue => e
       @success = false
@@ -298,7 +298,7 @@ class SmartDevicesController < ApplicationController
       devices = service.get_devices
 
       if devices.empty?
-        flash[:alert] = "Không tìm thấy thiết bị nào trong tài khoản Tuya Cloud."
+        flash[:alert] = t("smart_devices.alerts.no_devices_found")
         redirect_to smart_devices_path
         return
       end
@@ -320,7 +320,7 @@ class SmartDevicesController < ApplicationController
         else
           # Create new device
           SmartDevice.create(
-            name: device[:name] || "New Device",
+            name: device[:name] || t("smart_devices.default.new_device"),
             device_id: device[:id],
             device_type: device[:category] || "unknown"
           )
@@ -328,11 +328,11 @@ class SmartDevicesController < ApplicationController
         end
       end
 
-      flash[:notice] = "Đồng bộ thành công: #{new_devices_count} thiết bị mới, #{updated_devices_count} thiết bị cập nhật."
+      flash[:notice] = t("smart_devices.sync.success", new_count: new_devices_count, updated_count: updated_devices_count)
     rescue => e
       Rails.logger.error("Failed to sync Tuya devices: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
-      flash[:alert] = "Lỗi đồng bộ thiết bị: #{e.message}"
+      flash[:alert] = t("smart_devices.sync.error", error: e.message)
     end
 
     redirect_to smart_devices_path
@@ -345,14 +345,14 @@ class SmartDevicesController < ApplicationController
 
     respond_to do |format|
       if results[:error].present?
-        format.html { redirect_to @smart_device, alert: "Không thể đồng bộ dữ liệu: #{results[:error]}" }
+        format.html { redirect_to @smart_device, alert: t("smart_devices.sync.device_error", error: results[:error]) }
         format.json { render json: { success: false, error: results[:error] }, status: :unprocessable_entity }
       else
-        unlock_record_msg = "Đã đồng bộ #{results[:unlock_records][:synced]} bản ghi mở khóa mới"
-        users_msg = "Đã đồng bộ #{results[:device_users][:synced]} người dùng mới, cập nhật #{results[:device_users][:updated]} người dùng"
+        unlock_record_msg = t("smart_devices.sync.records_synced", count: results[:unlock_records][:synced])
+        users_msg = t("smart_devices.sync.users_synced", new_count: results[:device_users][:synced], updated_count: results[:device_users][:updated])
 
         format.html {
-          flash[:notice] = "Đồng bộ dữ liệu thành công. #{unlock_record_msg}. #{users_msg}."
+          flash[:notice] = t("smart_devices.sync.device_success", unlock_records: unlock_record_msg, users: users_msg)
           redirect_to @smart_device
         }
         format.json { render json: results, status: :ok }
@@ -363,7 +363,33 @@ class SmartDevicesController < ApplicationController
   # Hiển thị lịch sử mở khóa từ cơ sở dữ liệu
   def device_unlock_records
     @smart_device = SmartDevice.find(params[:id])
-    @unlock_records = @smart_device.local_unlock_records(100)
+    records_query = @smart_device.unlock_records.recent
+    
+    # Apply filters if present
+    if params[:user_id].present?
+      records_query = records_query.where(user_id: params[:user_id])
+    end
+    
+    if params[:unlock_sn].present? && params[:unlock_sn].to_i > 0
+      # Filter by unlock_sn from the raw_data if present
+      records_query = records_query.where("(raw_data->'status'->>'value') = ?", params[:unlock_sn].to_s)
+    end
+    
+    if params[:tenant_id].present?
+      # Filter by tenant_id through device_user association
+      records_query = records_query.joins("LEFT JOIN device_users ON device_users.user_id = unlock_records.user_id")
+                               .where(device_users: {tenant_id: params[:tenant_id]})
+    end
+    
+    # Apply days filter if present
+    if params[:days].present?
+      days = params[:days].to_i
+      start_time = Time.now - days.days
+      records_query = records_query.where("time >= ?", start_time)
+    end
+    
+    # Get the final result set
+    @unlock_records = records_query.limit(100)
 
     respond_to do |format|
       format.html
@@ -389,10 +415,10 @@ class SmartDevicesController < ApplicationController
 
     if @device_user.associate_with_tenant(@tenant)
       redirect_to device_users_smart_device_path(@device_user.smart_device),
-                  notice: "Đã liên kết người dùng #{@device_user.name} với người thuê #{@tenant.name}"
+                  notice: t("smart_devices.lock_users.user_linked", user: @device_user.name, tenant: @tenant.name)
     else
       redirect_to device_users_smart_device_path(@device_user.smart_device),
-                  alert: "Không thể liên kết người dùng với người thuê"
+                  alert: t("smart_devices.lock_users.user_link_error")
     end
   end
 
@@ -402,10 +428,10 @@ class SmartDevicesController < ApplicationController
 
     if @device_user.remove_tenant_association
       redirect_to device_users_smart_device_path(@device_user.smart_device),
-                  notice: "Đã hủy liên kết người dùng #{@device_user.name} với người thuê"
+                  notice: t("smart_devices.lock_users.user_unlinked", user: @device_user.name)
     else
       redirect_to device_users_smart_device_path(@device_user.smart_device),
-                  alert: "Không thể hủy liên kết người dùng"
+                  alert: t("smart_devices.lock_users.user_unlink_error")
     end
   end
 

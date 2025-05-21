@@ -13,9 +13,30 @@
           <div class="col-md-2">
             <h6 class="mb-0 text-primary"><i class="fas fa-filter me-2"></i><%= t('smart_devices.lock.filter') %></h6>
           </div>
-          <div class="col-md-3 d-flex align-items-center">
+          <div class="col-md-3 d-flex align-items-center mb-2 mb-md-0">
             <label for="days" class="form-label mb-0 me-3"><%= t('smart_devices.lock.time_period') %></label>
             <%= text_field_tag :days, params[:days] || 7, class: "form-control", style: "width: 80px;", placeholder: t('smart_devices.lock.days_placeholder') %>
+          </div>
+          <div class="col-md-3 mb-2 mb-md-0">
+            <label for="user_id" class="form-label mb-0 me-2"><%= t('smart_devices.lock.user') %></label>
+            <%= select_tag :user_id, 
+                options_for_select(@smart_device.device_users.map { |u| [u.unlock_name || u.name, u.user_id] }, params[:user_id]), 
+                include_blank: "-- #{t('common.all')} --", 
+                class: "form-select" %>
+          </div>
+          <div class="col-md-2 mb-2 mb-md-0">
+            <label for="unlock_sn" class="form-label mb-0 me-2"><%= t('smart_devices.lock.unlock_methods.method') %></label>
+            <%= select_tag :unlock_sn, 
+                options_for_select(@smart_device.device_users.where.not(unlock_sn: nil).distinct.pluck(:unlock_name, :unlock_sn), params[:unlock_sn]), 
+                include_blank: "-- #{t('common.all')} --", 
+                class: "form-select" %>
+          </div>
+          <div class="col-md-2 mb-2 mb-md-0">
+            <label for="tenant_id" class="form-label mb-0 me-2"><%= t('tenants.title') %></label>
+            <%= select_tag :tenant_id, 
+                options_for_select(Tenant.joins(:device_users).where(device_users: {smart_device_id: @smart_device.id}).distinct.pluck(:name, :id), params[:tenant_id]), 
+                include_blank: "-- #{t('common.all')} --", 
+                class: "form-select" %>
           </div>
           <div class="col-md-2">
             <%= button_tag type: "submit", class: "btn btn-primary" do %>
@@ -48,6 +69,7 @@
                 <th class="border-0 ps-4"><%= t('smart_devices.lock.timestamp') %></th>
                 <th class="border-0"><%= t('smart_devices.lock.user') %></th>
                 <th class="border-0"><%= t('smart_devices.lock.method') %></th>
+                <th class="border-0"><%= t('smart_devices.lock.unlock_sn') %></th>
                 <th class="border-0"><%= t('smart_devices.lock.status') %></th>
               </tr>
             </thead>
@@ -92,6 +114,13 @@
                     <% end %>
                   </td>
                   <td>
+                    <% if record[:raw_data] && record[:raw_data]["status"] && record[:raw_data]["status"]["value"] %>
+                      <span class="badge bg-secondary"><%= record[:raw_data]["status"]["value"] %></span>
+                    <% else %>
+                      <span class="text-muted">-</span>
+                    <% end %>
+                  </td>
+                  <td>
                     <% if record[:success] %>
                       <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">
                         <i class="fas fa-check-circle me-1"></i><%= t('smart_devices.lock.unlock_statuses.success') %>
@@ -122,6 +151,9 @@
                 <%= hidden_field_tag :days, params[:days] || 7 %>
                 <%= hidden_field_tag :page, (@unlock_records[:page_no] || 1) + 1 %>
                 <%= hidden_field_tag :page_size, params[:page_size] || 50 %>
+                <%= hidden_field_tag :user_id, params[:user_id] if params[:user_id].present? %>
+                <%= hidden_field_tag :unlock_sn, params[:unlock_sn] if params[:unlock_sn].present? %>
+                <%= hidden_field_tag :tenant_id, params[:tenant_id] if params[:tenant_id].present? %>
                 <%= hidden_field_tag :load_more, true %>
                 <%= button_tag type: "submit", class: "btn btn-outline-primary btn-sm", id: "load-more-btn" do %>
                   <i class="fas fa-sync me-1"></i> <%= t('smart_devices.lock.load_more') %>
@@ -171,16 +203,16 @@
     // Form filter
     const filterForm = document.getElementById('filter-form');
     if (filterForm) {
-      const daysSelect = filterForm.querySelector('select[name="days"]');
-      if (daysSelect) {
-        daysSelect.addEventListener('change', function() {
-          const pageInput = document.createElement('input');
-          pageInput.type = 'hidden';
-          pageInput.name = 'page';
-          pageInput.value = '1';
-          filterForm.appendChild(pageInput);
-          
-          filterForm.submit();
+      const filterSelects = filterForm.querySelectorAll('select');
+      if (filterSelects) {
+        filterSelects.forEach(function(select) {
+          select.addEventListener('change', function() {
+            const pageInput = document.createElement('input');
+            pageInput.type = 'hidden';
+            pageInput.name = 'page';
+            pageInput.value = '1';
+            filterForm.appendChild(pageInput);
+          });
         });
       }
     }

@@ -1,25 +1,65 @@
-<% content_for :title, "Người dùng thiết bị (lưu trữ)" %>
+<% content_for :title, t('smart_devices.lock_users.title', name: @smart_device.name) %>
 
 <div class="container-fluid px-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mt-4">
       <i class="fas fa-users"></i>
-      Người dùng thiết bị: <%= @smart_device.name %>
+      <%= t('smart_devices.lock_users.title', name: @smart_device.name) %>
     </h1>
     <div>
       <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary me-2' do %>
-        <i class="fas fa-chevron-left me-1"></i> Quay lại
+        <i class="fas fa-chevron-left me-1"></i> <%= t('smart_devices.common.back_to_device') %>
       <% end %>
       
-      <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: "Bạn muốn đồng bộ dữ liệu mới từ Tuya API?" } do %>
-        <i class="fas fa-sync me-1"></i> Đồng bộ dữ liệu
+      <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: t('smart_devices.confirm_sync') } do %>
+        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_with_cloud') %>
       <% end %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                <%= t('smart_devices.lock_users.total_users') %></div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @device_users.count %> <%= t('smart_devices.lock_users.users') %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-users fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                <%= t('smart_devices.lock_users.active_users') %></div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                <%= @device_users.where('last_active_at > ?', 30.days.ago).count %> <%= t('smart_devices.lock_users.users') %>
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-user-check fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div class="card border-0 shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
-      <h6 class="m-0 font-weight-bold text-primary">Người dùng thiết bị từ cơ sở dữ liệu</h6>
+      <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.lock_users.authorized_users') %></h6>
     </div>
     
     <div class="card-body">
@@ -28,25 +68,25 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th class="border-0">Tên</th>
-                <th class="border-0">Thông tin mở khóa</th>
-                <th class="border-0">Mã mở khóa</th>
-                <th class="border-0">Loại</th>
-                <th class="border-0">Người thuê</th>
-                <th class="border-0">Thao tác</th>
+                <th class="border-0"><%= t('smart_devices.common.name') %></th>
+                <th class="border-0"><%= t('smart_devices.lock.unlock_methods.method') %></th>
+                <th class="border-0"><%= t('smart_devices.lock.user') %></th>
+                <th class="border-0"><%= t('smart_devices.lock_users.role') %></th>
+                <th class="border-0"><%= t('tenants.title') %></th>
+                <th class="border-0"><%= t('common.actions') %></th>
               </tr>
             </thead>
             <tbody>
               <% @device_users.each do |user| %>
                 <tr>
-                  <td><%= user.name || "Người dùng không tên" %></td>
+                  <td><%= user.name || t('smart_devices.history.unknown_user') %></td>
                   <td>
                     <% if user.unlock_name.present? %>
                       <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
                         <%= user.unlock_name %>
                       </span>
                     <% else %>
-                      <span class="text-muted">Không có</span>
+                      <span class="text-muted"><%= t('common.none') %></span>
                     <% end %>
                   </td>
                   <td>
@@ -61,7 +101,13 @@
                   </td>
                   <td>
                     <% if user.user_type.present? %>
-                      <span class="badge bg-primary">Loại <%= user.user_type %></span>
+                      <span class="badge bg-primary">
+                        <% if user.user_type.is_a?(String) %>
+                          <%= t("smart_devices.lock_users.#{user.user_type.downcase}", default: "#{t('smart_devices.lock_users.role')} #{user.user_type}") %>
+                        <% else %>
+                          <%= t("smart_devices.lock_users.role_number", default: "#{t('smart_devices.lock_users.role')} #{user.user_type}") %>
+                        <% end %>
+                      </span>
                     <% else %>
                       <span class="text-muted">-</span>
                     <% end %>
@@ -70,21 +116,21 @@
                     <% if user.tenant %>
                       <%= link_to user.tenant.name, tenant_path(user.tenant), class: "text-decoration-none" %>
                     <% else %>
-                      <span class="text-muted">Chưa liên kết</span>
+                      <span class="text-muted"><%= t('smart_devices.lock_users.not_linked', default: 'Not linked') %></span>
                     <% end %>
                   </td>
                   <td>
                     <% if user.tenant.nil? %>
                       <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkModal<%= user.id %>">
-                        <i class="fas fa-link me-1"></i> Liên kết
+                        <i class="fas fa-link me-1"></i> <%= t('smart_devices.lock_users.link') %>
                       </button>
                     <% else %>
                       <%= button_to unlink_user_from_tenant_smart_device_path(@smart_device),
                           method: :post,
                           params: { device_user_id: user.id },
-                          form: { data: { turbo_confirm: "Bạn có chắc muốn hủy liên kết người dùng này?" }, class: "d-inline" },
+                          form: { data: { turbo_confirm: t('smart_devices.lock_users.confirm_unlink') }, class: "d-inline" },
                           class: "btn btn-sm btn-outline-danger" do %>
-                        <i class="fas fa-unlink me-1"></i> Hủy liên kết
+                        <i class="fas fa-unlink me-1"></i> <%= t('smart_devices.lock_users.unlink') %>
                       <% end %>
                     <% end %>
                   </td>
@@ -96,10 +142,20 @@
       <% else %>
         <div class="alert alert-info">
           <i class="fas fa-info-circle me-2"></i> 
-          Chưa có dữ liệu người dùng trong cơ sở dữ liệu.
-          <%= link_to "Đồng bộ dữ liệu từ Tuya", sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+          <%= t('smart_devices.lock_users.no_users_message') %>
+          <%= link_to t('smart_devices.sync_with_cloud'), sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
         </div>
       <% end %>
+    </div>
+  </div>
+  
+  <div class="card border-0 shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+      <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.lock_users.info_title') %></h6>
+    </div>
+    <div class="card-body">
+      <p><%= t('smart_devices.lock_users.info_message_1') %></p>
+      <p><%= t('smart_devices.lock_users.info_message_2') %></p>
     </div>
   </div>
 </div>
@@ -111,26 +167,26 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="linkModalLabel<%= user.id %>">Liên kết người dùng với người thuê</h5>
+            <h5 class="modal-title" id="linkModalLabel<%= user.id %>"><%= t('smart_devices.lock_users.link_modal_title') %></h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <%= form_with url: link_user_to_tenant_smart_device_path(@smart_device), method: :post, local: true do |f| %>
             <div class="modal-body">
               <%= f.hidden_field :device_user_id, value: user.id %>
               <div class="mb-3">
-                <%= f.label :tenant_id, "Chọn người thuê", class: "form-label" %>
+                <%= f.label :tenant_id, t('smart_devices.lock_users.select_tenant'), class: "form-label" %>
                 <%= f.select :tenant_id, 
                       Tenant.order(:name).map { |t| [t.name, t.id] }, 
-                      { prompt: "-- Chọn người thuê --" }, 
-                      { class: "form-select", required: true } %>
+                      { prompt: "-- #{t('smart_devices.lock_users.select_tenant_prompt')} --" }, 
+                      { class: "form-select select2", required: true } %>
               </div>
               <div class="small text-muted">
-                Tổng số người thuê: <%= Tenant.count %>
+                <%= t('smart_devices.lock_users.total_tenants', count: Tenant.count) %>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-              <%= f.submit "Liên kết", class: "btn btn-primary" %>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><%= t('common.cancel') %></button>
+              <%= f.submit t('smart_devices.lock_users.link'), class: "btn btn-primary" %>
             </div>
           <% end %>
         </div>

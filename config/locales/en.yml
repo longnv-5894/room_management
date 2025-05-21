@@ -766,6 +766,11 @@ en:
     get_info: "Get Device Information"
     get_functions: "Get Device Functions"
     get_logs: "Get Device Logs"
+    sync_with_cloud: "Sync with Cloud"
+    confirm_sync: "Are you sure you want to synchronize devices with the Cloud?"
+    no_devices: "No smart devices found."
+    default:
+      new_device: "New Device"
     success:
       created: "Smart device was successfully created."
       updated: "Smart device was successfully updated."
@@ -776,6 +781,20 @@ en:
       device_type: "Device Type"
       description: "Description"
       building: "Building"
+    alerts:
+      no_devices_found: "No devices found in your Tuya Cloud account. Please make sure devices are added to Smart Life app first."
+      missing_api_config: "Missing Tuya API configuration. Please contact your administrator to configure Tuya API connection."
+      time_sync_error: "Time synchronization error with Tuya server. System is trying different offset values."
+      token_expired: "Access token has expired or is invalid. Trying again with new token."
+      cannot_fetch_devices: "Could not fetch devices from Tuya Cloud: %{error}"
+      successful_connection_with_offset: "Successfully connected with time_offset of %{offset}. You can update config/tuya.yml to use this value."
+    sync:
+      success: "Synchronized successfully: %{new_count} new devices, %{updated_count} updated devices."
+      error: "Device synchronization error: %{error}"
+      device_success: "Data synchronization successful. %{unlock_records}. %{users}."
+      device_error: "Could not synchronize data: %{error}"
+      records_synced: "Synced %{count} new unlock records"
+      users_synced: "Synced %{new_count} new users, updated %{updated_count} users"
     common:
       back_to_device: "Back to device"
       back_to_list: "Back to list"
@@ -804,21 +823,8 @@ en:
       edit_info: "Edit information"
       apply: "Apply"
       loading: "Loading..."
+      name: "Name"
       network_error: "Network connection error. Please try again later."
-      search_by_name: "Search by device name"
-    form:
-      device_from_tuya: "Device from Tuya"
-      select_device: "Select device"
-      select_device_help: "Select a Tuya device that's connected to your account"
-      no_devices_help: "Enter Tuya device ID manually (device must be connected to your Tuya account)"
-      select_building: "Select building"
-      create_device: "Create new device"
-      update_device: "Update device"
-    list: "Smart Device List"
-    no_devices: "No smart devices found."
-    add: "Add device"
-    switch:
-      control_error: "Could not control the device. Please try again later."
     
     types:
       smart_lock: "Smart Lock"
@@ -849,6 +855,14 @@ en:
       load_more: "Load more data"
       error_title: "Error:"
       no_records_message: "No unlock records found for the selected time period."
+      unlock_success: "Door unlocked successfully."
+      unlock_error: "Could not unlock door: %{error}"
+      lock_success: "Door locked successfully."
+      lock_error: "Could not lock door: %{error}"
+      password_added: "Password added successfully."
+      password_add_error: "Could not add password: %{error}"
+      password_deleted: "Password deleted successfully."
+      password_delete_error: "Could not delete password: %{error}"
       unlock_methods:
         fingerprint: "Fingerprint"
         password: "Password"
@@ -864,6 +878,10 @@ en:
       user: "User"
       method: "Method"
       status: "Status"
+      total_records: "Total Records"
+      successful_unlocks: "Successful Unlocks"
+      filter_hint: "Shows records within the selected time period"
+      statistics: "Statistics"
     
     lock_users:
       title: "Lock Users - %{name}"
@@ -890,6 +908,18 @@ en:
       info_title: "Lock user information"
       info_message_1: "Lock user list shows all users who have been granted access to this smart lock."
       info_message_2: "Users can be added or managed through the smart lock manufacturer's official app."
+      user_linked: "Successfully linked user %{user} with tenant %{tenant}"
+      user_link_error: "Could not link user with tenant"
+      user_unlinked: "Successfully unlinked user %{user} from tenant"
+      user_unlink_error: "Could not unlink user from tenant"
+      not_linked: "Not linked"
+      link: "Link"
+      unlink: "Unlink"
+      confirm_unlink: "Are you sure you want to unlink this user?"
+      link_modal_title: "Link user with tenant"
+      select_tenant: "Select tenant"
+      select_tenant_prompt: "Select a tenant"
+      total_tenants: "Total tenants: %{count}"
     
     switch:
       switch_control: "Switch Control"
@@ -898,6 +928,7 @@ en:
       turn_on: "TURN ON"
       turn_off: "TURN OFF"
       device_offline: "Device is offline. Cannot control."
+      control_error: "Could not control the device. Please try again later."
     
     sensor:
       sensor_data: "Sensor Data"
@@ -914,11 +945,32 @@ en:
       event: "Event"
       user: "User"
       notes: "Notes"
+      view_all: "View All"
+      fingerprint: "Fingerprint"
+      password: "Password"
+      card: "Card"
+      app: "App"
+      success: "Success"
+      failed: "Failed"
+      no_records: "No activity records found."
+      sync_from_tuya: "Sync from Tuya"
+      user_avatar: "User avatar"
+      unknown_user: "Unknown user"
       unlock: "Unlock"
       lock: "Lock"
     
     management:
       device_management: "Device Management"
+
+    form:
+      device_from_tuya: "Device from Tuya"
+      select_device: "Select device"
+      select_device_help: "Select a Tuya device that's connected to your account"
+      no_devices_help: "Enter Tuya device ID manually (device must be connected to your Tuya account)"
+      select_building: "Select building"
+      create_device: "Create new device"
+      update_device: "Update device"
+
   # Currency format
   number:
     currency:

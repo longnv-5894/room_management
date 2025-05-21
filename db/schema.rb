@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_20_061452) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_21_102418) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -125,6 +125,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_20_061452) do
     t.bigint "tenant_id"
     t.string "user_id", null: false
     t.string "name"
+    t.string "role"
     t.string "status"
     t.string "avatar_url"
     t.datetime "last_active_at"
@@ -135,7 +136,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_20_061452) do
     t.string "dp_code"
     t.string "unlock_name"
     t.integer "user_type"
-    t.index ["smart_device_id", "user_id"], name: "index_device_users_on_smart_device_id_and_user_id", unique: true
+    t.index ["smart_device_id", "user_id", "unlock_sn"], name: "idx_on_smart_device_id_user_id_unlock_sn_0a7f4a9c2c", unique: true
     t.index ["smart_device_id"], name: "index_device_users_on_smart_device_id"
     t.index ["tenant_id"], name: "index_device_users_on_tenant_id"
     t.index ["user_id"], name: "index_device_users_on_user_id"
@@ -240,13 +241,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_20_061452) do
   create_table "unlock_records", force: :cascade do |t|
     t.bigint "smart_device_id", null: false
     t.datetime "time", null: false
-    t.string "user_id"
     t.string "user_name"
     t.string "unlock_method"
     t.boolean "success", default: true
+    t.string "record_id"
     t.json "raw_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "user_id"
+    t.index ["record_id"], name: "index_unlock_records_on_record_id", unique: true
     t.index ["smart_device_id"], name: "index_unlock_records_on_smart_device_id"
     t.index ["time"], name: "index_unlock_records_on_time"
   end

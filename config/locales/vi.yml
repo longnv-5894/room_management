@@ -55,6 +55,7 @@ vi:
     total: "Tổng cộng: %{count}"
     confirm_delete: "Bạn có chắc muốn xóa mục này không?"
     all_items: "Tất cả %{items}"
+    all: "Tất cả"
   
   # Navigation
   nav:
@@ -770,6 +771,10 @@ vi:
     get_info: "Lấy thông tin thiết bị"
     get_functions: "Lấy danh sách chức năng"
     get_logs: "Lấy lịch sử thiết bị"
+    sync_with_cloud: "Đồng bộ với Cloud"
+    confirm_sync: "Bạn có chắc chắn muốn đồng bộ thiết bị với Cloud không?"
+    default:
+      new_device: "Thiết bị mới"
     success:
       created: "Thiết bị thông minh đã được tạo thành công."
       updated: "Thiết bị thông minh đã được cập nhật thành công."
@@ -780,6 +785,20 @@ vi:
       device_type: "Loại thiết bị"
       description: "Mô tả"
       building: "Tòa nhà"
+    alerts:
+      no_devices_found: "Không tìm thấy thiết bị nào trong tài khoản Tuya Cloud. Vui lòng đảm bảo thiết bị đã được thêm vào ứng dụng Smart Life trước."
+      missing_api_config: "Thiếu cấu hình Tuya API. Vui lòng liên hệ quản trị viên để cấu hình kết nối Tuya API."
+      time_sync_error: "Lỗi đồng bộ thời gian với máy chủ Tuya. Hệ thống đang thử nhiều giá trị offset khác nhau."
+      token_expired: "Access token đã hết hạn hoặc không hợp lệ. Đang thử lại với token mới."
+      cannot_fetch_devices: "Không thể lấy dữ liệu thiết bị từ Tuya Cloud: %{error}"
+      successful_connection_with_offset: "Kết nối thành công với time_offset là %{offset}. Bạn có thể cập nhật file config/tuya.yml để sử dụng giá trị này."
+    sync:
+      success: "Đồng bộ thành công: %{new_count} thiết bị mới, %{updated_count} thiết bị cập nhật."
+      error: "Lỗi đồng bộ thiết bị: %{error}"
+      device_success: "Đồng bộ dữ liệu thành công. %{unlock_records}. %{users}."
+      device_error: "Không thể đồng bộ dữ liệu: %{error}"
+      records_synced: "Đã đồng bộ %{count} bản ghi mở khóa mới"
+      users_synced: "Đã đồng bộ %{new_count} người dùng mới, cập nhật %{updated_count} người dùng"
     common:
       back_to_device: "Quay lại thiết bị"
       back_to_list: "Quay lại danh sách"
@@ -808,6 +827,8 @@ vi:
       edit_info: "Chỉnh sửa thông tin"
       apply: "Áp dụng"
       loading: "Đang tải..."
+      name: "Tên"
+      network_error: "Lỗi kết nối mạng. Vui lòng thử lại sau."
     
     types:
       smart_lock: "Khóa thông minh"
@@ -838,6 +859,14 @@ vi:
       load_more: "Tải thêm dữ liệu"
       error_title: "Lỗi:"
       no_records_message: "Không tìm thấy bản ghi mở khóa nào trong khoảng thời gian đã chọn."
+      unlock_success: "Đã mở khóa thành công."
+      unlock_error: "Không thể mở khóa: %{error}"
+      lock_success: "Đã khóa thành công."
+      lock_error: "Không thể khóa: %{error}"
+      password_added: "Đã thêm mật khẩu thành công."
+      password_add_error: "Không thể thêm mật khẩu: %{error}"
+      password_deleted: "Đã xóa mật khẩu thành công."
+      password_delete_error: "Không thể xóa mật khẩu: %{error}"
       unlock_methods:
         fingerprint: "Vân tay"
         password: "Mật khẩu"
@@ -853,6 +882,10 @@ vi:
       user: "Người dùng"
       method: "Phương thức"
       status: "Trạng thái"
+      total_records: "Tổng số bản ghi"
+      successful_unlocks: "Mở khóa thành công"
+      filter_hint: "Hiển thị bản ghi trong khoảng thời gian đã chọn"
+      statistics: "Thống kê"
     
     lock_users:
       title: "Người dùng khóa - %{name}"
@@ -879,6 +912,18 @@ vi:
       info_title: "Thông tin người dùng khóa"
       info_message_1: "Danh sách người dùng khóa hiển thị tất cả người dùng đã được cấp quyền truy cập vào khóa thông minh này."
       info_message_2: "Người dùng có thể được thêm hoặc quản lý thông qua ứng dụng chính thức của nhà sản xuất khóa thông minh."
+      user_linked: "Đã liên kết người dùng %{user} với người thuê %{tenant}"
+      user_link_error: "Không thể liên kết người dùng với người thuê"
+      user_unlinked: "Đã hủy liên kết người dùng %{user} với người thuê"
+      user_unlink_error: "Không thể hủy liên kết người dùng"
+      not_linked: "Chưa liên kết"
+      link: "Liên kết"
+      unlink: "Hủy liên kết"
+      confirm_unlink: "Bạn có chắc muốn hủy liên kết người dùng này?"
+      link_modal_title: "Liên kết người dùng với người thuê"
+      select_tenant: "Chọn người thuê"
+      select_tenant_prompt: "Chọn một người thuê"
+      total_tenants: "Tổng số người thuê: %{count}"
     
     switch:
       switch_control: "Điều khiển công tắc"
@@ -904,11 +949,23 @@ vi:
       event: "Sự kiện"
       user: "Người dùng"
       notes: "Ghi chú"
+      view_all: "Xem tất cả"
+      fingerprint: "Vân tay"
+      password: "Mật khẩu"
+      card: "Thẻ"
+      app: "Ứng dụng"
+      success: "Thành công"
+      failed: "Thất bại"
+      no_records: "Không có bản ghi hoạt động nào."
+      sync_from_tuya: "Đồng bộ từ Tuya"
+      user_avatar: "Ảnh đại diện người dùng"
+      unknown_user: "Người dùng không xác định"
       unlock: "Mở khóa"
       lock: "Khóa"
     
     management:
       device_management: "Quản lý thiết bị"
+
     form:
       device_from_tuya: "Thiết bị từ Tuya"
       select_device: "Chọn thiết bị"
@@ -917,6 +974,7 @@ vi:
       select_building: "Chọn tòa nhà"
       create_device: "Tạo thiết bị mới"
       update_device: "Cập nhật thiết bị"
+
   # Currency format
   number:
     currency:

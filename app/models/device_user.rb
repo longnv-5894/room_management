@@ -4,7 +4,8 @@ class DeviceUser < ApplicationRecord
   has_many :unlock_records, foreign_key: "user_id", primary_key: "user_id"
 
   validates :user_id, presence: true
-  validates :user_id, uniqueness: { scope: :smart_device_id }
+  # Update validation to make user_id and unlock_sn combination unique
+  validates :user_id, uniqueness: { scope: [ :smart_device_id, :unlock_sn ] }
 
   # Sync device users from Tuya API
   def self.sync_from_tuya(smart_device)
@@ -26,13 +27,11 @@ class DeviceUser < ApplicationRecord
         if user[:raw_data].present? && user[:raw_data]["unlock_methods"].present? && user[:raw_data]["unlock_methods"].is_a?(Array)
           # Xử lý mỗi phương thức mở khóa như một bản ghi DeviceUser riêng biệt
           user[:raw_data]["unlock_methods"].each do |method|
-            # Tạo khóa duy nhất cho mỗi phương thức mở khóa là sự kết hợp của user_id và unlock_sn
-            unlock_id = "#{user[:id]}_#{method['unlock_sn']}"
-
-            # Look for existing device user with this specific unlock method
+            # Look for existing device user with this specific user_id and unlock_sn combination
             device_user = DeviceUser.find_or_initialize_by(
               smart_device: smart_device,
-              user_id: unlock_id  # Sử dụng khóa duy nhất thay vì chỉ user_id
+              user_id: user[:id],
+              unlock_sn: method["unlock_sn"]
             )
 
             # Update attributes
@@ -42,7 +41,6 @@ class DeviceUser < ApplicationRecord
             device_user.avatar_url = user[:avatar_url]
 
             # Lưu các thông tin về phương thức mở khóa
-            device_user.unlock_sn = method["unlock_sn"]
             device_user.dp_code = method["dp_code"]
             device_user.unlock_name = method["unlock_name"]
             device_user.user_type = method["user_type"]
