@@ -962,6 +962,7 @@ vi:
       unknown_user: "Người dùng không xác định"
       unlock: "Mở khóa"
       lock: "Khóa"
+      total_records: "Tổng số bản ghi : %{count}"
     
     management:
       device_management: "Quản lý thiết bị"

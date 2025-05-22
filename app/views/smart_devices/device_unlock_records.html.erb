@@ -96,7 +96,7 @@
       
       <div class="btn-group mb-2 mb-md-0">
         <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info btn-sm', data: { turbo_method: :post } do %>
-          <i class="fas fa-sync me-1"></i> <%= t('common.sync') %>
+          <i class="fas fa-sync me-1"></i> <%= t('smart_devices.history.sync_from_tuya') %>
         <% end %>
       </div>
     </div>
@@ -170,6 +170,17 @@
     
     <div class="card-body p-0">
       <% if @unlock_records && @unlock_records.any? %>
+        <!-- Total count display -->
+        <div class="bg-light p-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-medium">
+                <i class="fas fa-list-ul me-1"></i> <%= t('smart_devices.history.total_records', count: @total_count) %>
+              </span>             
+            </div>           
+          </div>
+        </div>
+        
         <div class="table-responsive">
           <table class="table table-hover table-sm align-middle mb-0 data-table">
             <thead class="table-light">
