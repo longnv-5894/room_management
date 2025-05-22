@@ -98,6 +98,9 @@ class TuyaSmartLockService
 
       # Kết hợp options từ người dùng và giá trị mặc định
       query_params = default_options.merge(options.compact)
+      
+      # Log thông tin về thời gian đang tìm kiếm
+      Rails.logger.info("Fetching unlock records from: #{Time.at(query_params[:start_time]/1000)} to: #{Time.at(query_params[:end_time]/1000)}")
 
       # Thêm unlock_codes nếu được chỉ định
       if options[:unlock_codes].present?
@@ -164,6 +167,9 @@ class TuyaSmartLockService
         # Theo tài liệu API, dữ liệu có thể nằm trong result.records hoặc result.logs
         records = records_data["records"] || records_data["logs"] || []
         has_more = records_data["has_more"].nil? ? (records_data["total"] || 0) > records.size : records_data["has_more"]
+
+        # Log số lượng bản ghi tìm thấy
+        Rails.logger.info("Found #{records.size} unlock records in time range")
 
         {
           success: true,
@@ -318,7 +324,7 @@ class TuyaSmartLockService
   end
 
   # Lấy danh sách người dùng của khóa
-  def get_lock_users(device_id, page_no = 1, page_size = 20)
+  def get_lock_users(device_id, options = {})
     begin
       # Đảm bảo đã có token xác thực
       @tuya_service.get_access_token unless @tuya_service.instance_variable_get(:@access_token)
@@ -329,11 +335,21 @@ class TuyaSmartLockService
       # Sử dụng endpoint cho users
       path = DOOR_LOCK_ENDPOINTS[:users] % { device_id: device_id }
 
+      # Extract options or use defaults
+      page_no = options[:page_no] || 1
+      page_size = options[:page_size] || 20
+      
       # Tham số truy vấn
       query_params = {
         page_no: page_no,
         page_size: page_size
       }
+      
+      # Add last_update_time parameter if provided
+      if options[:last_update_time].present?
+        query_params[:last_update_time] = options[:last_update_time]
+        Rails.logger.info("Including last_update_time: #{Time.at(query_params[:last_update_time]/1000)}")
+      end
 
       # Sắp xếp tham số để tạo query string
       query_params = query_params.sort.to_h
@@ -519,112 +535,7 @@ class TuyaSmartLockService
       { success: false, error: e.message, methods: [] }
     end
   end
-
-  # Phương thức thử nghiệm để gọi API lấy danh sách chìa khóa đã gán cho người dùng
-  def test_assigned_keys_api(device_id, user_id)
-    begin
-      # Đảm bảo đã có token xác thực
-      @tuya_service.get_access_token unless @tuya_service.instance_variable_get(:@access_token)
-
-      # Tạo đường dẫn API mới cho OPModes - đúng với tài liệu API
-      path = "/v1.0/smart-lock/devices/#{device_id}/opmodes/#{user_id}"
-
-      # Tham số truy vấn - khớp chính xác với curl command
-      query_params =  { codes: "unlock_fingerprint,unlock_card", page_no: 1, page_size: 20 }
-
-      # Sắp xếp tham số để tạo query string
-      query_params = query_params.sort.to_h
-      query = query_params.map { |k, v| "#{k}=#{v}" }.join("&")
-
-      string_to_sign = @tuya_service.create_string_to_sign("GET", path, query)
-
-      timestamp = @tuya_service.generate_timestamp # Sử dụng timestamp từ curl command
-
-
-      # Tạo chữ ký
-      sign = @tuya_service.generate_sign(
-        string_to_sign,
-        timestamp,
-        @tuya_service.instance_variable_get(:@access_token)
-      )
-      # Log các tham số trước khi ký
-      Rails.logger.info("=== TEST API DEBUG ===")
-      Rails.logger.info("API Path: #{path}")
-      Rails.logger.info("API Query: #{query}")
-
-      # Tạo đầy đủ URI
-      uri = URI("#{@tuya_service.instance_variable_get(:@api_endpoint)}#{path}?#{query}")
-
-      # Chuẩn bị headers với sign từ curl command
-      headers = {
-        "client_id" =>  @tuya_service.instance_variable_get(:@client_id), # client_id từ curl command
-        "sign" => sign,
-        "t" => timestamp,
-        "sign_method" => "HMAC-SHA256",
-        "access_token" => @tuya_service.instance_variable_get(:@access_token),
-        "Content-Type" => "application/json",
-        "mode" => "cors"
-      }
-
-      # Ghi lại curl command đã sử dụng
-      Rails.logger.info("=== CURL COMMAND USED ===")
-      Rails.logger.info("curl --location '#{@tuya_service.instance_variable_get(:@api_endpoint)}#{path}?#{query}' \\")
-      Rails.logger.info("--header 'sign_method: HMAC-SHA256' \\")
-      Rails.logger.info("--header 'client_id: #{headers['client_id']}' \\")
-      Rails.logger.info("--header 't: #{headers['t']}' \\")
-      Rails.logger.info("--header 'mode: cors' \\")
-      Rails.logger.info("--header 'Content-Type: application/json' \\")
-      Rails.logger.info("--header 'sign: #{headers['sign']}' \\")
-      Rails.logger.info("--header 'access_token: #{headers['access_token']}'")
-
-      # Gửi request
-      Rails.logger.info("=== TEST API CALL ===")
-      Rails.logger.info("OPModes API Call - URI: #{uri}")
-      Rails.logger.info("OPModes API Call - Headers: #{headers.inspect}")
-
-      request = Net::HTTP::Get.new(uri)
-
-      # Thêm các header
-      headers.each do |key, value|
-        request[key] = value
-      end
-
-      response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-        http.open_timeout = 10
-        http.read_timeout = 30
-        http.request(request)
-      end
-
-      # Xử lý và log response
-      begin
-        result = JSON.parse(response.body)
-        Rails.logger.info("=== TEST API RESPONSE ===")
-        Rails.logger.info("OPModes API response status: #{response.code}")
-        Rails.logger.info("OPModes API response: #{result.inspect}")
-
-        if result["success"]
-          Rails.logger.info("===== API CALL SUCCESSFUL =====")
-
-
-          result
-        else
-          Rails.logger.info("===== API CALL FAILED =====")
-          Rails.logger.info("Error code: #{result['code']}")
-          Rails.logger.info("Error message: #{result['msg']}")
-        end
-      rescue JSON::ParserError => e
-        Rails.logger.error("=== TEST API ERROR ===")
-        Rails.logger.error("Failed to parse OPModes API response: #{e.message}")
-        Rails.logger.error("Response body: #{response.body}")
-      end
-    rescue => e
-      Rails.logger.error("=== TEST API ERROR ===")
-      Rails.logger.error("OPModes API error: #{e.message}")
-      Rails.logger.error(e.backtrace.join("\n")) if e.backtrace
-    end
-  end
-
-
+  
   private
 
   # Phương thức chung để gọi API khóa cửa

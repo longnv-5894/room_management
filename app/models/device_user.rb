@@ -11,8 +11,28 @@ class DeviceUser < ApplicationRecord
   def self.sync_from_tuya(smart_device)
     return unless smart_device.smart_lock?
 
-    # Get data from Tuya API using the new method specifically for API calls
-    api_response = smart_device.get_lock_users_from_api()
+    # Find the most recently updated user in our database for this device
+    latest_user = smart_device.device_users.order(updated_at: :desc).first
+    
+    # If we have users already, try to fetch only users updated since the last update
+    # Otherwise, fetch all users (default behavior)
+    last_update_time = nil
+    if latest_user.present?
+      # Use the updated_at time of our most recent user
+      last_update_time = latest_user.updated_at
+      Rails.logger.info("Fetching users updated since: #{last_update_time}")
+    else
+      Rails.logger.info("No existing users found, fetching all users")
+    end
+
+    # Get data from Tuya API using the new method with last_update_time
+    api_response = smart_device.get_lock_users_from_api(1, 50, last_update_time)
+
+    # If no users found with the time filter or there was an error, try fetching all users
+    if (api_response[:users].blank? || api_response[:error].present?) && latest_user.present?
+      Rails.logger.info("No updated users found or error occurred, fetching all users")
+      api_response = smart_device.get_lock_users_from_api()
+    end
 
     return { error: api_response[:error] } if api_response[:error].present?
 
@@ -56,8 +76,10 @@ class DeviceUser < ApplicationRecord
             if device_user.save
               if is_new_record
                 users_synced += 1
+                Rails.logger.info("Added new device user: #{user[:id]}, method: #{method["unlock_name"]}")
               else
                 users_updated += 1
+                Rails.logger.info("Updated device user: #{user[:id]}, method: #{method["unlock_name"]}")
               end
             end
           end
@@ -79,8 +101,10 @@ class DeviceUser < ApplicationRecord
           if device_user.save
             if is_new_record
               users_synced += 1
+              Rails.logger.info("Added new device user: #{user[:id]}")
             else
               users_updated += 1
+              Rails.logger.info("Updated device user: #{user[:id]}")
             end
           end
         end

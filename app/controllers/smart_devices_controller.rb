@@ -1,5 +1,5 @@
 class SmartDevicesController < ApplicationController
-  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :unlock_door, :lock_door, :battery_level, :unlock_records, :password_list, :add_password, :delete_password, :lock_users, :sync_device_data, :device_unlock_records, :device_users, :link_user_to_tenant, :unlink_user_from_tenant ]
+  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :unlock_door, :lock_door, :battery_level, :device_unlock_records, :password_list, :add_password, :delete_password, :lock_users, :sync_device_data, :device_unlock_records, :device_users, :link_user_to_tenant, :unlink_user_from_tenant ]
   before_action :set_building, only: [ :index, :new, :create ]
 
   def index

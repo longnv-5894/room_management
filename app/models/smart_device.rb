@@ -178,24 +178,72 @@ class SmartDevice < ApplicationRecord
   end
 
   # Get unlock records directly from Tuya API for sync operations
-  def get_unlock_records_from_api(days = 7)
+  def get_unlock_records_from_api(days = 7, direction = :both)
     return { error: "Thiết bị không phải là khóa cửa" } unless smart_lock?
 
     begin
       lock_service = TuyaSmartLockService.new
+      
+      # Initialize time parameters
       end_time = Time.now.to_i * 1000
       start_time = (Time.now - days.days).to_i * 1000
+      
+      # Find the latest and earliest records in the database
+      latest_record = unlock_records.order(time: :desc).first
+      earliest_record = unlock_records.order(time: :asc).first
+      
+      # Determine the appropriate time range based on existing records
+      if latest_record.present? && earliest_record.present?
+        case direction
+        when :newer
+          # Fetch only records newer than the latest in the database
+          start_time = (latest_record.time.to_i + 1) * 1000
+          Rails.logger.info("Fetching newer records since: #{Time.at(start_time/1000)}")
+        when :older
+          # Fetch only records older than the earliest in the database
+          end_time = (earliest_record.time.to_i - 1) * 1000
+          start_time = (end_time - days.days.to_i * 1000)
+          Rails.logger.info("Fetching older records before: #{Time.at(end_time/1000)}")
+        when :both
+          # Try to fetch newer records first, then older if none found
+          temp_start = (latest_record.time.to_i + 1) * 1000
+          temp_options = {
+            start_time: temp_start,
+            end_time: end_time,
+            page_no: 1,
+            page_size: 20
+          }
+          
+          # First try to fetch newer records
+          newer_response = lock_service.get_unlock_records(device_id, temp_options)
+          
+          # If new records exist, return them
+          if newer_response[:records].present? && newer_response[:records].any?
+            Rails.logger.info("Found #{newer_response[:records].size} newer records")
+            return newer_response
+          end
+          
+          # Otherwise, fetch older records
+          end_time = (earliest_record.time.to_i - 1) * 1000
+          start_time = (end_time - days.days.to_i * 1000)
+          Rails.logger.info("No newer records found, fetching older records before: #{Time.at(end_time/1000)}")
+        end
+      else
+        Rails.logger.info("No existing records found, fetching default time range of #{days} days")
+      end
 
-      # Truyền tham số dưới dạng options hash thay vì tham số riêng biệt
+      # Set up the options for the API call
       options = {
         start_time: start_time,
         end_time: end_time,
         page_no: 1,
-        page_size: 50 # Lấy số lượng bản ghi lớn hơn mặc định
+        page_size: 50
       }
-
+      
+      Rails.logger.info("Fetching records from #{Time.at(start_time/1000)} to #{Time.at(end_time/1000)}")
       lock_service.get_unlock_records(device_id, options)
     rescue => e
+      Rails.logger.error("Error fetching unlock records: #{e.message}")
       { error: e.message, records: [] }
     end
   end
@@ -282,12 +330,30 @@ class SmartDevice < ApplicationRecord
   end
 
   # Get device users directly from Tuya API for sync operations
-  def get_lock_users_from_api(page = 1, page_size = 20)
+  def get_lock_users_from_api(page = 1, page_size = 20, last_update_time = nil)
     return { error: "Thiết bị không phải là khóa cửa", users: [] } unless smart_lock?
 
     begin
       lock_service = TuyaSmartLockService.new
-      api_response = lock_service.get_lock_users(device_id, page, page_size)
+      
+      # If there's a last_update_time parameter, include it in the API request
+      options = {
+        page_no: page,
+        page_size: page_size
+      }
+      
+      # If we have a last update time, add it to the request to only get users modified since then
+      if last_update_time.present?
+        # Convert to milliseconds timestamp for the API
+        if last_update_time.is_a?(Time)
+          options[:last_update_time] = last_update_time.to_i * 1000
+        else
+          options[:last_update_time] = last_update_time.to_i
+        end
+        Rails.logger.info("Fetching users updated since: #{Time.at(options[:last_update_time]/1000)}")
+      end
+      
+      api_response = lock_service.get_lock_users(device_id, options)
 
       # Nếu có lỗi, trả về luôn
       return api_response if api_response[:error].present?
@@ -320,6 +386,7 @@ class SmartDevice < ApplicationRecord
 
       api_response
     rescue => e
+      Rails.logger.error("Error fetching device users: #{e.message}")
       { error: e.message, users: [] }
     end
   end
