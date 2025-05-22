@@ -2,9 +2,10 @@
 <html lang="<%= I18n.locale %>">
   <head>
     <title><%= content_for(:title) || t('auth.login') %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6c5ce7">
     <meta name="description" content="<%= content_for(:meta_description) || t('meta.description', default: 'Room Management System') %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -23,9 +24,15 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "responsive", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, type: "module" %>
     
     <style>
+      html {
+        height: 100%;
+        touch-action: manipulation;
+      }
+      
       body {
         background-color: #f5f5f8;
         min-height: 100vh;
@@ -33,6 +40,7 @@
         align-items: center;
         justify-content: center;
         font-family: 'Segoe UI', 'Roboto', sans-serif;
+        padding: 15px;
       }
       
       .auth-card {
@@ -118,6 +126,58 @@
       a.text-primary:hover {
         color: #5a4bd1 !important;
         text-decoration: underline;
+      }
+      
+      /* Mobile responsiveness */
+      @media (max-width: 480px) {
+        body {
+          padding: 10px;
+        }
+        
+        .auth-card {
+          padding: 20px;
+          max-width: 100%;
+        }
+        
+        .auth-icon-circle {
+          width: 50px;
+          height: 50px;
+          font-size: 20px;
+        }
+        
+        .auth-title {
+          font-size: 20px;
+        }
+        
+        .auth-subtitle {
+          font-size: 13px;
+          margin-bottom: 15px;
+        }
+        
+        .form-control {
+          font-size: 16px; /* Prevents iOS zoom */
+        }
+        
+        .btn-primary {
+          width: 100%; /* Full width button on small screens */
+        }
+      }
+      
+      /* Fix for iOS input zoom */
+      @supports (-webkit-touch-callout: none) {
+        input, select, textarea {
+          font-size: 16px !important;
+        }
+      }
+      
+      /* Better touch targets */
+      @media (pointer: coarse) {
+        .btn, 
+        .form-control,
+        .input-group-text,
+        .form-check-input {
+          min-height: 44px;
+        }
       }
     </style>
   </head>

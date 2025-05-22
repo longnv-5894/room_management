@@ -2,9 +2,10 @@
 <html lang="<%= I18n.locale %>">
   <head>
     <title><%= content_for(:title) || t('dashboard.title') %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6c5ce7">
     <meta name="description" content="<%= content_for(:meta_description) || t('meta.description', default: 'Room Management System') %>">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -34,6 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "responsive", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, type: "module" %>
     
     <!-- Custom styles for Select2 -->
@@ -714,7 +716,7 @@
         color: var(--text-dark);
       }
       
-      @media (max-width: 768px) {
+      @media (max-width: 1400px) {
         .mobile-navbar-toggler {
           display: block !important;
         }

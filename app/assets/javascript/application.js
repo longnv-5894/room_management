@@ -13,6 +13,9 @@ window.bootstrap = bootstrap
 // Import our custom number formatting utilities
 import './number_formatting'
 
+// Import responsive tables functionality
+import './responsive-tables'
+
 // jQuery is already included from CDN in the layout
 // window.$ and window.jQuery are already defined
 
