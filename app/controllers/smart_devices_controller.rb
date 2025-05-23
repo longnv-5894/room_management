@@ -1,6 +1,6 @@
 class SmartDevicesController < ApplicationController
   before_action :require_login
-  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :unlock_door, :lock_door, :battery_level, :device_unlock_records, :password_list, :add_password, :delete_password, :lock_users, :sync_device_data, :device_unlock_records, :device_users, :link_user_to_tenant, :unlink_user_from_tenant ]
+  before_action :set_smart_device, only: [ :show, :edit, :update, :destroy, :device_info, :device_functions, :device_logs, :unlock_door, :lock_door, :battery_level, :device_unlock_records, :password_list, :add_password, :delete_password, :lock_users, :sync_device_data, :sync_unlock_records, :sync_device_users, :device_unlock_records, :device_users, :link_user_to_tenant, :unlink_user_from_tenant ]
   before_action :set_building, only: [ :index, :new, :create ]
 
   def index
@@ -325,6 +325,75 @@ class SmartDevicesController < ApplicationController
     end
   end
 
+  # Đồng bộ chỉ lịch sử mở khóa từ Tuya API vào cơ sở dữ liệu với theo dõi tiến trình
+  def sync_unlock_records
+    @smart_device = SmartDevice.find(params[:id])
+
+    respond_to do |format|
+      format.html do
+        # For HTML requests, we'll redirect to the unlock records page and start a background job
+        job = SyncUnlockRecordsJob.perform_later(@smart_device.id, current_user&.id)
+
+        flash[:notice] = t("smart_devices.sync.records_started")
+        redirect_to device_unlock_records_smart_device_path(@smart_device)
+      end
+
+      format.json do
+        # For JSON requests, start the job and return the job ID for polling
+        job = SyncUnlockRecordsJob.perform_later(@smart_device.id, current_user&.id)
+        job_id = job.provider_job_id
+
+        # Return the job ID so the client can poll for progress
+        render json: {
+          success: true,
+          job_id: job_id,
+          message: "Đã bắt đầu đồng bộ"
+        }
+      end
+    end
+  end
+
+  # Endpoint để kiểm tra tiến trình của job đồng bộ
+  def job_progress
+    job_id = params[:job_id]
+    cache_key = "sync_job:#{job_id}"
+    job_data = Rails.cache.read(cache_key)
+
+    if job_data
+      # Return progress information
+      render json: {
+        percent: job_data[:percent] || 0,
+        message: job_data[:message] || "Đang đồng bộ...",
+        completed: job_data[:status] == "completed",
+        error: job_data[:status] == "error" ? job_data[:message] : nil
+      }
+    else
+      # Job data not found in cache
+      render json: {
+        error: "Không tìm thấy thông tin tiến trình đồng bộ"
+      }, status: :not_found
+    end
+  end
+
+  # Đồng bộ chỉ người dùng khóa từ Tuya API vào cơ sở dữ liệu
+  def sync_device_users
+    @smart_device = SmartDevice.find(params[:id])
+    results = DeviceUser.sync_from_tuya(@smart_device)
+
+    respond_to do |format|
+      if results[:error].present?
+        format.html { redirect_to device_users_smart_device_path(@smart_device), alert: t("smart_devices.sync.users_error", error: results[:error]) }
+        format.json { render json: { success: false, error: results[:error] }, status: :unprocessable_entity }
+      else
+        format.html {
+          flash[:notice] = t("smart_devices.sync.users_synced", new_count: results[:synced], updated_count: results[:updated])
+          redirect_to device_users_smart_device_path(@smart_device)
+        }
+        format.json { render json: results, status: :ok }
+      end
+    end
+  end
+
   # Hiển thị lịch sử mở khóa từ cơ sở dữ liệu
   def device_unlock_records
     @smart_device = SmartDevice.find(params[:id])
@@ -352,8 +421,8 @@ class SmartDevicesController < ApplicationController
       end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.today
 
       # Convert dates to time with proper beginning and end of day
-      start_time = start_date.beginning_of_day
-      end_time = end_date.end_of_day
+      start_time = start_date.in_time_zone("Asia/Ho_Chi_Minh").beginning_of_day.utc
+      end_time = end_date.in_time_zone("Asia/Ho_Chi_Minh").end_of_day.utc
 
       records_query = records_query.where("time BETWEEN ? AND ?", start_time, end_time)
     end

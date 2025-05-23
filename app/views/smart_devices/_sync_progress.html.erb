@@ -1,0 +1,16 @@
+<%# Partial for displaying sync progress %>
+<div class="sync-progress <%= completed ? 'completed' : '' %> <%= defined?(success) && success == false ? 'error' : '' %>">
+  <div class="progress">
+    <div class="progress-bar <%= defined?(success) && success == false ? 'bg-danger' : 'bg-primary' %>" 
+         role="progressbar" 
+         style="width: <%= percent %>%;" 
+         aria-valuenow="<%= percent %>" 
+         aria-valuemin="0" 
+         aria-valuemax="100">
+      <%= percent %>%
+    </div>
+  </div>
+  <div class="progress-message mt-2">
+    <%= message %>
+  </div>
+</div>

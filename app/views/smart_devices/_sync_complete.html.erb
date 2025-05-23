@@ -1,0 +1,8 @@
+<%# Partial for sync completion message %>
+<div class="sync-complete-message">
+  <div class="alert <%= success ? 'alert-success' : 'alert-danger' %> alert-dismissible fade show" role="alert">
+    <i class="fas <%= success ? 'fa-check-circle' : 'fa-exclamation-circle' %> me-2"></i>
+    <%= message %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+</div>

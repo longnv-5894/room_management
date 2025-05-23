@@ -11,8 +11,8 @@
         <i class="fas fa-chevron-left me-1"></i> <%= t('smart_devices.common.back_to_device') %>
       <% end %>
       
-      <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: t('smart_devices.confirm_sync') } do %>
-        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_with_cloud') %>
+      <%= link_to sync_device_users_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: t('smart_devices.confirm_sync') } do %>
+        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_users_with_cloud') %>
       <% end %>
     </div>
   </div>

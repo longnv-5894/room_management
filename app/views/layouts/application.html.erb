@@ -38,6 +38,8 @@
     <%= stylesheet_link_tag "responsive", "data-turbo-track": "reload" %>
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true, type: "module" %>
     
+    <%= yield :styles if content_for?(:styles) %>
+    
     <!-- Custom styles for Select2 -->
     <style>
       /* Improve Select2 UI/UX */
@@ -1111,5 +1113,7 @@
         }
       });
     </script>
+    
+    <%= yield :scripts if content_for?(:scripts) %>
   </body>
 </html>

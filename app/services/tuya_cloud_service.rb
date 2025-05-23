@@ -51,10 +51,21 @@ class TuyaCloudService
   end
 
   # Helper method để tạo stringToSign
-  def create_string_to_sign(method, path, query_string = nil)
+  def create_string_to_sign(method, path, query_string = nil, body_string = nil)
     path_with_query = query_string ? "#{path}?#{query_string}" : path
-    "#{method}\n" +
-    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\n" +
+
+    # Default empty hash value for when there's no body
+    body_hash = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+    # Calculate body hash if body_string is provided
+    if body_string.present? && method.to_s.upcase == "POST"
+      body_hash = Digest::SHA256.hexdigest(body_string)
+      Rails.logger.debug("Body hash calculation for POST request: #{body_hash}")
+    end
+
+    # Construct the string to sign
+    "#{method.to_s.upcase}\n" +
+    "#{body_hash}\n" +
     "\n" +
     path_with_query
   end

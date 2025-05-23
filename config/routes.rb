@@ -62,7 +62,8 @@ Rails.application.routes.draw do
   # Define smart device routes
   resources :smart_devices do
     collection do
-      post :sync_devices
+      match :sync_devices, via: [ :get, :post ]
+      get "job_progress/:job_id", to: "smart_devices#job_progress", as: :job_progress
     end
 
     member do
@@ -71,8 +72,8 @@ Rails.application.routes.draw do
       get :device_logs
 
       # Smart lock routes
-      post :unlock_door
-      post :lock_door
+      match :unlock_door, via: [ :get, :post ]
+      match :lock_door, via: [ :get, :post ]
       get :battery_level
       get :password_list
       post :add_password
@@ -81,6 +82,8 @@ Rails.application.routes.draw do
 
       # Database sync routes
       match :sync_device_data, via: [ :get, :post ]
+      match :sync_unlock_records, via:  [ :get, :post ] # New route for syncing only unlock records
+      match :sync_device_users, via:  [ :get, :post ]  # New route for syncing only device users
       get :device_unlock_records
       get :device_users
       post :link_user_to_tenant

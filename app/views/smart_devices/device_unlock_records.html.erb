@@ -2,6 +2,36 @@
 
 <% content_for :styles do %>
 <style>
+  /* Progress bar styles */
+  #sync_progress_container {
+    margin-bottom: 1rem;
+  }
+  
+  .sync-progress {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .sync-progress .progress {
+    height: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .sync-progress.completed {
+    background-color: #d1e7dd;
+  }
+  
+  .sync-progress.error {
+    background-color: #f8d7da;
+  }
+  
+  .progress-message {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
   /* Fix for mobile table layout */
   @media (max-width: 767px) {
     .data-table td[data-label]::before {
@@ -81,24 +111,25 @@
 <% end %>
 
 <div class="container-fluid px-2 px-md-4">
+  <!-- Progress bar for sync operation -->
+  <div id="sync_progress_container" class="mb-3">
+    
+  </div>
+  
   <!-- Responsive header section -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
     <h1 class="h5 mt-3 mb-2">
-      <i class="fas fa-history me-2"></i>
+      <i class="fas fa-history"></i>
       <%= t('smart_devices.lock.unlock_record_title', name: @smart_device.name) %>
     </h1>
     <div class="btn-toolbar mb-2 gap-2">
-      <div class="btn-group me-2 mb-2 mb-md-0">
-        <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary btn-sm' do %>
-          <i class="fas fa-chevron-left me-1"></i> <%= t('common.back') %>
-        <% end %>
-      </div>
+      <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary btn-sm' do %>
+        <i class="fas fa-chevron-left me-1"></i> <%= t('smart_devices.common.back_to_device') %>
+      <% end %>
       
-      <div class="btn-group mb-2 mb-md-0">
-        <%= link_to sync_device_data_smart_device_path(@smart_device), method: :post, class: 'btn btn-info btn-sm', data: { turbo_method: :post } do %>
-          <i class="fas fa-sync me-1"></i> <%= t('smart_devices.history.sync_from_tuya') %>
-        <% end %>
-      </div>
+      <%= link_to sync_unlock_records_smart_device_path(@smart_device), method: :post, class: 'btn btn-info btn-sm', data: { turbo_method: :post } do %>
+        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_records_with_cloud') %>
+      <% end %>
     </div>
   </div>
 
@@ -128,7 +159,7 @@
             <div class="input-group">
               <span class="input-group-text"><%= t('smart_devices.history.user') %></span>
               <%= f.select :user_id,
-                  options_from_collection_for_select(@smart_device.device_users, :id, :name, params[:user_id]),
+                  options_from_collection_for_select(@smart_device.device_users, :user_id, :name, params[:user_id]),
                   { include_blank: t('common.all_items', items: t('smart_devices.history.user')) },
                   { class: 'form-select' }
               %>
@@ -153,9 +184,6 @@
           
           <!-- Action buttons -->
           <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-sm btn-primary">
-              <i class="fas fa-search me-1"></i><%= t('common.filter') %>
-            </button>
             
             <% if params[:start_date].present? || params[:end_date].present? || 
                  params[:user_id].present? || params[:unlock_sn].present? || params[:tenant_id].present? %>
@@ -266,8 +294,8 @@
       <% else %>
         <div class="alert alert-info m-3">
           <i class="fas fa-info-circle me-2"></i> 
-          <%= t('smart_devices.history.no_records') %>
-          <%= link_to t('smart_devices.history.sync_from_tuya'), sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+          <%= t('smart_devices.history.no_records_message') %>
+          <%= link_to t('smart_devices.history.sync_from_tuya'), sync_unlock_records_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
         </div>
       <% end %>
     </div>
@@ -277,6 +305,8 @@
 <% content_for :scripts do %>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded for unlock records page");
+    
     // Handle form filtering
     const filterForm = document.getElementById('filter-form');
     if (filterForm) {
@@ -303,6 +333,216 @@
         endDateInput.addEventListener('change', function() {
           filterForm.submit();
         });
+      }
+    }
+    
+    // Poll interval in milliseconds
+    const POLL_INTERVAL = 1000; // 1 second
+    let pollingTimer = null;
+    
+    // Reference to progress container
+    const progressContainer = document.getElementById('sync_progress_container');
+    
+    // Attach event handler to sync button
+    const syncButton = document.querySelector('a[href*="sync_unlock_records"]');
+    if (syncButton) {
+      syncButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Disable the button to prevent multiple clicks
+        syncButton.classList.add('disabled');
+        syncButton.setAttribute('disabled', 'disabled');
+        
+        // Show initial progress bar at 0% instead of 10%
+        if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div id="sync_progress_bar">
+              <div class="sync-progress">
+                <div class="progress">
+                  <div class="progress-bar bg-primary"
+                       role="progressbar"
+                       style="width: 0%;"
+                       aria-valuenow="0"
+                       aria-valuemin="0"
+                       aria-valuemax="100">
+                    0%
+                  </div>
+                </div>
+                <div class="progress-message mt-2">
+                  Đang khởi động đồng bộ...
+                </div>
+              </div>
+            </div>
+          `;
+          progressContainer.style.display = 'block';
+        }
+        
+        // Start the sync via AJAX
+        const syncUrl = syncButton.getAttribute('href');
+        $.ajax({
+          url: syncUrl,
+          method: 'POST',
+          dataType: 'json',
+          headers: {
+            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+          },
+          success: function(response) {
+            console.log('Sync job started:', response);
+            if (response.job_id) {
+              // Start polling for progress updates immediately
+              startPolling(response.job_id);
+            } else {
+              updateProgressBar(100, "Đồng bộ hoàn tất", true, true);
+              enableSyncButton();
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('Error starting sync job:', error);
+            updateProgressBar(100, "Lỗi: " + (xhr.responseJSON?.error || error), true, false);
+            enableSyncButton();
+          }
+        });
+      });
+    }
+    
+    // Function to start polling for progress updates
+    function startPolling(jobId) {
+      // Clear any existing polling interval
+      if (pollingTimer) {
+        clearInterval(pollingTimer);
+      }
+      
+      // Poll immediately for the first update
+      pollJobProgress(jobId);
+      
+      // Set up new polling interval
+      pollingTimer = setInterval(function() {
+        pollJobProgress(jobId);
+      }, POLL_INTERVAL);
+    }
+    
+    // Function to poll for job progress
+    function pollJobProgress(jobId) {
+      $.ajax({
+        url: `/smart_devices/job_progress/${jobId}`,
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          console.log('Progress update:', response);
+          
+          if (response.error) {
+            // Error occurred during processing
+            updateProgressBar(100, "Lỗi: " + response.error, true, false);
+            stopPolling();
+            enableSyncButton();
+          } else if (response.completed) {
+            // Job is complete
+            updateProgressBar(100, response.message || "Đồng bộ hoàn tất", true, true);
+            stopPolling();
+            
+            // Reload page after a short delay
+            setTimeout(function() {
+              window.location.reload();
+            }, 2000);
+          } else {
+            // Job is still in progress - use the actual percentage from the API
+            updateProgressBar(
+              response.percent || 0, 
+              response.message || "Đang đồng bộ...", 
+              false
+            );
+          }
+        },
+        error: function(xhr, status, error) {
+          console.error('Error polling progress:', error);
+          
+          // After several failed attempts, stop polling
+          if (xhr.status === 404 || xhr.status === 400) {
+            updateProgressBar(100, "Không tìm thấy thông tin tiến trình đồng bộ", true, false);
+            stopPolling();
+            enableSyncButton();
+          }
+        }
+      });
+    }
+    
+    // Function to stop polling
+    function stopPolling() {
+      if (pollingTimer) {
+        clearInterval(pollingTimer);
+        pollingTimer = null;
+      }
+    }
+    
+    // Function to update the progress bar UI
+    function updateProgressBar(percent, message, completed = false, success = true) {
+      const progressBar = document.getElementById('sync_progress_bar');
+      
+      // Make sure percent is a valid number
+      percent = parseInt(percent);
+      if (isNaN(percent)) percent = 0;
+      
+      console.log(`Updating progress bar: ${percent}% - ${message}`);
+      
+      if (progressContainer) {
+        if (!progressBar) {
+          // Create the progress bar if it doesn't exist
+          progressContainer.innerHTML = `
+            <div id="sync_progress_bar">
+              <div class="sync-progress ${completed ? 'completed' : ''} ${!success && completed ? 'error' : ''}">
+                <div class="progress">
+                  <div class="progress-bar ${!success && completed ? 'bg-danger' : completed ? 'bg-success' : 'bg-primary'}"
+                       role="progressbar"
+                       style="width: ${percent}%;"
+                       aria-valuenow="${percent}"
+                       aria-valuemin="0"
+                       aria-valuemax="100">
+                    ${percent}%
+                  </div>
+                </div>
+                <div class="progress-message mt-2">
+                  ${message}
+                </div>
+              </div>
+            </div>
+          `;
+          progressContainer.style.display = 'block';
+        } else {
+          // Update the existing progress bar
+          const barElement = progressBar.querySelector('.progress-bar');
+          const messageElement = progressBar.querySelector('.progress-message');
+          const progressElement = progressBar.querySelector('.sync-progress');
+          
+          if (barElement) {
+            barElement.style.width = `${percent}%`;
+            barElement.setAttribute('aria-valuenow', percent);
+            barElement.textContent = `${percent}%`;
+            
+            if (completed) {
+              barElement.classList.remove('bg-primary');
+              barElement.classList.add(success ? 'bg-success' : 'bg-danger');
+            }
+          }
+          
+          if (messageElement) {
+            messageElement.textContent = message;
+          }
+          
+          if (progressElement && completed) {
+            progressElement.classList.add('completed');
+            if (!success) {
+              progressElement.classList.add('error');
+            }
+          }
+        }
+      }
+    }
+    
+    // Function to re-enable the sync button
+    function enableSyncButton() {
+      if (syncButton) {
+        syncButton.classList.remove('disabled');
+        syncButton.removeAttribute('disabled');
       }
     }
   });

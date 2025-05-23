@@ -1,0 +1,14 @@
+<%# A partial that outputs JavaScript to execute a function call with arguments %>
+<script>
+  (function() {
+    // Execute the function with provided arguments
+    const fnName = '<%= js_function %>';
+    const args = JSON.parse('<%= args.html_safe %>');
+    
+    if (window[fnName] && typeof window[fnName] === 'function') {
+      window[fnName].apply(null, args);
+    } else {
+      console.error(`Function ${fnName} is not defined`);
+    }
+  })();
+</script>

@@ -15,7 +15,8 @@ class TuyaSmartLockService
 
   # Các endpoints chuyên biệt cho khóa cửa
   DOOR_LOCK_ENDPOINTS = {
-    unlock: "/v1.0/devices/%{device_id}/door-lock/unlock",
+    unlock: "/v1.0/devices/%{device_id}/door-lock/password-free/open-door",
+    password_ticket: "/v1.0/smart-lock/devices/%{device_id}/password-ticket",
     lock: "/v1.0/devices/%{device_id}/door-lock/lock",
     passwords: "/v1.0/devices/%{device_id}/door-lock/passwords",
     password: "/v1.0/devices/%{device_id}/door-lock/passwords/%{password_id}",
@@ -30,8 +31,57 @@ class TuyaSmartLockService
 
   # Mở khóa cửa sử dụng API chuyên biệt
   def unlock_door(device_id)
+    # Đầu tiên lấy ticket_id để xác thực
+    ticket_result = get_password_ticket(device_id)
+
+    if ticket_result[:error].present?
+      return { success: false, error: ticket_result[:error] }
+    end
+
+    # Sử dụng ticket_id từ kết quả
+    ticket_id = ticket_result[:ticket_id]
+
+    # Gọi API mở khóa không cần mật khẩu
     path = DOOR_LOCK_ENDPOINTS[:unlock] % { device_id: device_id }
-    door_lock_api_call("POST", path)
+
+    # Chuẩn bị body với ticket_id và open=true để mở khóa
+    body_data = {
+      ticket_id: ticket_id,
+      open: true # true để mở khóa, false để khóa
+    }
+
+    # Gọi API
+    result = door_lock_api_call("POST", path, body_data)
+
+    if result && result[:success]
+      { success: true, message: "Đã mở khóa thành công" }
+    else
+      {
+        success: false,
+        error: result[:error] || "Không thể mở khóa",
+        code: result[:code]
+      }
+    end
+  end
+
+  # Lấy ticket_id tạm thời cho việc mở khóa không cần mật khẩu
+  def get_password_ticket(device_id)
+    path = DOOR_LOCK_ENDPOINTS[:password_ticket] % { device_id: device_id }
+    result = door_lock_api_call("POST", path)
+
+    if result && result[:success] && result[:data] && result[:data]["ticket_id"]
+      {
+        success: true,
+        ticket_id: result[:data]["ticket_id"],
+        expire_time: result[:data]["expire_time"]
+      }
+    else
+      {
+        success: false,
+        error: result[:error] || "Không thể lấy ticket mở khóa",
+        code: result[:code]
+      }
+    end
   end
 
   # Khóa cửa sử dụng API chuyên biệt
@@ -98,7 +148,7 @@ class TuyaSmartLockService
 
       # Kết hợp options từ người dùng và giá trị mặc định
       query_params = default_options.merge(options.compact)
-      
+
       # Log thông tin về thời gian đang tìm kiếm
       Rails.logger.info("Fetching unlock records from: #{Time.at(query_params[:start_time]/1000)} to: #{Time.at(query_params[:end_time]/1000)}")
 
@@ -338,13 +388,13 @@ class TuyaSmartLockService
       # Extract options or use defaults
       page_no = options[:page_no] || 1
       page_size = options[:page_size] || 20
-      
+
       # Tham số truy vấn
       query_params = {
         page_no: page_no,
         page_size: page_size
       }
-      
+
       # Add last_update_time parameter if provided
       if options[:last_update_time].present?
         query_params[:last_update_time] = options[:last_update_time]
@@ -535,7 +585,7 @@ class TuyaSmartLockService
       { success: false, error: e.message, methods: [] }
     end
   end
-  
+
   private
 
   # Phương thức chung để gọi API khóa cửa
@@ -547,8 +597,11 @@ class TuyaSmartLockService
       # Chuẩn bị các tham số
       timestamp = @tuya_service.generate_timestamp
 
-      # Tạo chuỗi để ký
-      string_to_sign = @tuya_service.create_string_to_sign(method, path)
+      # Convert body_data to JSON string if present for signature calculation
+      body_string = body_data.to_json if body_data
+
+      # Tạo chuỗi để ký, including body for POST requests
+      string_to_sign = @tuya_service.create_string_to_sign(method, path, nil, body_string)
 
       # Tạo chữ ký
       sign = @tuya_service.generate_sign(
