@@ -35,15 +35,18 @@ module RoomMagement
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-    
+
     # Add services directory to the autoload path
     config.autoload_paths += %W[#{config.root}/app/services]
 
+    # Configure asset path for JavaScript files
+    config.assets.paths << Rails.root.join("app", "assets", "javascript")
+
     # Don't generate system test files.
     config.generators.system_tests = nil
-    
+
     # Configure i18n for multiple languages
-    config.i18n.available_locales = [:en, :vi]
+    config.i18n.available_locales = [ :en, :vi ]
     config.i18n.default_locale = :vi
     config.i18n.fallbacks = true
   end

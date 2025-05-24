@@ -6,15 +6,14 @@
 
 // Initialize Rails functionality
 
-// Bootstrap JavaScript
-import * as bootstrap from 'bootstrap'
-window.bootstrap = bootstrap
+// Bootstrap is loaded via CDN in the layout
+// No import needed here
 
-// Import our custom number formatting utilities
-import './number_formatting'
-
-// Import responsive tables functionality
-import './responsive-tables'
+// These files should be loaded via standard asset pipeline
+// No import needed here for:
+// - number_formatting
+// - responsive-tables  
+// - sync_progress_manager
 
 // jQuery is already included from CDN in the layout
 // window.$ and window.jQuery are already defined
@@ -23,15 +22,19 @@ import './responsive-tables'
 
 // Initialize all dropdowns
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize all dropdowns
+  // Initialize all dropdowns - assume bootstrap is loaded globally in window scope
   var dropdownElementList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
-  var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-    return new bootstrap.Dropdown(dropdownToggleEl)
-  })
+  if (window.bootstrap && window.bootstrap.Dropdown) {
+    var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+      return new window.bootstrap.Dropdown(dropdownToggleEl)
+    })
+  }
   
-  // Initialize tooltips
+  // Initialize tooltips - assume bootstrap is loaded globally in window scope
   var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl)
-  })
+  if (window.bootstrap && window.bootstrap.Tooltip) {
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new window.bootstrap.Tooltip(tooltipTriggerEl)
+    })
+  }
 })

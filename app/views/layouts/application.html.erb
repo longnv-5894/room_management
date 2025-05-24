@@ -1066,6 +1066,9 @@
           <% end %>
           
           <%= yield %>
+          
+          <!-- Render floating progress bar -->
+          <%= render 'shared/floating_progress' %>
         </div>
       </div>
     <% else %>
@@ -1115,5 +1118,30 @@
     </script>
     
     <%= yield :scripts if content_for?(:scripts) %>
+    
+    <!-- Floating progress bar manager -->
+    <%= javascript_include_tag 'sync_progress_manager', 'data-turbo-track': 'reload' %>
+    
+    <!-- Debug script to check if floating progress container exists -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          const container = document.getElementById('floating_sync_progress_container');
+          console.log('DEBUGGING - Floating progress container:', container ? 'exists' : 'does not exist');
+          if (!container) {
+            console.error('Floating progress container missing - check if _floating_progress.html.erb partial is being rendered');
+          } else {
+            // Remove any unwanted decorative elements that might be added by the browser
+            const computedStyle = window.getComputedStyle(container);
+            if (computedStyle.border || computedStyle.outline || computedStyle.boxShadow) {
+              console.log('Cleaning up floating progress container styling');
+              container.style.border = 'none';
+              container.style.outline = 'none';
+              container.style.borderBottom = 'none';
+            }
+          }
+        }, 1000);
+      });
+    </script>
   </body>
 </html>

@@ -64,6 +64,7 @@ Rails.application.routes.draw do
     collection do
       match :sync_devices, via: [ :get, :post ]
       get "job_progress/:job_id", to: "smart_devices#job_progress", as: :job_progress
+      post "stop_sync_job/:job_id", to: "smart_devices#stop_sync_job", as: :stop_sync_job
     end
 
     member do

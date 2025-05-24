@@ -111,10 +111,7 @@
 <% end %>
 
 <div class="container-fluid px-2 px-md-4">
-  <!-- Progress bar for sync operation -->
-  <div id="sync_progress_container" class="mb-3">
-    
-  </div>
+  <!-- Using global floating progress bar instead of local progress container -->
   
   <!-- Responsive header section -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
@@ -128,7 +125,7 @@
       <% end %>
       
       <%= link_to sync_unlock_records_smart_device_path(@smart_device), method: :post, class: 'btn btn-info btn-sm', data: { turbo_method: :post } do %>
-        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_records_with_cloud') %>
+        <i class="fas fa-sync me-1"></i> <%= t('sync_unlock_records.sync_records_with_cloud') %>
       <% end %>
     </div>
   </div>
@@ -202,50 +199,51 @@
         <div class="bg-light p-3 border-bottom">
           <div class="d-flex justify-content-between align-items-center">
             <div>
-              <span class="fw-medium">
+              <span class="fw-medium" id="records-count">
                 <i class="fas fa-list-ul me-1"></i> <%= t('smart_devices.history.total_records', count: @total_count) %>
               </span>             
             </div>           
           </div>
         </div>
         
-        <div class="table-responsive">
-          <table class="table table-hover table-sm align-middle mb-0 data-table">
-            <thead class="table-light">
-              <tr>
-                <th class="px-3 py-2"><%= t('smart_devices.history.time') %></th>
-                <th class="px-3 py-2"><%= t('smart_devices.history.user') %></th>
-                <th class="px-3 py-2"><%= t('smart_devices.history.method') %></th>
-                <th class="px-3 py-2"><%= t('smart_devices.history.status') %></th>
-              </tr>
-            </thead>
-            <tbody>
-              <% @unlock_records.each do |record| %>
+        <div id="records-table-container">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0 data-table">
+              <thead class="table-light">
                 <tr>
-                  <td class="px-3 py-2" data-label="<%= t('smart_devices.history.time') %>">
-                    <div class="fw-medium"><%= record.time.getlocal("+07:00").strftime("%Y-%m-%d") %></div>
-                    <small class="text-muted"><%= record.time.getlocal("+07:00").strftime("%H:%M:%S") %></small>
-                  </td>
-                  <td class="px-3 py-2" data-label="<%= t('smart_devices.history.user') %>">
-                    <% if record.device_user %>
-                      <div class="d-flex align-items-center">
-                        <% if record.device_user.avatar_url.present? %>
-                          <img src="<%= record.device_user.avatar_url %>" alt="<%= t('smart_devices.history.user_avatar') %>" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
-                        <% else %>
-                          <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                            <%= record.device_user.name.first.upcase rescue '?' %>
+                  <th class="px-3 py-2"><%= t('smart_devices.history.time') %></th>
+                  <th class="px-3 py-2"><%= t('smart_devices.history.user') %></th>
+                  <th class="px-3 py-2"><%= t('smart_devices.history.method') %></th>
+                  <th class="px-3 py-2"><%= t('smart_devices.history.status') %></th>
+                </tr>
+              </thead>
+              <tbody id="records-table-body">
+                <% @unlock_records.each do |record| %>
+                  <tr>
+                    <td class="px-3 py-2" data-label="<%= t('smart_devices.history.time') %>">
+                      <div class="fw-medium"><%= record.time.getlocal("+07:00").strftime("%Y-%m-%d") %></div>
+                      <small class="text-muted"><%= record.time.getlocal("+07:00").strftime("%H:%M:%S") %></small>
+                    </td>
+                    <td class="px-3 py-2" data-label="<%= t('smart_devices.history.user') %>">
+                      <% if record.device_user %>
+                        <div class="d-flex align-items-center">
+                          <% if record.device_user.avatar_url.present? %>
+                            <img src="<%= record.device_user.avatar_url %>" alt="<%= t('smart_devices.history.user_avatar') %>" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                          <% else %>
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                              <%= record.device_user.name.first.upcase rescue '?' %>
+                            </div>
+                          <% end %>
+                          <div>
+                            <div class="fw-medium text-truncate" style="max-width: 120px;"><%= record.device_user.name %></div>
+                            <small class="text-muted d-none d-md-block"><%= record.user_name %></small>
                           </div>
-                        <% end %>
-                        <div>
-                          <div class="fw-medium text-truncate" style="max-width: 120px;"><%= record.device_user.name %></div>
-                          <small class="text-muted d-none d-md-block"><%= record.user_name %></small>
                         </div>
-                      </div>
-                    <% else %>
-                      <%= record.user_name || t('smart_devices.history.unknown_user') %>
-                    <% end %>
-                  </td>
-                  <td class="px-3 py-2" >
+                      <% else %>
+                        <%= record.user_name || t('smart_devices.history.unknown_user') %>
+                      <% end %>
+                    </td>
+                    <td class="px-3 py-2" >
                     <% case record.unlock_method 
                        when "Vân tay", t('smart_devices.history.fingerprint') %>
                       <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
@@ -283,7 +281,7 @@
         </div>
       
         <!-- Responsive pagination -->
-        <div class="d-flex justify-content-center p-3">
+        <div class="d-flex justify-content-center p-3" id="records-pagination">
           <%= will_paginate @unlock_records, 
               renderer: BootstrapPaginationRenderer,
           
@@ -291,6 +289,7 @@
               previous_label: '&laquo;', 
               next_label: '&raquo;' %>
         </div>
+        </div><!-- End of records-table-container -->
       <% else %>
         <div class="alert alert-info m-3">
           <i class="fas fa-info-circle me-2"></i> 
@@ -353,32 +352,11 @@
         syncButton.classList.add('disabled');
         syncButton.setAttribute('disabled', 'disabled');
         
-        // Show initial progress bar at 0% instead of 10%
-        if (progressContainer) {
-          progressContainer.innerHTML = `
-            <div id="sync_progress_bar">
-              <div class="sync-progress">
-                <div class="progress">
-                  <div class="progress-bar bg-primary"
-                       role="progressbar"
-                       style="width: 0%;"
-                       aria-valuenow="0"
-                       aria-valuemin="0"
-                       aria-valuemax="100">
-                    0%
-                  </div>
-                </div>
-                <div class="progress-message mt-2">
-                  Đang khởi động đồng bộ...
-                </div>
-              </div>
-            </div>
-          `;
-          progressContainer.style.display = 'block';
-        }
-        
         // Start the sync via AJAX
         const syncUrl = syncButton.getAttribute('href');
+        const deviceId = <%= @smart_device.id %>;
+        const deviceName = "<%= @smart_device.name %>";
+        
         $.ajax({
           url: syncUrl,
           method: 'POST',
@@ -389,10 +367,21 @@
           success: function(response) {
             console.log('Sync job started:', response);
             if (response.job_id) {
-              // Start polling for progress updates immediately
-              startPolling(response.job_id);
+              // Use only the global SyncProgressManager for progress tracking
+              if (typeof window.SyncProgressManager !== 'undefined') {
+                console.log('Starting sync using SyncProgressManager');
+                window.SyncProgressManager.startSync(deviceId, response.job_id, deviceName);
+                
+                // Re-enable the button after a few seconds
+                setTimeout(function() {
+                  enableSyncButton();
+                }, 3000);
+              } else {
+                console.error('SyncProgressManager not available! Check if sync_progress_manager.js is properly loaded');
+                enableSyncButton();
+              }
             } else {
-              updateProgressBar(100, "Đồng bộ hoàn tất", true, true);
+              console.log('Sync complete without job ID');
               enableSyncButton();
             }
           },
@@ -405,138 +394,8 @@
       });
     }
     
-    // Function to start polling for progress updates
-    function startPolling(jobId) {
-      // Clear any existing polling interval
-      if (pollingTimer) {
-        clearInterval(pollingTimer);
-      }
-      
-      // Poll immediately for the first update
-      pollJobProgress(jobId);
-      
-      // Set up new polling interval
-      pollingTimer = setInterval(function() {
-        pollJobProgress(jobId);
-      }, POLL_INTERVAL);
-    }
-    
-    // Function to poll for job progress
-    function pollJobProgress(jobId) {
-      $.ajax({
-        url: `/smart_devices/job_progress/${jobId}`,
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-          console.log('Progress update:', response);
-          
-          if (response.error) {
-            // Error occurred during processing
-            updateProgressBar(100, "Lỗi: " + response.error, true, false);
-            stopPolling();
-            enableSyncButton();
-          } else if (response.completed) {
-            // Job is complete
-            updateProgressBar(100, response.message || "Đồng bộ hoàn tất", true, true);
-            stopPolling();
-            
-            // Reload page after a short delay
-            setTimeout(function() {
-              window.location.reload();
-            }, 2000);
-          } else {
-            // Job is still in progress - use the actual percentage from the API
-            updateProgressBar(
-              response.percent || 0, 
-              response.message || "Đang đồng bộ...", 
-              false
-            );
-          }
-        },
-        error: function(xhr, status, error) {
-          console.error('Error polling progress:', error);
-          
-          // After several failed attempts, stop polling
-          if (xhr.status === 404 || xhr.status === 400) {
-            updateProgressBar(100, "Không tìm thấy thông tin tiến trình đồng bộ", true, false);
-            stopPolling();
-            enableSyncButton();
-          }
-        }
-      });
-    }
-    
-    // Function to stop polling
-    function stopPolling() {
-      if (pollingTimer) {
-        clearInterval(pollingTimer);
-        pollingTimer = null;
-      }
-    }
-    
-    // Function to update the progress bar UI
-    function updateProgressBar(percent, message, completed = false, success = true) {
-      const progressBar = document.getElementById('sync_progress_bar');
-      
-      // Make sure percent is a valid number
-      percent = parseInt(percent);
-      if (isNaN(percent)) percent = 0;
-      
-      console.log(`Updating progress bar: ${percent}% - ${message}`);
-      
-      if (progressContainer) {
-        if (!progressBar) {
-          // Create the progress bar if it doesn't exist
-          progressContainer.innerHTML = `
-            <div id="sync_progress_bar">
-              <div class="sync-progress ${completed ? 'completed' : ''} ${!success && completed ? 'error' : ''}">
-                <div class="progress">
-                  <div class="progress-bar ${!success && completed ? 'bg-danger' : completed ? 'bg-success' : 'bg-primary'}"
-                       role="progressbar"
-                       style="width: ${percent}%;"
-                       aria-valuenow="${percent}"
-                       aria-valuemin="0"
-                       aria-valuemax="100">
-                    ${percent}%
-                  </div>
-                </div>
-                <div class="progress-message mt-2">
-                  ${message}
-                </div>
-              </div>
-            </div>
-          `;
-          progressContainer.style.display = 'block';
-        } else {
-          // Update the existing progress bar
-          const barElement = progressBar.querySelector('.progress-bar');
-          const messageElement = progressBar.querySelector('.progress-message');
-          const progressElement = progressBar.querySelector('.sync-progress');
-          
-          if (barElement) {
-            barElement.style.width = `${percent}%`;
-            barElement.setAttribute('aria-valuenow', percent);
-            barElement.textContent = `${percent}%`;
-            
-            if (completed) {
-              barElement.classList.remove('bg-primary');
-              barElement.classList.add(success ? 'bg-success' : 'bg-danger');
-            }
-          }
-          
-          if (messageElement) {
-            messageElement.textContent = message;
-          }
-          
-          if (progressElement && completed) {
-            progressElement.classList.add('completed');
-            if (!success) {
-              progressElement.classList.add('error');
-            }
-          }
-        }
-      }
-    }
+    // We've removed all local polling and progress update functions
+    // All progress tracking is now handled by the global SyncProgressManager
     
     // Function to re-enable the sync button
     function enableSyncButton() {

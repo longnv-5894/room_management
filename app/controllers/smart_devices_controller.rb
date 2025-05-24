@@ -332,7 +332,7 @@ class SmartDevicesController < ApplicationController
     respond_to do |format|
       format.html do
         # For HTML requests, we'll redirect to the unlock records page and start a background job
-        job = SyncUnlockRecordsJob.perform_later(@smart_device.id, current_user&.id)
+        SyncUnlockRecordsJob.perform_later(@smart_device.id, current_user&.id)
 
         flash[:notice] = t("smart_devices.sync.records_started")
         redirect_to device_unlock_records_smart_device_path(@smart_device)
@@ -363,14 +363,20 @@ class SmartDevicesController < ApplicationController
       # Return progress information
       render json: {
         percent: job_data[:percent] || 0,
-        message: job_data[:message] || "Đang đồng bộ...",
-        completed: job_data[:status] == "completed",
-        error: job_data[:status] == "error" ? job_data[:message] : nil
+        message: job_data[:message] || I18n.t('sync_unlock_records.starting'),
+        completed: job_data[:status] == "completed" || job_data[:status] == "error" || job_data[:status] == "stopped",
+        success: job_data[:status] != "error" && job_data[:status] != "stopped",
+        error: job_data[:status] == "error" ? job_data[:message] : nil,
+        stopped: job_data[:status] == "stopped",
+        status: job_data[:status],
+        updated_at: job_data[:updated_at]
       }
     else
       # Job data not found in cache
       render json: {
-        error: "Không tìm thấy thông tin tiến trình đồng bộ"
+        error: I18n.t('sync_unlock_records.not_found'),
+        completed: true,
+        success: false
       }, status: :not_found
     end
   end
@@ -436,7 +442,13 @@ class SmartDevicesController < ApplicationController
     @unlock_records = records_query.paginate(page: params[:page], per_page: @per_page)
 
     respond_to do |format|
-      format.html
+      format.html do
+        # For XHR (AJAX) requests, render without layout
+        if request.xhr?
+          render :device_unlock_records, layout: false
+        end
+        # For regular requests, render the full page with layout (default behavior)
+      end
       format.json { render json: @unlock_records }
     end
   end
@@ -476,6 +488,62 @@ class SmartDevicesController < ApplicationController
     else
       redirect_to device_users_smart_device_path(@device_user.smart_device),
                   alert: t("smart_devices.lock_users.user_unlink_error")
+    end
+  end
+
+  # Dừng job đồng bộ đang chạy
+  def stop_sync_job
+    job_id = params[:job_id]
+    cache_key = "sync_job:#{job_id}"
+    job_data = Rails.cache.read(cache_key)
+    stop_key = "sync_job_stop:#{job_id}"
+
+    if job_data
+      # Ghi log việc dừng
+      Rails.logger.info("User requested to stop sync job #{job_id}")
+
+      # Đánh dấu job cần dừng - đặt thời gian hết hạn dài hơn để đảm bảo
+      # cờ hiệu dừng tồn tại đủ lâu cho job nhận biết
+      Rails.cache.write(stop_key, true, expires_in: 2.hours)
+
+      # Cập nhật trạng thái job thành "stopping" (đang dừng, chưa dừng hẳn)
+      job_data[:status] = "stopping"
+      job_data[:message] = "Đang dừng đồng bộ, vui lòng đợi... Đang hoàn tác các thay đổi."
+      job_data[:updated_at] = Time.now.to_i
+      Rails.cache.write(cache_key, job_data, expires_in: 2.hours)
+
+      # Try to broadcast the stopping status via Turbo if available
+      begin
+        if defined?(Turbo::StreamsChannel) && job_data[:device_id].present?
+          channel = "sync_progress_#{job_data[:device_id]}"
+          Turbo::StreamsChannel.broadcast_update_to(
+            channel,
+            target: "sync_progress_bar",
+            partial: "smart_devices/sync_progress",
+            locals: {
+              percent: job_data[:percent],
+              message: job_data[:message],
+              completed: false,
+              success: false,
+              stopped: false,
+              stopping: true,
+              status: "stopping"
+            }
+          )
+        end
+      rescue => e
+        Rails.logger.error("Failed to broadcast stopping status: #{e.message}")
+      end
+
+      render json: {
+        success: true,
+        message: "Đang dừng đồng bộ, đang hoàn tác những thay đổi"
+      }
+    else
+      render json: {
+        error: "Không tìm thấy job đồng bộ",
+        success: false
+      }, status: :not_found
     end
   end
 

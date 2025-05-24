@@ -789,7 +789,7 @@ class TuyaCloudService
   private
 
   def token_expired?(error_msg)
-    error_msg.include?("token is expired") || error_msg.include?("token is invalid")
+    error_msg.include?("token is expired") || error_msg.include?("token invalid")
   end
 
   def time_sync_error?(error_msg)

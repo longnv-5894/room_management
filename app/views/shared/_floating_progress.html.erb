@@ -1,0 +1,184 @@
+<!-- Floating Progress Bar Component -->
+<div id="floating_sync_progress_container" class="position-fixed bottom-0 end-0 m-3 rounded" style="min-width: 300px; max-width: 400px; z-index: 1050; display: none;">
+  <div class="card border-0 rounded overflow-hidden">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+      <span class="fw-medium">
+        <i class="fas fa-sync-alt me-2"></i>
+        <span id="progress_title"><%= t('sync_unlock_records.floating_title', default: t('smart_devices.sync_records_with_cloud')) %></span>
+      </span>
+      <div>
+        <button type="button" id="minimize_progress" class="btn btn-sm btn-link text-secondary p-1" title="<%= t('sync_unlock_records.minimize', default: 'Thu gọn') %>">
+          <i class="fas fa-minus"></i>
+        </button>
+        <button type="button" id="close_progress" class="btn btn-sm btn-link text-secondary p-1" title="<%= t('sync_unlock_records.close', default: 'Đóng') %>">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    <div class="card-body p-3" id="progress_details">
+      <div id="floating_sync_progress_bar">
+        <div class="sync-progress">
+          <div class="progress">
+            <div class="progress-bar bg-primary"
+                 role="progressbar"
+                 style="width: 0%; box-shadow: none;"
+                 aria-valuenow="0"
+                 aria-valuemin="0"
+                 aria-valuemax="100">
+              0%
+            </div>
+          </div>
+          <div class="progress-message mt-2">
+            <%= t('sync_unlock_records.starting') %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-footer bg-white border-top-0" id="progress_actions">
+      <div class="d-flex justify-content-between">
+        <div>
+          <!-- Nút dừng đồng bộ chỉ hiển thị khi quá trình đang diễn ra -->
+          <button type="button" id="stop_progress" class="btn btn-sm btn-outline-danger">
+            <i class="fas fa-stop me-1"></i> <%= t('sync_unlock_records.stop', default: 'Dừng') %>
+          </button>
+          <span id="stopping_message" class="text-warning d-none">
+            <i class="fas fa-spinner fa-spin me-1"></i> <%= t('sync_unlock_records.stopping', default: 'Đang dừng và hoàn tác...') %>
+          </span>
+        </div>
+        <div>
+          <button type="button" id="confirm_progress" class="btn btn-sm btn-success d-none">
+            <i class="fas fa-check me-1"></i> <%= t('sync_unlock_records.confirm', default: 'Xác nhận') %>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Custom styles for the floating progress bar */
+#floating_sync_progress_container {
+  z-index: 1050;
+}
+
+.progress-bar {
+  box-shadow: none;
+  transition: width 0.8s ease-in-out, background-color 0.5s ease;
+}
+
+#floating_sync_progress_container.minimized #progress_details,
+#floating_sync_progress_container.minimized #progress_actions {
+  display: none !important;
+}
+
+.sync-progress.completed .progress-bar {
+  background-color: #28a745 !important;
+}
+
+.sync-progress.error .progress-bar {
+  background-color: #dc3545 !important;
+}
+
+.sync-progress.stopped .progress-bar {
+  background-color: #ffc107 !important;
+}
+
+/* Make sure action buttons are clearly visible */
+#progress_actions {
+  padding-top: 10px;
+}
+
+#stop_progress {
+  background-color: #fff;
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+#stop_progress:hover {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+#confirm_progress {
+  background-color: #28a745;
+  color: #fff;
+}
+
+#confirm_progress:hover {
+  background-color: #218838;  }
+</style>
+
+<style>
+  /* Progress bar styles */
+  .sync-progress {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    transition: background-color 0.5s ease;
+  }
+  
+  .sync-progress .progress {
+    height: 20px;
+    margin-bottom: 10px;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .sync-progress .progress-bar {
+    transition: width 0.8s ease-in-out, background-color 0.5s ease;
+    line-height: 20px;
+    text-align: center;
+    height: 100%;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 13px;
+    box-shadow: none;
+  }
+  
+  .sync-progress.completed {
+    background-color: #d1e7dd;
+  }
+  
+  .sync-progress.error {
+    background-color: #f8d7da;
+  }
+  
+  .progress-message {
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: #495057;
+  }
+  
+  /* Minimized state */
+  #floating_sync_progress_container.minimized #progress_details {
+    display: none;
+  }
+  
+  #floating_sync_progress_container.minimized #progress_actions {
+    display: none !important;
+  }
+  
+  #floating_sync_progress_container.minimized {
+    min-width: auto;
+    width: auto;
+  }
+  
+  /* Transition properties for smooth animations */
+  #floating_sync_progress_container {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    will-change: opacity, transform;
+    transform: translateY(0);
+    border: none !important;
+    outline: none !important;
+  }
+  
+  /* Ensure no unwanted borders are shown */
+  #floating_sync_progress_container::after,
+  #floating_sync_progress_container::before,
+  #floating_sync_progress_container *::after,
+  #floating_sync_progress_container *::before {
+    display: none !important;
+  }
+</style>

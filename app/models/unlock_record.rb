@@ -24,6 +24,10 @@ class UnlockRecord < ApplicationRecord
     records_synced = 0
     records_skipped = 0
     all_done = false
+    job_id = Thread.current[:job_id] # Get job ID from current thread if available
+
+    # Generate a stop check key if job_id is available
+    stop_check_key = job_id.present? ? "sync_job_stop:#{job_id}" : nil
 
     # Prepare options for API call
     options = {
@@ -44,6 +48,9 @@ class UnlockRecord < ApplicationRecord
       options[:end_time] = end_time
       Rails.logger.info("Starting full sync for the last #{days} days")
     end
+
+    # Collection of all records from all pages before database operations
+    all_records_to_process = []
 
     begin
       # First API call to get the total count before starting pagination
@@ -76,6 +83,13 @@ class UnlockRecord < ApplicationRecord
 
       # Loop until we've fetched all pages or encountered an error
       while !all_done
+        # Check if the sync process was requested to stop
+        if stop_check_key.present? && Rails.cache.exist?(stop_check_key)
+          Rails.logger.info("Sync was requested to stop. Raising exception to trigger rollback.")
+          # Instead of returning, raise an exception to ensure transaction rollback
+          raise StandardError, "stop_requested"
+        end
+
         # Make the API call to get the current page of records
         api_response = smart_device.get_unlock_records_from_api(options)
 
@@ -102,31 +116,26 @@ class UnlockRecord < ApplicationRecord
         current_page_records = api_response[:records] || []
         fetched_count += current_page_records.size
 
-        # Save each record to database
-        process_result = process_records(smart_device, current_page_records)
-        records_synced += process_result[:synced]
-        records_skipped += process_result[:skipped]
+        # Collect records for batch processing later
+        all_records_to_process.concat(current_page_records)
 
         # Calculate accurate progress percentage based on fetched vs total
         percent = total_records && total_records > 0 ?
                   ((fetched_count.to_f / total_records) * 100).round :
                   ((page_no.to_f / (total_pages || 1)) * 100).round
 
-        # Log detailed progress information
-        Rails.logger.info("Sync progress: Page #{page_no}/#{total_pages || '?'}, " +
-                        "Records: #{fetched_count}/#{total_records || '?'}, " +
-                        "Synced: #{records_synced}, Skipped: #{records_skipped}, " +
-                        "Progress: #{percent}%")
+        # Log progress
+        Rails.logger.info("Fetched page #{page_no}: #{current_page_records.size} records (#{fetched_count} total, #{percent}%)")
 
-        # Report progress if callback is provided
+        # Report progress if a callback is provided
         if block_given?
           progress_callback.call({
             current_page: page_no,
             total_pages: total_pages,
             fetched: fetched_count,
             total: total_records,
-            synced: records_synced,
-            skipped: records_skipped,
+            synced: 0, # Will be updated after transaction completion
+            skipped: 0, # Will be updated after transaction completion
             percent: percent
           })
         end
@@ -134,7 +143,7 @@ class UnlockRecord < ApplicationRecord
         # Check if we need to fetch more pages
         if !api_response[:has_more] || current_page_records.empty?
           all_done = true
-          Rails.logger.info("All records fetched. Total: #{fetched_count}, Synced: #{records_synced}, Skipped: #{records_skipped}")
+          Rails.logger.info("All records fetched. Total: #{fetched_count}")
         else
           # Move to next page
           page_no += 1
@@ -146,18 +155,77 @@ class UnlockRecord < ApplicationRecord
         end
       end
 
-      # Return the final result
-      {
-        synced: records_synced,
-        skipped: records_skipped,
-        total_fetched: fetched_count,
-        total_records: total_records
-      }
+      # Now that we have fetched all records, process them in a single transaction
+      result = { synced: 0, skipped: 0 }
+      Rails.logger.info("Starting transaction to process #{all_records_to_process.size} records")
 
+      # Final check for stop signal before starting the transaction
+      if stop_check_key.present? && Rails.cache.exist?(stop_check_key)
+        Rails.logger.info("Stop signal detected before starting transaction. Aborting without committing any changes.")
+        return {
+          error: "Đồng bộ đã dừng theo yêu cầu",
+          synced: 0,
+          skipped: 0,
+          total_fetched: fetched_count,
+          total_records: total_records,
+          stopped: true
+        }
+      end
+
+      begin
+        # Process all records in a single transaction
+        ActiveRecord::Base.transaction do
+          # Process all records
+          result = process_records(smart_device, all_records_to_process)
+
+          # Final check for stop signal after processing
+          if stop_check_key.present? && Rails.cache.exist?(stop_check_key)
+            Rails.logger.info("Stop signal detected after processing. Rolling back transaction.")
+            raise StandardError, "stop_requested"
+          end
+        end
+
+        # Return success result
+        {
+          synced: result[:synced],
+          skipped: result[:skipped],
+          total_fetched: fetched_count,
+          total_records: total_records
+        }
+      rescue StandardError => e
+        if e.message == "stop_requested"
+          # Stop request detected, transaction was rolled back
+          Rails.logger.info("Sync stopped as requested. All changes have been rolled back.")
+          {
+            error: "Đồng bộ đã dừng theo yêu cầu. Đã hoàn tác mọi thay đổi.",
+            synced: 0,
+            skipped: 0,
+            total_fetched: fetched_count,
+            total_records: total_records,
+            stopped: true
+          }
+        else
+          # Other errors, log and return
+          Rails.logger.error("Error during transaction: #{e.message}")
+          Rails.logger.error(e.backtrace.join("\n"))
+          {
+            error: e.message,
+            synced: 0,
+            skipped: 0,
+            total_fetched: fetched_count
+          }
+        end
+      end
     rescue => e
-      Rails.logger.error("Error during pagination sync: #{e.message}")
+      # Handle any other unexpected errors
+      Rails.logger.error("Error during sync process: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
-      { error: e.message, synced: records_synced, skipped: records_skipped, total_fetched: fetched_count }
+      {
+        error: e.message,
+        synced: 0,
+        skipped: 0,
+        total_fetched: fetched_count
+      }
     end
   end
 
@@ -165,8 +233,25 @@ class UnlockRecord < ApplicationRecord
   def self.process_records(smart_device, records)
     synced = 0
     skipped = 0
+    processed_records = []
 
-    records.each do |record|
+    # Check for stop signal before starting processing
+    job_id = Thread.current[:job_id]
+    if job_id.present? && Rails.cache.exist?("sync_job_stop:#{job_id}")
+      Rails.logger.info("Sync stop signal detected before record processing. Will trigger rollback.")
+      raise StandardError, "stop_requested"
+    end
+
+    # Process each record
+    records.each_with_index do |record, index|
+      # Check for stop signal more frequently (every 5 records)
+      if job_id.present? && index > 0 && index % 5 == 0
+        if Rails.cache.exist?("sync_job_stop:#{job_id}")
+          Rails.logger.info("Sync stop signal detected during record processing at index #{index}. Will trigger rollback.")
+          raise StandardError, "stop_requested"
+        end
+      end
+
       # Parse timestamp from the record
       unlock_time = if record[:time].is_a?(String)
         Time.parse(record[:time]) rescue Time.now
@@ -179,7 +264,7 @@ class UnlockRecord < ApplicationRecord
 
       if existing.nil?
         # Create a new record if it doesn't exist
-        UnlockRecord.create!(
+        new_record = UnlockRecord.create!(
           smart_device: smart_device,
           time: unlock_time,
           user_id: record[:user],
@@ -188,12 +273,19 @@ class UnlockRecord < ApplicationRecord
           success: record[:success] || true,
           raw_data: record[:raw_data] || record
         )
+        processed_records << new_record
         synced += 1
       else
         skipped += 1
       end
     end
 
-    { synced: synced, skipped: skipped }
+    # Final check for stop signal before returning
+    if job_id.present? && Rails.cache.exist?("sync_job_stop:#{job_id}")
+      Rails.logger.info("Sync stop signal detected after record processing. Will trigger rollback.")
+      raise StandardError, "stop_requested"
+    end
+
+    { synced: synced, skipped: skipped, processed_records: processed_records }
   end
 end

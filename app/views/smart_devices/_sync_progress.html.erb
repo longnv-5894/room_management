@@ -1,7 +1,27 @@
 <%# Partial for displaying sync progress %>
-<div class="sync-progress <%= completed ? 'completed' : '' %> <%= defined?(success) && success == false ? 'error' : '' %>">
+<% 
+  # Set local variables if they aren't already set
+  stopping ||= false
+  is_error = !success && completed
+  is_warning = stopping || (stopped && !completed)
+  
+  # Select the appropriate CSS class based on the state
+  bar_class = if is_error
+                'bg-danger'
+              elsif is_warning
+                'bg-warning'
+              elsif stopping
+                'bg-warning'
+              elsif completed
+                'bg-success'
+              else
+                'bg-primary'
+              end
+%>
+
+<div class="sync-progress <%= completed ? 'completed' : '' %> <%= is_error ? 'error' : '' %> <%= stopping ? 'stopping' : '' %> <%= stopped ? 'stopped' : '' %>">
   <div class="progress">
-    <div class="progress-bar <%= defined?(success) && success == false ? 'bg-danger' : 'bg-primary' %>" 
+    <div class="progress-bar <%= bar_class %>" 
          role="progressbar" 
          style="width: <%= percent %>%;" 
          aria-valuenow="<%= percent %>" 

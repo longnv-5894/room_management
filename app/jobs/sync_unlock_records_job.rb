@@ -11,9 +11,16 @@ class SyncUnlockRecordsJob < ApplicationJob
     # Get job ID for progress tracking
     job_id = provider_job_id
     cache_key = "sync_job:#{job_id}"
+    stop_key = "sync_job_stop:#{job_id}"
+
+    # Xóa bất kỳ yêu cầu dừng nào từ trước
+    Rails.cache.delete(stop_key)
 
     # Store initial progress in cache
-    update_progress(cache_key, 0, "Đang bắt đầu đồng bộ...")
+    update_progress(cache_key, 0, I18n.t("sync_unlock_records.starting"), "running", @smart_device.id)
+
+    # Set job_id in current thread for stopping capability
+    Thread.current[:job_id] = job_id
 
     # Start the sync with progress tracking
     begin
@@ -30,12 +37,17 @@ class SyncUnlockRecordsJob < ApplicationJob
 
         # Create a descriptive message
         message = if status[:total_pages] && status[:total_pages] > 0
-          "Đang đồng bộ trang #{status[:current_page]}/#{status[:total_pages]}: " +
-          "#{pluralize(status[:fetched], 'bản ghi')} đã tải, " +
-          "#{pluralize(status[:synced], 'bản ghi')} đã lưu"
+          I18n.t("sync_unlock_records.progress_with_pages",
+            current_page: status[:current_page],
+            total_pages: status[:total_pages],
+            fetched: pluralize(status[:fetched], I18n.t("sync_unlock_records.record")),
+            synced: pluralize(status[:synced], I18n.t("sync_unlock_records.record_saved"))
+          )
         else
-          "Đang đồng bộ: #{pluralize(status[:fetched], 'bản ghi')} đã tải, " +
-          "#{pluralize(status[:synced], 'bản ghi')} đã lưu"
+          I18n.t("sync_unlock_records.progress_simple",
+            fetched: pluralize(status[:fetched], I18n.t("sync_unlock_records.record")),
+            synced: pluralize(status[:synced], I18n.t("sync_unlock_records.record_saved"))
+          )
         end
 
         # Update progress in cache for AJAX polling
@@ -47,17 +59,71 @@ class SyncUnlockRecordsJob < ApplicationJob
 
       # Handle completion
       if results[:error].present?
-        update_progress(
-          cache_key,
-          100,
-          "Lỗi: #{results[:error]}",
-          "error"
-        )
+        if results[:stopped]
+          # Nếu quá trình đồng bộ bị dừng theo yêu cầu người dùng
+          message = I18n.t("sync_unlock_records.stopped",
+            synced: pluralize(results[:synced], I18n.t("sync_unlock_records.record_added")),
+            skipped: pluralize(results[:skipped], I18n.t("sync_unlock_records.record_skipped"))
+          )
+          # Ghi log rõ ràng về việc dừng
+          Rails.logger.info("Sync job stopped: #{message}")
+
+          # Cập nhật trạng thái trong cache
+          update_progress(
+            cache_key,
+            100,
+            message,
+            "stopped",
+            @smart_device.id
+          )
+
+          # Phát sóng cập nhật tiến trình
+          broadcast_progress_update(
+            100,
+            message,
+            "stopped"
+          )
+
+          # Đảm bảo rằng cache vẫn giữ trạng thái này
+          Rails.cache.write(cache_key, {
+            percent: 100,
+            message: message,
+            status: "stopped",
+            updated_at: Time.now.to_i,
+            device_id: @smart_device.id
+          }, expires_in: 2.hours)
+
+          # Delete the stop signal now that we're done
+          Rails.cache.delete(stop_key)
+        else
+          # Nếu có lỗi khác
+          message = I18n.t("sync_unlock_records.error", error: results[:error])
+          Rails.logger.error("Sync job error: #{message}")
+
+          update_progress(
+            cache_key,
+            100,
+            message,
+            "error"
+          )
+          broadcast_progress_update(100, message, "error")
+        end
       else
         update_progress(
           cache_key,
           100,
-          "Hoàn thành: #{pluralize(results[:synced], 'bản ghi')} đã thêm, #{pluralize(results[:skipped], 'bản ghi')} đã bỏ qua.",
+          I18n.t("sync_unlock_records.completed",
+            synced: pluralize(results[:synced], I18n.t("sync_unlock_records.record_added")),
+            skipped: pluralize(results[:skipped], I18n.t("sync_unlock_records.record_skipped"))
+          ),
+          "completed"
+        )
+        broadcast_progress_update(
+          100,
+          I18n.t("sync_unlock_records.completed",
+            synced: pluralize(results[:synced], I18n.t("sync_unlock_records.record_added")),
+            skipped: pluralize(results[:skipped], I18n.t("sync_unlock_records.record_skipped"))
+          ),
           "completed"
         )
       end
@@ -65,33 +131,43 @@ class SyncUnlockRecordsJob < ApplicationJob
     rescue => e
       Rails.logger.error("Error in sync job: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
-      update_progress(cache_key, 100, "Lỗi: #{e.message}", "error")
+      update_progress(cache_key, 100, I18n.t("sync_unlock_records.error", error: e.message), "error")
+      broadcast_progress_update(100, I18n.t("sync_unlock_records.error", error: e.message), "error")
     end
   end
 
   private
 
   # Update progress in Redis cache
-  def update_progress(cache_key, percent, message, status = "running")
+  def update_progress(cache_key, percent, message, status = "running", device_id = nil)
     Rails.logger.info("Updating progress: #{percent}% - #{message}")
 
+    # Ensure percent is a valid integer
+    percent = percent.to_i
+
+    # Store in cache for polling
     Rails.cache.write(
       cache_key,
       {
         percent: percent,
         message: message,
         status: status,
-        updated_at: Time.now.to_i
+        updated_at: Time.now.to_i,
+        device_id: device_id
       },
-      expires_in: 1.hour
+      expires_in: 2.hours
     )
   end
 
   # Also try to broadcast via Turbo Streams for real-time updates if available
-  def broadcast_progress_update(percent, message, completed = false, success = true)
+  def broadcast_progress_update(percent, message, status = "running")
     return unless defined?(Turbo::StreamsChannel)
 
     channel = "sync_progress_#{@smart_device.id}"
+    completed = status == "completed" || status == "error" || status == "stopped"
+    success = status == "completed" # Chỉ "completed" mới là thành công
+    stopped = status == "stopped"
+    stopping = status == "stopping"
 
     begin
       Turbo::StreamsChannel.broadcast_update_to(
@@ -102,7 +178,10 @@ class SyncUnlockRecordsJob < ApplicationJob
           percent: percent,
           message: message,
           completed: completed,
-          success: success
+          success: success,
+          stopped: stopped,
+          stopping: stopping,
+          status: status
         }
       )
     rescue => e
