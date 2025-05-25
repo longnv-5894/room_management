@@ -795,6 +795,8 @@ en:
       device_error: "Could not synchronize data: %{error}"
       records_synced: "Synced %{count} new unlock records"
       users_synced: "Synced %{new_count} new users, updated %{updated_count} users"
+      users_error: "Could not synchronize users: %{error}"
+      users_started: "User synchronization started in the background"
     common:
       back_to_device: "Back to device"
       back_to_list: "Back to list"
@@ -1077,3 +1079,15 @@ en:
     record_skipped: "record"
     not_found: "Sync progress information not found"
     sync_records_with_cloud: "Sync records with cloud"
+    
+  sync_device_users:
+    floating_title: "Syncing users..."
+    starting: "Starting users sync..."
+    processing: "Processing %{count} users..."
+    processing_progress: "Processing users %{current}/%{total}: %{synced} added, %{updated} updated"
+    stopped: "Stopped: %{synced} added, %{updated} updated. All changes have been rolled back."
+    completed: "Completed: %{synced} added, %{updated} updated."
+    error: "Error: %{error}"
+    user_added: "user"
+    user_updated: "user"
+    not_found: "Sync progress information not found"

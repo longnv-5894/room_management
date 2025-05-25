@@ -170,8 +170,14 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
               this.refreshRecordsViaAjax(this.state.deviceId);
             }, 100);
+          } else if (window.location.pathname.includes('/smart_devices/') && window.location.pathname.includes('/device_users')) {
+            console.log('On device users page, refreshing via AJAX');
+            setTimeout(() => {
+              this.refreshDeviceUsersViaAjax(this.state.deviceId);
+            }, 100);
           } else {
-            console.log('Not on unlock records page, no refresh needed');
+            console.log('Not on unlock records or device users page, reloading the page');
+            this.reloadPageWithDelay();
           }
           this.resetState();
         };
@@ -786,7 +792,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Simple helper to reload page with delay
     reloadPageWithDelay: function() {
       console.log('Falling back to page reload');
-      alert('Đang làm mới dữ liệu bản ghi...');
       window.location.reload();
     },
     
@@ -943,6 +948,195 @@ document.addEventListener('DOMContentLoaded', function() {
         // On error, try a simple alternative update approach before falling back to reload
         this.fallbackTableUpdate(deviceId);
       });
+    },
+    
+    // Refresh device users via AJAX instead of reloading the page
+    refreshDeviceUsersViaAjax: function(deviceId) {
+      console.log('Refreshing device users via AJAX for device', deviceId);
+      const currentUrl = window.location.href;
+      console.log('Refreshing device users from URL:', currentUrl);
+      
+      // Đầu tiên, hiển thị thông báo đang làm mới
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'alert alert-info mb-3';
+      messageDiv.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> Đang làm mới danh sách người dùng...';
+      
+      // Tìm vị trí để thêm thông báo tạm thời
+      const infoSection = document.querySelector('.container-fluid');
+      if (infoSection) {
+        infoSection.insertBefore(messageDiv, infoSection.firstChild);
+      }
+      
+      fetch(currentUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/html',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        cache: 'no-store'
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then(html => {
+        console.log('AJAX response for device users received, length:', html.length);
+        
+        // Xóa thông báo đang làm mới nếu có
+        if (messageDiv && messageDiv.parentNode) {
+          messageDiv.parentNode.removeChild(messageDiv);
+        }
+        
+        try {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = html;
+          
+          // Cập nhật thống kê số người dùng (cards phía trên)
+          const newStatsCards = tempDiv.querySelectorAll('.col-xl-3.col-md-6.mb-4');
+          const currentStatsCards = document.querySelectorAll('.col-xl-3.col-md-6.mb-4');
+          
+          if (newStatsCards && newStatsCards.length > 0 && currentStatsCards && currentStatsCards.length > 0) {
+            // Cập nhật thông tin thống kê
+            for (let i = 0; i < Math.min(newStatsCards.length, currentStatsCards.length); i++) {
+              currentStatsCards[i].innerHTML = newStatsCards[i].innerHTML;
+            }
+            console.log('User stats cards updated successfully');
+          }
+          
+          // PHƯƠNG PHÁP CHÍNH: Dựa vào cấu trúc chính xác của device_users.html.erb
+          // Tìm card chứa bảng người dùng - là card đầu tiên
+          const userCards = document.querySelectorAll('.card.border-0.shadow.mb-4');
+          const newUserCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
+          
+          if (userCards.length > 0 && newUserCards.length > 0) {
+            // Card đầu tiên là card chứa bảng người dùng theo cấu trúc HTML
+            const userTableCard = userCards[0];
+            const newUserTableCard = newUserCards[0];
+            
+            // Kiểm tra thêm nếu card chứa đúng header
+            const cardHeader = userTableCard.querySelector('.card-header h6');
+            if (cardHeader && (cardHeader.textContent.includes('người dùng') || 
+                                cardHeader.textContent.includes('Authorized Users'))) {
+              
+              // Cập nhật nội dung card-body
+              const cardBody = userTableCard.querySelector('.card-body');
+              const newCardBody = newUserTableCard.querySelector('.card-body');
+              
+              if (cardBody && newCardBody) {
+                cardBody.innerHTML = newCardBody.innerHTML;
+                console.log('Device users table updated successfully through direct card-body match');
+                
+                // Khởi tạo lại các event listeners cho các nút trong bảng
+                this.reinitializeTableButtons();
+                return;
+              }
+            }
+          }
+          
+          // PHƯƠNG PHÁP DỰ PHÒNG 1: Dựa vào nội dung tiêu đề chính xác
+          const cards = document.querySelectorAll('.card.border-0.shadow.mb-4');
+          const newCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
+          
+          // Duyệt qua tất cả các card để tìm card chứa đúng tiêu đề
+          for (let i = 0; i < cards.length; i++) {
+            const header = cards[i].querySelector('.card-header h6.font-weight-bold');
+            if (header && header.textContent.includes(window.I18n ? 
+                I18n.t('smart_devices.lock_users.authorized_users') : 'Authorized Users')) {
+              
+              // Tìm card tương ứng trong HTML mới
+              const newHeader = newCards[i] ? newCards[i].querySelector('.card-header h6.font-weight-bold') : null;
+              if (newHeader && newHeader.textContent.includes(window.I18n ? 
+                  I18n.t('smart_devices.lock_users.authorized_users') : 'Authorized Users')) {
+                
+                // Cập nhật nội dung của card-body
+                const cardBody = cards[i].querySelector('.card-body');
+                const newCardBody = newCards[i].querySelector('.card-body');
+                
+                if (cardBody && newCardBody) {
+                  cardBody.innerHTML = newCardBody.innerHTML;
+                  console.log('Device users table updated successfully through header match');
+                  
+                  // Khởi tạo lại các event listeners cho các nút trong bảng
+                  this.reinitializeTableButtons();
+                  return;
+                }
+              }
+            }
+          }
+          
+          // PHƯƠNG PHÁP DỰ PHÒNG 2: Tìm thẻ table hoặc thông báo "no_users_message"
+          const tableContainer = document.querySelector('.table-responsive');
+          const newTableContainer = tempDiv.querySelector('.table-responsive');
+          
+          // Nếu có bảng (trường hợp có người dùng)
+          if (tableContainer && newTableContainer) {
+            tableContainer.innerHTML = newTableContainer.innerHTML;
+            console.log('Device users table updated successfully through table container match');
+            
+            // Khởi tạo lại các event listeners cho các nút trong bảng
+            this.reinitializeTableButtons();
+            return;
+          }
+          
+          // Nếu không có bảng, tìm thông báo "không có người dùng"
+          const noUsersAlert = document.querySelector('.alert.alert-info');
+          const newNoUsersAlert = tempDiv.querySelector('.alert.alert-info');
+          
+          if (noUsersAlert && newNoUsersAlert) {
+            noUsersAlert.innerHTML = newNoUsersAlert.innerHTML;
+            console.log('No users message updated successfully');
+            return;
+          }
+          
+          // Nếu tất cả cách trên thất bại, reload trang
+          console.warn('Could not find matching elements to update device users list');
+          this.reloadPageWithDelay();
+          
+        } catch (err) {
+          console.error('Error updating device users table:', err);
+          // Trong trường hợp lỗi, reload toàn bộ trang
+          this.reloadPageWithDelay();
+        }
+        
+        // Trigger a custom event
+        const refreshEvent = new CustomEvent('deviceUsersRefreshed', {
+          detail: { deviceId: deviceId, success: true }
+        });
+        document.dispatchEvent(refreshEvent);
+      })
+      .catch(error => {
+        // Xóa thông báo đang làm mới nếu có
+        if (messageDiv && messageDiv.parentNode) {
+          messageDiv.parentNode.removeChild(messageDiv);
+        }
+        
+        console.error('Error refreshing device users:', error);
+        const refreshEvent = new CustomEvent('deviceUsersRefreshed', {
+          detail: { deviceId: deviceId, success: false, error: error.message }
+        });
+        document.dispatchEvent(refreshEvent);
+        this.reloadPageWithDelay(); // Trong trường hợp lỗi, reload toàn bộ trang
+      });
+    },
+    
+    // Khởi tạo lại các event listeners cho các nút trong bảng
+    reinitializeTableButtons: function() {
+      // Khởi tạo lại Select2 nếu có
+      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+        $('.select2').select2({
+          theme: 'bootstrap4'
+        });
+      }
+      
+      // Khởi tạo lại các nút modal
+      const modals = document.querySelectorAll('.modal');
+      if (window.bootstrap && window.bootstrap.Modal && modals.length > 0) {
+        modals.forEach(modalEl => {
+          new bootstrap.Modal(modalEl);
+        });
+      }
     }
   };
   

@@ -1,5 +1,39 @@
 <% content_for :title, t('smart_devices.lock_users.title', name: @smart_device.name) %>
 
+<% content_for :styles do %>
+<style>
+  /* Progress bar styles */
+  #sync_progress_container {
+    margin-bottom: 1rem;
+  }
+  
+  .sync-progress {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .sync-progress .progress {
+    height: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .sync-progress.completed {
+    background-color: #d1e7dd;
+  }
+  
+  .sync-progress.error {
+    background-color: #f8d7da;
+  }
+  
+  .progress-message {
+    font-size: 14px;
+    font-weight: 500;
+  }
+</style>
+<% end %>
+
 <div class="container-fluid px-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h5 mt-3 mb-2">
@@ -11,11 +45,13 @@
         <i class="fas fa-chevron-left me-1"></i> <%= t('smart_devices.common.back_to_device') %>
       <% end %>
       
-      <%= link_to sync_device_users_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post, turbo_confirm: t('smart_devices.confirm_sync') } do %>
+      <%= link_to sync_device_users_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post } do %>
         <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_users_with_cloud') %>
       <% end %>
     </div>
   </div>
+
+  <!-- Using global floating progress bar instead of local progress container -->
 
   <div class="row">
     <div class="col-xl-3 col-md-6 mb-4">
@@ -143,7 +179,7 @@
         <div class="alert alert-info">
           <i class="fas fa-info-circle me-2"></i> 
           <%= t('smart_devices.lock_users.no_users_message') %>
-          <%= link_to t('smart_devices.sync_with_cloud'), sync_device_data_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
+          <%= link_to t('smart_devices.sync_with_cloud'), sync_device_users_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
         </div>
       <% end %>
     </div>
@@ -203,6 +239,69 @@
       $('.select2').select2({
         theme: 'bootstrap4'
       });
+    }
+    
+    // Poll interval in milliseconds
+    const POLL_INTERVAL = 1000; // 1 second
+    let pollingTimer = null;
+    
+    // Attach event handler to sync button
+    const syncButton = document.querySelector('a[href*="sync_device_users"]');
+    if (syncButton) {
+      syncButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Disable the button to prevent multiple clicks
+        syncButton.classList.add('disabled');
+        syncButton.setAttribute('disabled', 'disabled');
+        
+        // Start the sync via AJAX
+        const syncUrl = syncButton.getAttribute('href');
+        const deviceId = <%= @smart_device.id %>;
+        const deviceName = "<%= @smart_device.name %>";
+        
+        $.ajax({
+          url: syncUrl,
+          method: 'POST',
+          dataType: 'json',
+          headers: {
+            'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+          },
+          success: function(response) {
+            console.log('Sync job started:', response);
+            if (response.job_id) {
+              // Use only the global SyncProgressManager for progress tracking
+              if (typeof window.SyncProgressManager !== 'undefined') {
+                console.log('Starting sync using SyncProgressManager');
+                window.SyncProgressManager.startSync(deviceId, response.job_id, deviceName);
+                
+                // Re-enable the button after a few seconds
+                setTimeout(function() {
+                  enableSyncButton();
+                }, 3000);
+              } else {
+                console.error('SyncProgressManager not available! Check if sync_progress_manager.js is properly loaded');
+                enableSyncButton();
+              }
+            } else {
+              console.log('Sync complete without job ID');
+              enableSyncButton();
+            }
+          },
+          error: function(xhr, status, error) {
+            console.error('Error starting sync job:', error);
+            enableSyncButton();
+          }
+        });
+      });
+    }
+    
+    // Function to re-enable the sync button
+    function enableSyncButton() {
+      if (syncButton) {
+        syncButton.classList.remove('disabled');
+        syncButton.removeAttribute('disabled');
+      }
     }
   });
 </script>

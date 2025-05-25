@@ -363,7 +363,7 @@ class SmartDevicesController < ApplicationController
       # Return progress information
       render json: {
         percent: job_data[:percent] || 0,
-        message: job_data[:message] || I18n.t('sync_unlock_records.starting'),
+        message: job_data[:message] || I18n.t("sync_unlock_records.starting"),
         completed: job_data[:status] == "completed" || job_data[:status] == "error" || job_data[:status] == "stopped",
         success: job_data[:status] != "error" && job_data[:status] != "stopped",
         error: job_data[:status] == "error" ? job_data[:message] : nil,
@@ -374,28 +374,37 @@ class SmartDevicesController < ApplicationController
     else
       # Job data not found in cache
       render json: {
-        error: I18n.t('sync_unlock_records.not_found'),
+        error: I18n.t("sync_unlock_records.not_found"),
         completed: true,
         success: false
       }, status: :not_found
     end
   end
 
-  # Đồng bộ chỉ người dùng khóa từ Tuya API vào cơ sở dữ liệu
+  # Đồng bộ chỉ người dùng khóa từ Tuya API vào cơ sở dữ liệu với theo dõi tiến trình
   def sync_device_users
     @smart_device = SmartDevice.find(params[:id])
-    results = DeviceUser.sync_from_tuya(@smart_device)
 
     respond_to do |format|
-      if results[:error].present?
-        format.html { redirect_to device_users_smart_device_path(@smart_device), alert: t("smart_devices.sync.users_error", error: results[:error]) }
-        format.json { render json: { success: false, error: results[:error] }, status: :unprocessable_entity }
-      else
-        format.html {
-          flash[:notice] = t("smart_devices.sync.users_synced", new_count: results[:synced], updated_count: results[:updated])
-          redirect_to device_users_smart_device_path(@smart_device)
+      format.html do
+        # For HTML requests, we'll redirect to the device users page and start a background job
+        SyncDeviceUsersJob.perform_later(@smart_device.id, current_user&.id)
+
+        flash[:notice] = t("smart_devices.sync.users_started")
+        redirect_to device_users_smart_device_path(@smart_device)
+      end
+
+      format.json do
+        # For JSON requests, start the job and return the job ID for polling
+        job = SyncDeviceUsersJob.perform_later(@smart_device.id, current_user&.id)
+        job_id = job.provider_job_id
+
+        # Return the job ID so the client can poll for progress
+        render json: {
+          success: true,
+          job_id: job_id,
+          message: "Đã bắt đầu đồng bộ người dùng"
         }
-        format.json { render json: results, status: :ok }
       end
     end
   end
