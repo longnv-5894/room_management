@@ -24,7 +24,30 @@ class SyncDeviceUsersJob < ApplicationJob
 
     # Start the sync with progress tracking
     begin
-      results = sync_device_users_with_progress(@smart_device, cache_key)
+      results = sync_device_users_with_callback(@smart_device) do |status|
+        # Calculate percentage based on the records fetched vs total - giống SyncUnlockRecordsJob
+        if status[:total] && status[:total] > 0
+          percent = ((status[:fetched].to_f / status[:total]) * 100).round
+        else
+          # If we don't know the total, estimate
+          percent = 10
+          # Cap at 90% until we're done
+          percent = [ percent, 90 ].min
+        end
+
+        # Create a descriptive message - giống SyncUnlockRecordsJob
+        message = I18n.t("sync_device_users.progress_with_fetched",
+          fetched: pluralize(status[:fetched], I18n.t("sync_device_users.user")),
+          total: status[:total],
+          synced: pluralize(status[:synced], I18n.t("sync_device_users.user_synced"))
+        )
+
+        # Update progress in cache for AJAX polling - giống SyncUnlockRecordsJob
+        update_progress(cache_key, percent, message)
+
+        # Also attempt to broadcast via Turbo Streams for real-time updates
+        broadcast_progress_update(percent, message)
+      end
 
       # Handle completion
       if results[:error].present?
@@ -105,25 +128,9 @@ class SyncDeviceUsersJob < ApplicationJob
     end
   end
 
-  private
-
-  # Sync device users with progress tracking
-  def sync_device_users_with_progress(smart_device, cache_key)
+  # Sync device users with callback progress tracking - giống UnlockRecord.sync_from_tuya
+  def sync_device_users_with_callback(smart_device, &progress_callback)
     return { error: "Device is not a smart lock" } unless smart_device.smart_lock?
-
-    # Fetch all users through API
-    api_response = smart_device.get_lock_users_from_api(1, 50)
-
-    if api_response[:error].present?
-      return { error: api_response[:error] }
-    end
-
-    total_users = api_response[:users].size
-    Rails.logger.info("Found #{total_users} users to sync")
-
-    # Report progress at 10%
-    update_progress(cache_key, 10, I18n.t("sync_device_users.processing", count: total_users))
-    broadcast_progress_update(10, I18n.t("sync_device_users.processing", count: total_users))
 
     job_id = Thread.current[:job_id]
     stop_key = job_id.present? ? "sync_job_stop:#{job_id}" : nil
@@ -139,10 +146,76 @@ class SyncDeviceUsersJob < ApplicationJob
     end
 
     begin
-      # Process all users in a transaction for atomic operations
+      # Mô phỏng pagination như UnlockRecord.sync_from_tuya
+      total_users = 0
+      fetched_count = 0
       users_synced = 0
       users_updated = 0
 
+      # Report initial progress if a callback is provided - giống UnlockRecord.sync_from_tuya
+      if block_given?
+        progress_callback.call({
+          fetched: 0,
+          total: 0,
+          synced: 0,
+          updated: 0,
+          percent: 0
+        })
+      end
+
+      # Fetch all users through API - mô phỏng như fetch page đầu tiên
+      api_response = smart_device.get_lock_users_from_api(1, 50)
+
+      if api_response[:error].present?
+        return { error: api_response[:error] }
+      end
+
+      total_users = api_response[:users].size
+      Rails.logger.info("Found #{total_users} users to sync")
+
+      # Mô phỏng fetch data progress như UnlockRecord - gọi callback nhiều lần
+      (1..total_users).each do |i|
+        # Simulate fetching progress
+        fetched_count = i
+        percent = total_users > 0 ? ((fetched_count.to_f / total_users) * 80).round : 0 # Max 80% cho fetch
+
+        # Report progress during "fetching" phase - giống UnlockRecord.sync_from_tuya
+        if block_given?
+          progress_callback.call({
+            fetched: fetched_count,
+            total: total_users,
+            synced: 0, # Chưa sync gì cả
+            updated: 0, # Chưa update gì cả
+            percent: percent
+          })
+        end
+
+        # Small delay để user thấy progress tăng dần
+        sleep(0.1) if total_users > 1
+
+        # Check for stop signal during "fetching"
+        if stop_key.present? && Rails.cache.exist?(stop_key)
+          return {
+            error: "Đồng bộ đã dừng theo yêu cầu",
+            synced: 0,
+            updated: 0,
+            stopped: true
+          }
+        end
+      end
+
+      # Báo cáo hoàn thành fetch data
+      if block_given?
+        progress_callback.call({
+          fetched: total_users,
+          total: total_users,
+          synced: 0,
+          updated: 0,
+          percent: 85
+        })
+      end
+
+      # Process all users in a transaction for atomic operations
       # Final check for stop signal before starting the transaction
       if stop_key.present? && Rails.cache.exist?(stop_key)
         Rails.logger.info("Stop signal detected before starting transaction. Aborting.")
@@ -159,8 +232,8 @@ class SyncDeviceUsersJob < ApplicationJob
         ActiveRecord::Base.transaction do
           if api_response[:users].present?
             api_response[:users].each_with_index do |user, index|
-              # Check for stop signal periodically
-              if job_id.present? && index > 0 && index % 5 == 0
+              # Check for stop signal more frequently (every user)
+              if job_id.present? && index > 0
                 if Rails.cache.exist?("sync_job_stop:#{job_id}")
                   Rails.logger.info("Sync stop signal detected during user processing at index #{index}. Will trigger rollback.")
                   raise StandardError, "stop_requested"
@@ -169,24 +242,7 @@ class SyncDeviceUsersJob < ApplicationJob
 
               next unless user[:id].present?
 
-              # Update progress every few users
-              if index % 5 == 0
-                percent = ((index.to_f / total_users) * 80).round + 10  # 10% to 90%
-                update_progress(cache_key, percent, I18n.t("sync_device_users.processing_progress",
-                  current: index,
-                  total: total_users,
-                  synced: users_synced,
-                  updated: users_updated
-                ))
-                broadcast_progress_update(percent, I18n.t("sync_device_users.processing_progress",
-                  current: index,
-                  total: total_users,
-                  synced: users_synced,
-                  updated: users_updated
-                ))
-              end
-
-              # Process user with unlock methods if available
+              # Process user với unlock methods nếu có
               if user[:raw_data] && user[:raw_data]["unlock_methods"].present?
                 user[:raw_data]["unlock_methods"].each do |method|
                   device_user = DeviceUser.find_or_initialize_by(
@@ -296,6 +352,8 @@ class SyncDeviceUsersJob < ApplicationJob
       }
     end
   end
+
+  private
 
   # Update progress in Redis cache
   def update_progress(cache_key, percent, message, status = "running", device_id = nil)

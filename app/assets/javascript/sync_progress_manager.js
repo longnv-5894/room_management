@@ -956,17 +956,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const currentUrl = window.location.href;
       console.log('Refreshing device users from URL:', currentUrl);
       
-      // Đầu tiên, hiển thị thông báo đang làm mới
-      const messageDiv = document.createElement('div');
-      messageDiv.className = 'alert alert-info mb-3';
-      messageDiv.innerHTML = '<i class="fas fa-sync fa-spin me-2"></i> Đang làm mới danh sách người dùng...';
-      
-      // Tìm vị trí để thêm thông báo tạm thời
-      const infoSection = document.querySelector('.container-fluid');
-      if (infoSection) {
-        infoSection.insertBefore(messageDiv, infoSection.firstChild);
-      }
-      
       fetch(currentUrl, {
         method: 'GET',
         headers: {
@@ -984,160 +973,179 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(html => {
         console.log('AJAX response for device users received, length:', html.length);
         
-        // Xóa thông báo đang làm mới nếu có
-        if (messageDiv && messageDiv.parentNode) {
-          messageDiv.parentNode.removeChild(messageDiv);
-        }
-        
         try {
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = html;
           
-          // Cập nhật thống kê số người dùng (cards phía trên)
-          const newStatsCards = tempDiv.querySelectorAll('.col-xl-3.col-md-6.mb-4');
-          const currentStatsCards = document.querySelectorAll('.col-xl-3.col-md-6.mb-4');
+          // 1. Cập nhật các statistics cards - device_users.html.erb chỉ có 2 cards
+          const currentStatsRow = document.querySelector('.row:has(.col-xl-3.col-md-6.mb-4)');
+          const newStatsRow = tempDiv.querySelector('.row:has(.col-xl-3.col-md-6.mb-4)');
           
-          if (newStatsCards && newStatsCards.length > 0 && currentStatsCards && currentStatsCards.length > 0) {
-            // Cập nhật thông tin thống kê
-            for (let i = 0; i < Math.min(newStatsCards.length, currentStatsCards.length); i++) {
-              currentStatsCards[i].innerHTML = newStatsCards[i].innerHTML;
-            }
-            console.log('User stats cards updated successfully');
-          }
-          
-          // PHƯƠNG PHÁP CHÍNH: Dựa vào cấu trúc chính xác của device_users.html.erb
-          // Tìm card chứa bảng người dùng - là card đầu tiên
-          const userCards = document.querySelectorAll('.card.border-0.shadow.mb-4');
-          const newUserCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
-          
-          if (userCards.length > 0 && newUserCards.length > 0) {
-            // Card đầu tiên là card chứa bảng người dùng theo cấu trúc HTML
-            const userTableCard = userCards[0];
-            const newUserTableCard = newUserCards[0];
+          if (currentStatsRow && newStatsRow) {
+            currentStatsRow.innerHTML = newStatsRow.innerHTML;
+            console.log('Updated stats row with 2 cards');
+          } else {
+            // Fallback: cập nhật từng card riêng lẻ
+            const currentStatsCards = document.querySelectorAll('.col-xl-3.col-md-6.mb-4');
+            const newStatsCards = tempDiv.querySelectorAll('.col-xl-3.col-md-6.mb-4');
             
-            // Kiểm tra thêm nếu card chứa đúng header
-            const cardHeader = userTableCard.querySelector('.card-header h6');
-            if (cardHeader && (cardHeader.textContent.includes('người dùng') || 
-                                cardHeader.textContent.includes('Authorized Users'))) {
-              
-              // Cập nhật nội dung card-body
-              const cardBody = userTableCard.querySelector('.card-body');
-              const newCardBody = newUserTableCard.querySelector('.card-body');
-              
-              if (cardBody && newCardBody) {
-                cardBody.innerHTML = newCardBody.innerHTML;
-                console.log('Device users table updated successfully through direct card-body match');
-                
-                // Khởi tạo lại các event listeners cho các nút trong bảng
-                this.reinitializeTableButtons();
-                return;
+            if (currentStatsCards.length > 0 && newStatsCards.length > 0) {
+              for (let i = 0; i < Math.min(currentStatsCards.length, newStatsCards.length); i++) {
+                currentStatsCards[i].innerHTML = newStatsCards[i].innerHTML;
+                console.log(`Updated stats card ${i + 1}`);
               }
             }
           }
           
-          // PHƯƠNG PHÁP DỰ PHÒNG 1: Dựa vào nội dung tiêu đề chính xác
-          const cards = document.querySelectorAll('.card.border-0.shadow.mb-4');
-          const newCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
+          // 2. Cập nhật card chứa bảng users - tìm card có header "authorized_users"
+          const userTableCards = document.querySelectorAll('.card.border-0.shadow.mb-4');
+          const newUserTableCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
           
-          // Duyệt qua tất cả các card để tìm card chứa đúng tiêu đề
-          for (let i = 0; i < cards.length; i++) {
-            const header = cards[i].querySelector('.card-header h6.font-weight-bold');
-            if (header && header.textContent.includes(window.I18n ? 
-                I18n.t('smart_devices.lock_users.authorized_users') : 'Authorized Users')) {
+          let userTableUpdated = false;
+          
+          // Tìm card chứa bảng users bằng cách kiểm tra nội dung header
+          for (let i = 0; i < userTableCards.length && i < newUserTableCards.length; i++) {
+            const currentCard = userTableCards[i];
+            const newCard = newUserTableCards[i];
+            
+            const cardHeader = currentCard.querySelector('.card-header h6');
+            const newCardHeader = newCard.querySelector('.card-header h6');
+            
+            if (cardHeader && newCardHeader) {
+              const headerText = cardHeader.textContent.toLowerCase();
+              const newHeaderText = newCardHeader.textContent.toLowerCase();
               
-              // Tìm card tương ứng trong HTML mới
-              const newHeader = newCards[i] ? newCards[i].querySelector('.card-header h6.font-weight-bold') : null;
-              if (newHeader && newHeader.textContent.includes(window.I18n ? 
-                  I18n.t('smart_devices.lock_users.authorized_users') : 'Authorized Users')) {
+              // Kiểm tra xem có phải card chứa "authorized users" không
+              if ((headerText.includes('authorized') || headerText.includes('người dùng được') || headerText.includes('ủy quyền')) &&
+                  (newHeaderText.includes('authorized') || newHeaderText.includes('người dùng được') || newHeaderText.includes('ủy quyền'))) {
                 
-                // Cập nhật nội dung của card-body
-                const cardBody = cards[i].querySelector('.card-body');
-                const newCardBody = newCards[i].querySelector('.card-body');
+                console.log('Found authorized users card, updating...');
                 
-                if (cardBody && newCardBody) {
-                  cardBody.innerHTML = newCardBody.innerHTML;
-                  console.log('Device users table updated successfully through header match');
-                  
-                  // Khởi tạo lại các event listeners cho các nút trong bảng
-                  this.reinitializeTableButtons();
-                  return;
-                }
+                // Cập nhật toàn bộ card để đảm bảo header và body đều được cập nhật
+                currentCard.innerHTML = newCard.innerHTML;
+                console.log('Updated authorized users card successfully');
+                userTableUpdated = true;
+                break;
               }
             }
           }
           
-          // PHƯƠNG PHÁP DỰ PHÒNG 2: Tìm thẻ table hoặc thông báo "no_users_message"
-          const tableContainer = document.querySelector('.table-responsive');
-          const newTableContainer = tempDiv.querySelector('.table-responsive');
-          
-          // Nếu có bảng (trường hợp có người dùng)
-          if (tableContainer && newTableContainer) {
-            tableContainer.innerHTML = newTableContainer.innerHTML;
-            console.log('Device users table updated successfully through table container match');
+          if (!userTableUpdated) {
+            // Fallback: tìm card có chứa table
+            console.log('Header method failed, trying table detection...');
             
-            // Khởi tạo lại các event listeners cho các nút trong bảng
-            this.reinitializeTableButtons();
-            return;
+            for (let i = 0; i < userTableCards.length && i < newUserTableCards.length; i++) {
+              const currentCard = userTableCards[i];
+              const newCard = newUserTableCards[i];
+              
+              const hasTable = currentCard.querySelector('table.table');
+              const newHasTable = newCard.querySelector('table.table');
+              
+              if (hasTable && newHasTable) {
+                currentCard.innerHTML = newCard.innerHTML;
+                console.log(`Updated card ${i + 1} with table via fallback method`);
+                userTableUpdated = true;
+                break;
+              }
+            }
           }
           
-          // Nếu không có bảng, tìm thông báo "không có người dùng"
-          const noUsersAlert = document.querySelector('.alert.alert-info');
-          const newNoUsersAlert = tempDiv.querySelector('.alert.alert-info');
-          
-          if (noUsersAlert && newNoUsersAlert) {
-            noUsersAlert.innerHTML = newNoUsersAlert.innerHTML;
-            console.log('No users message updated successfully');
-            return;
+          if (!userTableUpdated) {
+            console.warn('Could not find user table card to update');
+            throw new Error('Could not locate user table card');
           }
           
-          // Nếu tất cả cách trên thất bại, reload trang
-          console.warn('Could not find matching elements to update device users list');
-          this.reloadPageWithDelay();
+          // 3. Cập nhật info card (card cuối cùng)
+          const infoCards = document.querySelectorAll('.card.border-0.shadow.mb-4');
+          const newInfoCards = tempDiv.querySelectorAll('.card.border-0.shadow.mb-4');
+          
+          // Info card thường là card cuối cùng
+          if (infoCards.length >= 2 && newInfoCards.length >= 2) {
+            const lastCard = infoCards[infoCards.length - 1];
+            const newLastCard = newInfoCards[newInfoCards.length - 1];
+            
+            const lastCardHeader = lastCard.querySelector('.card-header h6');
+            const newLastCardHeader = newLastCard.querySelector('.card-header h6');
+            
+            if (lastCardHeader && newLastCardHeader) {
+              const headerText = lastCardHeader.textContent.toLowerCase();
+              const newHeaderText = newLastCardHeader.textContent.toLowerCase();
+              
+              // Kiểm tra xem có phải info card không
+              if ((headerText.includes('info') || headerText.includes('thông tin')) &&
+                  (newHeaderText.includes('info') || newHeaderText.includes('thông tin'))) {
+                lastCard.innerHTML = newLastCard.innerHTML;
+                console.log('Updated info card successfully');
+              }
+            }
+          }
+          
+          // 4. Cập nhật tất cả các modal (link modals)
+          this.updateLinkModals(tempDiv);
+          
+          // 5. Khởi tạo lại các components cần thiết
+          this.reinitializeTableComponents();
+          
+          console.log('Device users page refreshed successfully via AJAX');
           
         } catch (err) {
-          console.error('Error updating device users table:', err);
-          // Trong trường hợp lỗi, reload toàn bộ trang
+          console.error('Error updating device users contents:', err);
+          console.warn('Falling back to page reload due to error:', err.message);
           this.reloadPageWithDelay();
         }
-        
-        // Trigger a custom event
-        const refreshEvent = new CustomEvent('deviceUsersRefreshed', {
-          detail: { deviceId: deviceId, success: true }
-        });
-        document.dispatchEvent(refreshEvent);
       })
       .catch(error => {
-        // Xóa thông báo đang làm mới nếu có
-        if (messageDiv && messageDiv.parentNode) {
-          messageDiv.parentNode.removeChild(messageDiv);
-        }
-        
         console.error('Error refreshing device users:', error);
-        const refreshEvent = new CustomEvent('deviceUsersRefreshed', {
-          detail: { deviceId: deviceId, success: false, error: error.message }
-        });
-        document.dispatchEvent(refreshEvent);
-        this.reloadPageWithDelay(); // Trong trường hợp lỗi, reload toàn bộ trang
+        this.reloadPageWithDelay();
       });
     },
     
-    // Khởi tạo lại các event listeners cho các nút trong bảng
-    reinitializeTableButtons: function() {
-      // Khởi tạo lại Select2 nếu có
-      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-        $('.select2').select2({
-          theme: 'bootstrap4'
+    // Helper method to update link modals
+    updateLinkModals: function(tempDiv) {
+      try {
+        // Xóa tất cả modal cũ
+        const oldModals = document.querySelectorAll('.modal[id^="linkModal"]');
+        oldModals.forEach(modal => {
+          modal.remove();
         });
-      }
-      
-      // Khởi tạo lại các nút modal
-      const modals = document.querySelectorAll('.modal');
-      if (window.bootstrap && window.bootstrap.Modal && modals.length > 0) {
-        modals.forEach(modalEl => {
-          new bootstrap.Modal(modalEl);
+        
+        // Thêm modal mới từ response
+        const newModals = tempDiv.querySelectorAll('.modal[id^="linkModal"]');
+        newModals.forEach(modal => {
+          document.body.appendChild(modal.cloneNode(true));
         });
+        
+        console.log(`Updated ${newModals.length} link modals`);
+      } catch (err) {
+        console.error('Error updating link modals:', err);
       }
-    }
+    },
+    
+    // Helper method to reinitialize table components
+    reinitializeTableComponents: function() {
+      try {
+        // Khởi tạo lại Select2 nếu có
+        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+          setTimeout(() => {
+            $('.select2').select2({
+              theme: 'bootstrap4'
+            });
+          }, 100);
+        }
+        
+        // Khởi tạo lại Bootstrap modals
+        if (typeof bootstrap !== 'undefined') {
+          const modals = document.querySelectorAll('.modal[id^="linkModal"]');
+          modals.forEach(modalElement => {
+            new bootstrap.Modal(modalElement);
+          });
+        }
+        
+        console.log('Table components reinitialized');
+      } catch (err) {
+        console.error('Error reinitializing table components:', err);
+      }
+    },
   };
   
   // Initialize the manager

@@ -773,6 +773,7 @@ vi:
     get_logs: "Lấy lịch sử thiết bị"
     sync_with_cloud: "Đồng bộ với Cloud"
     confirm_sync: "Bạn có chắc chắn muốn đồng bộ thiết bị với Cloud không?"
+    no_devices: "Không tìm thấy thiết bị thông minh nào."
     default:
       new_device: "Thiết bị mới"
     success:
@@ -799,6 +800,9 @@ vi:
       device_error: "Không thể đồng bộ dữ liệu: %{error}"
       records_synced: "Đã đồng bộ %{count} bản ghi mở khóa mới"
       users_synced: "Đã đồng bộ %{new_count} người dùng mới, cập nhật %{updated_count} người dùng"
+      records_started: "Đồng bộ bản ghi đã bắt đầu trong nền"
+      users_started: "Đồng bộ người dùng đã bắt đầu trong nền"
+      users_error: "Không thể đồng bộ người dùng: %{error}"
     common:
       back_to_device: "Quay lại thiết bị"
       back_to_list: "Quay lại danh sách"
@@ -1108,9 +1112,17 @@ vi:
     stopping: "Đang dừng và hoàn tác..."
     confirm: "Xác nhận"
     starting: "Đang khởi động đồng bộ..."
+    progress_with_pages: "Đang đồng bộ trang %{current_page}/%{total_pages}: đã lấy %{fetched}, đã lưu %{synced}"
+    progress_simple: "Đang đồng bộ: đã lấy %{fetched}, đã lưu %{synced}"
+    stopped: "Đã dừng: đã thêm %{synced}, đã bỏ qua %{skipped}. Tất cả thay đổi đã được hoàn tác."
+    completed: "Hoàn thành: đã thêm %{synced}, đã bỏ qua %{skipped}."
+    error: "Lỗi: %{error}"
+    record: "bản ghi"
+    record_saved: "bản ghi"
+    record_added: "bản ghi"
+    record_skipped: "bản ghi"
     not_found: "Không tìm thấy thông tin tiến trình đồng bộ"
     sync_records_with_cloud: "Đồng bộ bản ghi với Cloud"
-    progress_with_pages: "Đang đồng bộ trang %{current_page}/%{total_pages}: đã lấy %{fetched}, đã lưu %{synced}"
     
   sync_device_users:
     floating_title: "Đang đồng bộ người dùng..."
@@ -1120,8 +1132,11 @@ vi:
     stopping: "Đang dừng và hoàn tác..."
     confirm: "Xác nhận"
     starting: "Đang khởi động đồng bộ người dùng..."
+    fetching_data: "Đang lấy dữ liệu từ cloud..."
     processing: "Đang xử lý %{count} người dùng..."
+    starting_sync: "Đang bắt đầu đồng bộ..."
     processing_progress: "Đang xử lý người dùng %{current}/%{total}: đã thêm %{synced}, đã cập nhật %{updated}"
+    finalizing: "Đang hoàn tất đồng bộ..."
     stopped: "Đã dừng: đã thêm %{synced}, đã cập nhật %{updated}. Tất cả thay đổi đã được hoàn tác."
     completed: "Hoàn thành: đã thêm %{synced}, đã cập nhật %{updated}."
     error: "Lỗi: %{error}"

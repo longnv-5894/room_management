@@ -2,6 +2,16 @@
 
 <% content_for :styles do %>
 <style>
+  /* Fix overflow issues */
+  body {
+    overflow-x: hidden;
+  }
+  
+  .container-fluid {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   /* Progress bar styles */
   #sync_progress_container {
     margin-bottom: 1rem;
@@ -31,41 +41,155 @@
     font-size: 14px;
     font-weight: 500;
   }
+
+  /* Fix table overflow */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .table {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  /* Responsive table improvements */
+  @media (max-width: 768px) {
+    .container-fluid {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    
+    .table-responsive {
+      font-size: 0.9rem;
+      margin-left: -0.75rem;
+      margin-right: -0.75rem;
+      width: calc(100% + 1.5rem);
+    }
+    
+    .table td, .table th {
+      padding: 0.5rem 0.25rem;
+      white-space: nowrap;
+    }
+    
+    .btn-sm {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+    }
+    
+    .badge {
+      font-size: 0.7rem;
+    }
+    
+    /* Hide less important columns on mobile */
+    .table .d-none.d-md-table-cell {
+      display: none !important;
+    }
+    
+    /* Fix text truncation */
+    .text-truncate {
+      max-width: 120px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .container-fluid {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    
+    .table-responsive {
+      margin-left: -0.5rem;
+      margin-right: -0.5rem;
+      width: calc(100% + 1rem);
+    }
+    
+    .card-header h6 {
+      font-size: 0.9rem;
+    }
+    
+    /* Stack buttons vertically on very small screens */
+    .btn-group-mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .btn-group-mobile .btn {
+      width: 100%;
+      font-size: 0.8rem;
+    }
+    
+    /* Fix header buttons overflow */
+    .d-flex.gap-2 {
+      width: 100%;
+    }
+    
+    .text-truncate {
+      max-width: 100px;
+    }
+  }
+
+  /* Fix header text wrapping */
+  .header-title {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* Ensure cards don't overflow */
+  .card {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .card-body {
+    overflow-x: auto;
+  }
 </style>
 <% end %>
 
-<div class="container-fluid px-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h5 mt-3 mb-2">
+<div class="container-fluid">
+  <!-- Header with responsive layout -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <h1 class="h5 mt-3 mb-2 header-title">
       <i class="fas fa-users"></i>
-      <%= t('smart_devices.lock_users.title', name: @smart_device.name) %>
+      <span class="d-none d-sm-inline"><%= t('smart_devices.lock_users.title', name: @smart_device.name) %></span>
+      <span class="d-inline d-sm-none"><%= t('smart_devices.lock_users.users') %></span>
     </h1>
-    <div>
-      <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary me-2' do %>
-        <i class="fas fa-chevron-left me-1"></i> <%= t('smart_devices.common.back_to_device') %>
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      <%= link_to smart_device_path(@smart_device), class: 'btn btn-outline-secondary order-2 order-sm-1' do %>
+        <i class="fas fa-chevron-left me-1"></i> 
+        <span class="d-none d-sm-inline"><%= t('smart_devices.common.back_to_device') %></span>
+        <span class="d-inline d-sm-none"><%= t('common.back') %></span>
       <% end %>
       
-      <%= link_to sync_device_users_smart_device_path(@smart_device), method: :post, class: 'btn btn-info', data: { turbo_method: :post } do %>
-        <i class="fas fa-sync me-1"></i> <%= t('smart_devices.sync_users_with_cloud') %>
+      <%= link_to sync_device_users_smart_device_path(@smart_device), method: :post, class: 'btn btn-info order-1 order-sm-2', data: { turbo_method: :post } do %>
+        <i class="fas fa-sync me-1"></i> 
+        <span class="d-none d-sm-inline"><%= t('smart_devices.sync_users_with_cloud') %></span>
+        <span class="d-inline d-sm-none"><%= t('common.sync') %></span>
       <% end %>
     </div>
   </div>
 
-  <!-- Using global floating progress bar instead of local progress container -->
-
-  <div class="row">
-    <div class="col-xl-3 col-md-6 mb-4">
+  <!-- Statistics cards with better responsive grid -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-3">
       <div class="card border-0 shadow h-100 py-2">
-        <div class="card-body">
+        <div class="card-body p-3">
           <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                <%= t('smart_devices.lock_users.total_users') %></div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">
-                <%= @device_users.count %> <%= t('smart_devices.lock_users.users') %>
+            <div class="col">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1 small">
+                <span class="d-none d-md-inline"><%= t('smart_devices.lock_users.total_users') %></span>
+                <span class="d-inline d-md-none"><%= t('common.total') %></span>
+              </div>
+              <div class="h6 h5-md mb-0 font-weight-bold text-gray-800">
+                <%= @device_users.count %>
+                <small class="d-none d-sm-inline"><%= t('smart_devices.lock_users.users') %></small>
               </div>
             </div>
-            <div class="col-auto">
+            <div class="col-auto d-none d-sm-block">
               <i class="fas fa-users fa-2x text-gray-300"></i>
             </div>
           </div>
@@ -73,18 +197,21 @@
       </div>
     </div>
     
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-6 col-md-4 col-xl-3">
       <div class="card border-0 shadow h-100 py-2">
-        <div class="card-body">
+        <div class="card-body p-3">
           <div class="row no-gutters align-items-center">
-            <div class="col mr-2">
-              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                <%= t('smart_devices.lock_users.active_users') %></div>
-              <div class="h5 mb-0 font-weight-bold text-gray-800">
-                <%= @device_users.where('last_active_at > ?', 30.days.ago).count %> <%= t('smart_devices.lock_users.users') %>
+            <div class="col">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1 small">
+                <span class="d-none d-md-inline"><%= t('smart_devices.lock_users.active_users') %></span>
+                <span class="d-inline d-md-none"><%= t('common.active') %></span>
+              </div>
+              <div class="h6 h5-md mb-0 font-weight-bold text-gray-800">
+                <%= @device_users.where('last_active_at > ?', 30.days.ago).count %>
+                <small class="d-none d-sm-inline"><%= t('smart_devices.lock_users.users') %></small>
               </div>
             </div>
-            <div class="col-auto">
+            <div class="col-auto d-none d-sm-block">
               <i class="fas fa-user-check fa-2x text-gray-300"></i>
             </div>
           </div>
@@ -93,51 +220,67 @@
     </div>
   </div>
 
+  <!-- Main table card -->
   <div class="card border-0 shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
-      <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.lock_users.authorized_users') %></h6>
+      <h6 class="m-0 font-weight-bold text-primary">
+        <span class="d-none d-md-inline"><%= t('smart_devices.lock_users.authorized_users') %></span>
+        <span class="d-inline d-md-none"><%= t('smart_devices.lock_users.users') %></span>
+      </h6>
     </div>
     
-    <div class="card-body">
+    <div class="card-body p-0">
       <% if @device_users.any? %>
         <div class="table-responsive">
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
-                <th class="border-0"><%= t('smart_devices.common.name') %></th>
-                <th class="border-0"><%= t('smart_devices.lock.unlock_methods.method') %></th>
-                <th class="border-0"><%= t('smart_devices.lock.user') %></th>
-                <th class="border-0"><%= t('smart_devices.lock_users.role') %></th>
-                <th class="border-0"><%= t('tenants.title') %></th>
-                <th class="border-0"><%= t('common.actions') %></th>
+                <th class="border-0 ps-3"><%= t('smart_devices.common.name') %></th>
+                <th class="border-0 d-none d-md-table-cell"><%= t('smart_devices.lock.unlock_methods.method') %></th>
+                <th class="border-0 d-none d-lg-table-cell"><%= t('smart_devices.lock.user') %></th>
+                <th class="border-0 d-none d-lg-table-cell"><%= t('smart_devices.lock_users.role') %></th>
+                <th class="border-0 d-none d-md-table-cell"><%= t('tenants.title') %></th>
+                <th class="border-0 pe-3"><%= t('common.actions') %></th>
               </tr>
             </thead>
             <tbody>
               <% @device_users.each do |user| %>
                 <tr>
-                  <td><%= user.name || t('smart_devices.history.unknown_user') %></td>
-                  <td>
+                  <td class="ps-3">
+                    <div class="d-flex flex-column">
+                      <strong class="text-truncate">
+                        <%= user.name || t('smart_devices.history.unknown_user') %>
+                      </strong>
+                      <!-- Show method on mobile -->
+                      <small class="text-muted d-md-none">
+                        <% if user.unlock_name.present? %>
+                          <i class="fas fa-key me-1"></i><%= user.unlock_name %>
+                        <% end %>
+                      </small>
+                    </div>
+                  </td>
+                  <td class="d-none d-md-table-cell">
                     <% if user.unlock_name.present? %>
-                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">
+                      <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 small">
                         <%= user.unlock_name %>
                       </span>
                     <% else %>
-                      <span class="text-muted"><%= t('common.none') %></span>
+                      <span class="text-muted small"><%= t('common.none') %></span>
                     <% end %>
                   </td>
-                  <td>
+                  <td class="d-none d-lg-table-cell">
                     <% if user.unlock_sn.present? %>
                       <div class="d-flex align-items-center">
-                        <span class="badge bg-secondary me-2">#<%= user.unlock_sn %></span>
-                        <small class="text-muted"><%= user.dp_code %></small>
+                        <span class="badge bg-secondary me-2 small">#<%= user.unlock_sn %></span>
+                        <small class="text-muted text-truncate"><%= user.dp_code %></small>
                       </div>
                     <% else %>
                       <span class="text-muted">-</span>
                     <% end %>
                   </td>
-                  <td>
+                  <td class="d-none d-lg-table-cell">
                     <% if user.user_type.present? %>
-                      <span class="badge bg-primary">
+                      <span class="badge bg-primary small">
                         <% if user.user_type.is_a?(String) %>
                           <%= t("smart_devices.lock_users.#{user.user_type.downcase}", default: "#{t('smart_devices.lock_users.role')} #{user.user_type}") %>
                         <% else %>
@@ -148,26 +291,36 @@
                       <span class="text-muted">-</span>
                     <% end %>
                   </td>
-                  <td>
+                  <td class="d-none d-md-table-cell">
                     <% if user.tenant %>
-                      <%= link_to user.tenant.name, tenant_path(user.tenant), class: "text-decoration-none" %>
+                      <%= link_to user.tenant.name, tenant_path(user.tenant), 
+                          class: "text-decoration-none text-truncate d-block",
+                          title: user.tenant.name %>
                     <% else %>
-                      <span class="text-muted"><%= t('smart_devices.lock_users.not_linked', default: 'Not linked') %></span>
+                      <span class="text-muted small"><%= t('smart_devices.lock_users.not_linked', default: 'Not linked') %></span>
                     <% end %>
                   </td>
-                  <td>
+                  <td class="pe-3">
                     <% if user.tenant.nil? %>
-                      <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkModal<%= user.id %>">
-                        <i class="fas fa-link me-1"></i> <%= t('smart_devices.lock_users.link') %>
-                      </button>
+                      <div class="btn-group-mobile d-sm-inline">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#linkModal<%= user.id %>">
+                          <i class="fas fa-link me-1 d-none d-sm-inline"></i>
+                          <i class="fas fa-link d-sm-none"></i>
+                          <span class="d-none d-lg-inline"><%= t('smart_devices.lock_users.link') %></span>
+                        </button>
+                      </div>
                     <% else %>
-                      <%= button_to unlink_user_from_tenant_smart_device_path(@smart_device),
-                          method: :post,
-                          params: { device_user_id: user.id },
-                          form: { data: { turbo_confirm: t('smart_devices.lock_users.confirm_unlink') }, class: "d-inline" },
-                          class: "btn btn-sm btn-outline-danger" do %>
-                        <i class="fas fa-unlink me-1"></i> <%= t('smart_devices.lock_users.unlink') %>
-                      <% end %>
+                      <div class="btn-group-mobile d-sm-inline">
+                        <%= button_to unlink_user_from_tenant_smart_device_path(@smart_device),
+                            method: :post,
+                            params: { device_user_id: user.id },
+                            form: { data: { turbo_confirm: t('smart_devices.lock_users.confirm_unlink') }, class: "d-inline" },
+                            class: "btn btn-sm btn-outline-danger" do %>
+                          <i class="fas fa-unlink me-1 d-none d-sm-inline"></i>
+                          <i class="fas fa-unlink d-sm-none"></i>
+                          <span class="d-none d-lg-inline"><%= t('smart_devices.lock_users.unlink') %></span>
+                        <% end %>
+                      </div>
                     <% end %>
                   </td>
                 </tr>
@@ -176,7 +329,7 @@
           </table>
         </div>
       <% else %>
-        <div class="alert alert-info">
+        <div class="alert alert-info m-3">
           <i class="fas fa-info-circle me-2"></i> 
           <%= t('smart_devices.lock_users.no_users_message') %>
           <%= link_to t('smart_devices.sync_with_cloud'), sync_device_users_smart_device_path(@smart_device), method: :post, class: "alert-link", data: { turbo_method: :post } %>
@@ -185,25 +338,29 @@
     </div>
   </div>
   
+  <!-- Info card -->
   <div class="card border-0 shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
       <h6 class="m-0 font-weight-bold text-primary"><%= t('smart_devices.lock_users.info_title') %></h6>
     </div>
     <div class="card-body">
-      <p><%= t('smart_devices.lock_users.info_message_1') %></p>
-      <p><%= t('smart_devices.lock_users.info_message_2') %></p>
+      <p class="small"><%= t('smart_devices.lock_users.info_message_1') %></p>
+      <p class="small mb-0"><%= t('smart_devices.lock_users.info_message_2') %></p>
     </div>
   </div>
 </div>
 
-<!-- Link modals -->
+<!-- Link modals with responsive improvements -->
 <% @device_users.each do |user| %>
   <% if user.tenant.nil? %>
     <div class="modal fade" id="linkModal<%= user.id %>" tabindex="-1" aria-labelledby="linkModalLabel<%= user.id %>" aria-hidden="true">
-      <div class="modal-dialog">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="linkModalLabel<%= user.id %>"><%= t('smart_devices.lock_users.link_modal_title') %></h5>
+            <h5 class="modal-title" id="linkModalLabel<%= user.id %>">
+              <span class="d-none d-md-inline"><%= t('smart_devices.lock_users.link_modal_title') %></span>
+              <span class="d-inline d-md-none"><%= t('smart_devices.lock_users.link') %></span>
+            </h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <%= form_with url: link_user_to_tenant_smart_device_path(@smart_device), method: :post, local: true do |f| %>
