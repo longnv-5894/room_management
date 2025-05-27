@@ -565,6 +565,8 @@ en:
     gender: "Gender"
     date_of_birth: "Date of Birth"
     id_number: "ID Number"
+    id_issue_date: "ID Issue Date"
+    id_issue_place: "ID Issue Place"
     address: "Address"
     profile_image: "Profile Image"
     change_password: "Change Password"

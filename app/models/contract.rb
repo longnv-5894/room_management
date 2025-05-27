@@ -67,6 +67,9 @@ class Contract < ApplicationRecord
 
       # Bên cho thuê (Landlord info from building)
       ten_chu_nha: room.building.user.name || room.building.name,
+      cmnd_chu_nha: room.building.user.id_number || "N/A",
+      ngay_cap_cmnd_chu_nha: room.building.user.id_issue_date&.strftime("%d/%m/%Y") || "N/A",
+      noi_cap_cmnd_chu_nha: room.building.user.id_issue_place || "N/A",
       sdt_chu_nha: room.building.user.phone || "N/A",
       dia_chi_chu_nha: room.building.address || "N/A",
 
@@ -154,8 +157,8 @@ class Contract < ApplicationRecord
           left: 30,
           right: 20
         },
-        encoding: "UTF-8",
-        footer: { right: "[page] of [topage]" }
+        encoding: "UTF-8"
+        # Đã xóa footer hiển thị số trang
       )
     rescue => e
       Rails.logger.error "Error generating contract: #{e.message}"
@@ -230,19 +233,6 @@ class Contract < ApplicationRecord
     "#{vietnamese_words} đồng"
   end
 
-  # If we need formatted numbers with thousands separators in the future
-  # we can use this method
-  def format_number_with_delimiters(number)
-    # Convert number to string and split integer and decimal parts
-    num_str = number.to_s
-    int_part, dec_part = num_str.split(".")
-
-    # Format the integer part with dots as thousand separators
-    formatted_int = int_part.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse
-
-    # Combine with decimal part if present, using comma as decimal separator
-    dec_part ? "#{formatted_int},#{dec_part}" : formatted_int
-  end
 
   # Helper method to convert numbers to Vietnamese words
   def vietnamese_number_to_words(number)
@@ -330,6 +320,10 @@ class Contract < ApplicationRecord
   end
 
   def number_with_delimiter(number)
+    # Chuyển số thành số nguyên để loại bỏ số 0 thập phân ở cuối
+    if number.to_f == number.to_i
+      number = number.to_i
+    end
     number.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1.').reverse
   end
 end

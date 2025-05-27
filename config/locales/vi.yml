@@ -581,6 +581,8 @@ vi:
     gender: "Giới tính"
     date_of_birth: "Ngày sinh"
     id_number: "Số CMND/CCCD"
+    id_issue_date: "Ngày cấp CMND/CCCD"
+    id_issue_place: "Nơi cấp CMND/CCCD"
     address: "Địa chỉ"
     profile_image: "Ảnh đại diện"
     change_password: "Thay đổi mật khẩu"

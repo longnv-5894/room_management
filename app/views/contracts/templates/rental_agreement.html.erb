@@ -129,7 +129,6 @@
   <p class="date-section location-date">Hà Nội, ngày <%= today.day %> tháng <%= today.month %> năm <%= today.year %></p>
 
   <h1>HỢP ĐỒNG THUÊ NHÀ</h1>
-  <p class="contract-number">Số: <%= contract_number %></p>
   <p class="legal-basis">- Căn cứ <span class="legal-link">Bộ luật Dân sự số 91/2015/QH13 ngày 24/11/2015;</span></p>
   <p class="legal-basis">- Căn cứ vào <span class="legal-link">Luật Thương mại số 36/2005/QH11 ngày 14 tháng 06 năm 2005;</span></p>
   <p class="legal-basis">- Căn cứ vào nhu cầu và sự thỏa thuận của các bên tham gia Hợp đồng;</p>
@@ -138,6 +137,7 @@
 
   <p class="party-title">BÊN CHO THUÊ: (Sau đây gọi tắt là Bên A)</p>
   <p>Ông/Bà: <%= ten_chu_nha %></p>
+  <p>CMND/CCCD/Hộ chiếu số: <%= cmnd_chu_nha %> do <%= noi_cap_cmnd_chu_nha %> cấp ngày <%= ngay_cap_cmnd_chu_nha %></p>
   <p>Điện thoại: <%= sdt_chu_nha %></p>
   <p>Địa chỉ: <%= dia_chi_chu_nha %></p>
 
@@ -165,7 +165,26 @@
 
   <h2>ĐIỀU 2</h2>
   <p class="section-title">THỜI HẠN THUÊ, GIA HẠN VÀ CHẤM DỨT HỢP ĐỒNG</p>
-  <% duration_months = ((end_date - start_date).to_i / 30.0).ceil %>
+  <% 
+    # Tính số tháng chính xác giữa hai ngày
+    years_diff = end_date.year - start_date.year
+    months_diff = end_date.month - start_date.month
+    days_diff = end_date.day - start_date.day
+    
+    # Điều chỉnh khi ngày kết thúc nhỏ hơn ngày bắt đầu
+    if days_diff < 0
+      months_diff -= 1
+      # Tính số ngày của tháng trước
+      days_in_previous_month = (end_date - 1.month).end_of_month.day
+      days_diff += days_in_previous_month
+    end
+    
+    # Tổng số tháng
+    duration_months = years_diff * 12 + months_diff
+    
+    # Nếu chênh lệch ngày lớn hơn hoặc bằng 15, làm tròn lên
+    duration_months += 1 if days_diff >= 15
+  %>
   <p>2.1 Thời hạn thuê là <%= duration_months %> tháng được tính bắt đầu từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.</p>
   <p>2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= ngay_bat_dau %>.</p>
   <p>2.3 Hợp đồng sẽ đương nhiên chấm dứt khi xảy ra các trường hợp sau:</p>

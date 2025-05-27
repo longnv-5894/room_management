@@ -78,6 +78,18 @@
           
           <div class="row mb-3">
             <div class="col-md-6">
+              <%= form.label :id_issue_date, t('users.id_issue_date'), class: "form-label" %>
+              <%= form.date_field :id_issue_date, class: "form-control" %>
+            </div>
+            
+            <div class="col-md-6">
+              <%= form.label :id_issue_place, t('users.id_issue_place'), class: "form-label" %>
+              <%= form.text_field :id_issue_place, class: "form-control" %>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
               <%= form.label :gender, t('users.gender'), class: "form-label" %>
               <%= form.select :gender, User::GENDERS.map { |g| [t("users.genders.#{g}"), g] }, 
                             { include_blank: true }, { class: "form-select" } %>

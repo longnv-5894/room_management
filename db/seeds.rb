@@ -31,10 +31,33 @@ SmartDevice.destroy_all
 # Create admin user
 puts "Creating admin user..."
 user = User.create!(
-  name: 'Admin User',
+  name: 'Nguyễn Viết Long',
   email: 'admin@example.com',
   password: 'password123',
-  password_confirmation: 'password123'
+  password_confirmation: 'password123',
+  phone: '0787027768',
+  gender: 'male',
+  date_of_birth: Date.new(1994, 8, 5),
+  id_number: '001094008487',
+  id_issue_date: Date.new(2021, 12, 27),
+  id_issue_place: 'Cục cảnh sát quản lý hành chính về trật tự xã hội',
+  address: 'số 18 ngõ 139 đường Nguyễn Ngọc Vũ, Cầu Giấy Hà Nội'
+)
+
+# Create another user
+puts "Creating another user..."
+User.create!(
+  name: 'Trần Thị Hương',
+  email: 'huong@example.com',
+  password: 'password123',
+  password_confirmation: 'password123',
+  phone: '0912345678',
+  gender: 'female',
+  date_of_birth: Date.new(1992, 5, 15),
+  id_number: '001092765432',
+  id_issue_date: Date.new(2020, 8, 10),
+  id_issue_place: 'Cục cảnh sát quản lý hành chính về trật tự xã hội',
+  address: 'số 25 Nguyễn Chí Thanh, Đống Đa, Hà Nội'
 )
 
 # Create buildings

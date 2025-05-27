@@ -1,4 +1,4 @@
-<div class="page-header">
+  <div class="page-header">
   <h1 class="header-title"><%= t('users.profile') %></h1>
   <div class="header-actions">
     <%= link_to t('common.edit'), edit_profile_path, class: "btn btn-primary" %>
@@ -101,6 +101,34 @@
           </div>
           <div class="col-sm-9">
             <p class="text-muted mb-0"><%= @user.id_number.presence || t('common.none') %></p>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row mb-3">
+          <div class="col-sm-3">
+            <p class="mb-0"><%= t('users.id_issue_date') %></p>
+          </div>
+          <div class="col-sm-9">
+            <p class="text-muted mb-0">
+              <% if @user.id_issue_date.present? %>
+                <%= l @user.id_issue_date, format: :long %>
+              <% else %>
+                <%= t('common.none') %>
+              <% end %>
+            </p>
+          </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row mb-3">
+          <div class="col-sm-3">
+            <p class="mb-0"><%= t('users.id_issue_place') %></p>
+          </div>
+          <div class="col-sm-9">
+            <p class="text-muted mb-0"><%= @user.id_issue_place.presence || t('common.none') %></p>
           </div>
         </div>
         
