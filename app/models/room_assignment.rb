@@ -30,8 +30,10 @@ class RoomAssignment < ApplicationRecord
                                    .where(active: true, is_representative_tenant: true)
                                    .first
 
-      # Get the deposit amount from the previous representative
+      # Get the important values from the previous representative
       previous_deposit = previous_representative&.deposit_amount
+      previous_room_fee_frequency = previous_representative&.room_fee_frequency || 1
+      previous_utility_fee_frequency = previous_representative&.utility_fee_frequency || 1
 
       # Remove representative status from any other tenant in this room
       # and clear their deposit amount (handled by the before_save callback)
@@ -39,8 +41,10 @@ class RoomAssignment < ApplicationRecord
           .where(active: true, is_representative_tenant: true)
           .update_all(is_representative_tenant: false)
 
-      # Set this tenant as the representative and transfer the deposit
+      # Set this tenant as the representative and transfer all representative values
       self.deposit_amount = previous_deposit
+      self.room_fee_frequency = previous_room_fee_frequency
+      self.utility_fee_frequency = previous_utility_fee_frequency
       update!(is_representative_tenant: true)
     end
   end
@@ -67,7 +71,7 @@ class RoomAssignment < ApplicationRecord
 
     room_fee_text = room_freq == 1 ? "monthly" : "every #{room_freq} months"
     utility_fee_text = utility_freq == 1 ? "monthly" : "every #{utility_freq} months"
-    
+
     "Room fees: #{room_fee_text}, Utility fees: #{utility_fee_text}"
   end
 
@@ -103,9 +107,9 @@ class RoomAssignment < ApplicationRecord
 
   def update_room_status
     if active?
-      room.update(status: 'occupied')
+      room.update(status: "occupied")
     elsif room.room_assignments.where(active: true).where.not(id: id).empty?
-      room.update(status: 'available')
+      room.update(status: "available")
     end
   end
 end

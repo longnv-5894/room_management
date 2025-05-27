@@ -1,6 +1,6 @@
 class RoomAssignmentsController < ApplicationController
   before_action :require_login
-  before_action :set_room_assignment, only: [ :show, :edit, :update, :destroy, :end, :make_representative ]
+  before_action :set_room_assignment, only: [ :show, :edit, :update, :destroy, :end, :make_representative, :activate ]
 
   def index
     # Start with base query including related models
@@ -313,10 +313,10 @@ class RoomAssignmentsController < ApplicationController
       end
 
       flash[:success] = t("room_assignments.end_success")
-      redirect_to room_assignments_path
+      redirect_to room_path(room)
     else
       flash[:danger] = t("room_assignments.end_error")
-      redirect_to room_assignments_path
+      redirect_to room_path(room)
     end
   end
 
@@ -328,6 +328,26 @@ class RoomAssignmentsController < ApplicationController
       flash[:danger] = t("room_assignments.inactive_tenant_error")
     end
     redirect_to room_path(@room_assignment.room)
+  end
+
+  def activate
+    room = @room_assignment.room
+
+    if @room_assignment.update(active: true, end_date: nil)
+      # Update room status to occupied
+      room.update(status: "occupied") unless room.status == "occupied"
+
+      # If there's no representative for the room, make this tenant the representative
+      unless room.room_assignments.where(active: true, is_representative_tenant: true).exists?
+        @room_assignment.make_representative!
+      end
+
+      flash[:success] = t("room_assignments.activate_success")
+      redirect_to room_path(room)
+    else
+      flash[:danger] = t("room_assignments.activate_error")
+      redirect_to room_path(room)
+    end
   end
 
   private

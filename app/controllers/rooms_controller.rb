@@ -39,6 +39,7 @@ class RoomsController < ApplicationController
     @current_tenants = @room.current_tenants
     @latest_reading = @room.utility_readings.order(reading_date: :desc).first
     @room_assignments = @room.room_assignments.where(active: true).includes(:tenant)
+    @inactive_room_assignments = @room.room_assignments.where(active: false).includes(:tenant).order(end_date: :desc)
     @representative_tenant = @room_assignments.find_by(is_representative_tenant: true)&.tenant
   end
 

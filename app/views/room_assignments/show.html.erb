@@ -155,6 +155,11 @@
                 method: :patch, 
                 data: { confirm: t('room_assignments.confirm_end') }, 
                 class: "btn btn-block btn-danger" %>
+          <% else %>
+            <%= link_to t('room_assignments.activate'), activate_room_assignment_path(@room_assignment), 
+                method: :patch, 
+                data: { confirm: t('room_assignments.confirm_activate') }, 
+                class: "btn btn-block btn-success" %>
           <% end %>
         </div>
       </div>

@@ -96,6 +96,7 @@ Rails.application.routes.draw do
     member do
       patch :end
       patch :make_representative
+      patch :activate
     end
   end
   resources :utility_readings
