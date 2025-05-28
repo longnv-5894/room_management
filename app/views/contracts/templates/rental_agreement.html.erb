@@ -10,8 +10,9 @@
       line-height: 1.5;
       color: #000000;
       margin: 0;
-      padding: 0;
       text-align: justify;
+      max-width: 800px;
+      margin: 0 auto;
     }
     .header {
       text-align: center;
@@ -64,6 +65,8 @@
     .legal-basis {
       margin-bottom: 6pt;
       font-style: italic;
+      margin-left: 20pt;
+      text-indent: -20pt;
     }
     .legal-link {
       color: #0000FF;
@@ -71,24 +74,50 @@
     h2 {
       text-align: center;
       font-weight: bold;
-      font-size: 14pt;
-      margin-top: 12pt;
-      margin-bottom: 6pt;
+      font-size: 16pt;
+      margin-top: 24pt;
+      margin-bottom: 10pt;
+      text-transform: uppercase;
     }
     .section-title {
       font-weight: bold;
       text-align: center;
-      margin-top: 12pt;
-      margin-bottom: 6pt;
+      margin-top: 8pt;
+      margin-bottom: 18pt;
       text-transform: uppercase;
+      font-size: 14pt;
+    }
+    .article-item {
+      /* margin-left: 20pt; */
+      text-indent: 0;
+      margin-bottom: 10pt;
+      font-weight: bold;
+      font-size: 13pt;
+    }
+    .sub-item {
+      margin-left: 40pt;
+      text-indent: -20pt;
+      padding-left: 20pt;
+      margin-bottom: 8pt;
+      font-size: 12pt;
+      font-weight: normal;
     }
     .indent {
-      margin-left: 24pt;
-      text-indent: 12pt;
+      margin-left: 40pt;
+      text-indent: 0;
+      margin-bottom: 6pt;
     }
     p {
       text-align: justify;
-      margin: 6pt 0;
+      margin: 8pt 0;
+      line-height: 1.6;
+    }
+    .numbered-item {
+      margin-left: 20pt;
+      text-indent: -20pt;
+      padding-left: 20pt;
+      margin-bottom: 8pt;
+      font-size: 12pt;
     }
     table {
       width: 100%;
@@ -113,6 +142,9 @@
     }
     .party-title {
       font-weight: bold;
+      font-size: 13pt;
+      margin-top: 14pt;
+      margin-bottom: 10pt;
     }
     .italic {
       font-style: italic;
@@ -160,8 +192,8 @@
 
   <h2>ĐIỀU 1</h2>
   <p class="section-title">MỤC ĐÍCH THUÊ</p>
-  <p>1.1 Bên A đồng ý cho Bên B thuê, Bên B đồng ý thuê của Bên A phòng <%= so_phong %> tại địa chỉ <%= dia_chi_phong %></p>
-  <p>1.2 Mục đích thuê: Bên B thuê với mục đích cư trú ngắn hạn/dài hạn</p>
+  <p class="article-item">1.1 Bên A đồng ý cho Bên B thuê, Bên B đồng ý thuê của Bên A phòng <%= so_phong %> tại địa chỉ <%= dia_chi_phong %></p>
+  <p class="article-item">1.2 Mục đích thuê: Bên B thuê với mục đích cư trú ngắn hạn/dài hạn</p>
 
   <h2>ĐIỀU 2</h2>
   <p class="section-title">THỜI HẠN THUÊ, GIA HẠN VÀ CHẤM DỨT HỢP ĐỒNG</p>
@@ -185,77 +217,77 @@
     # Nếu chênh lệch ngày lớn hơn hoặc bằng 15, làm tròn lên
     duration_months += 1 if days_diff >= 15
   %>
-  <p>2.1 Thời hạn thuê là <%= duration_months %> tháng được tính bắt đầu từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.</p>
-  <p>2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= ngay_bat_dau %>.</p>
-  <p>2.3 Hợp đồng sẽ đương nhiên chấm dứt khi xảy ra các trường hợp sau:</p>
-  <p>1. Hết thời hạn thuê hoặc không được gia hạn theo quy định của Hợp đồng;</p>
-  <p>2. Bên B không thanh toán tiền nhà trong thời hạn chậm nhất 05 ngày tính từ ngày được chủ nhà thông báo hoặc thanh toán không đầy đủ thì bên A có quyền chấm dứt Hợp đồng và buộc bồi thường bất cứ một khoản chi phí nào.</p>
-  <p>2.4 Chấm dứt hợp đồng theo quy định của pháp luật;</p>
-  <p>2.5 Trường hợp bên A chấm dứt Hợp Đồng trước thời hạn, bên A phải:</p>
-  <p>+ Thông báo cho bên B biết trước 30 ngày bằng văn bản</p>
-  <p>+ Hoàn trả cho bên B số tiền thuê mà bên B đã trả trước cho khoảng thời gian bên B không sử dụng nhà (nếu có).</p>
-  <p>Trường hợp bên B chấm dứt Hợp Đồng trước thời hạn, bên B phải:</p>
-  <p>+ Thông báo cho bên A biết trước 30 ngày bằng văn bản</p>
-  <p>+ Thanh toán các chi phí phát sinh đến ngày bàn giao trả lại nhà</p>
-  <p>+ Được bên A hoàn trả số tiền nhà đã trả trước mà chưa sử dụng trong trường hợp nhà/phòng ở giữ nguyên hiện trạng tại thời điểm bàn giao Mục 2.2 trên đây.</p>
-  <p>2.6 Trường hợp một trong hai bên muốn chấm dứt Hợp Đồng trước thời hạn thì Bên A có toàn quyền lấy lại tài sản trước thời hạn.</p>
-  <p>2.7 Việc một trong hai bên không thực hiện, thực hiện không đầy đủ hay thực hiện chậm các nghĩa vụ của mình theo Hợp Đồng này sẽ không có là vi phạm các nghĩa vụ đó hay là đối tượng để khiếu nại các nghĩa vụ đó nếu việc không thực hiện hay chậm trễ đó do thiên tai, động đất, chiến tranh và các trường hợp bất khả kháng theo quy định của pháp luật hiện hành.</p>
+  <p class="article-item">2.1 Thời hạn thuê là <%= duration_months %> tháng được tính bắt đầu từ ngày <%= ngay_bat_dau %> đến ngày <%= ngay_ket_thuc %>.</p>
+  <p class="article-item">2.2 Thời điểm Bên A bàn giao Tài sản thuê vào ngày <%= ngay_bat_dau %>.</p>
+  <p class="article-item">2.3 Hợp đồng sẽ đương nhiên chấm dứt khi xảy ra các trường hợp sau:</p>
+  <p class="numbered-item">1. Hết thời hạn thuê hoặc không được gia hạn theo quy định của Hợp đồng;</p>
+  <p class="numbered-item">2. Bên B không thanh toán tiền nhà trong thời hạn chậm nhất 05 ngày tính từ ngày được chủ nhà thông báo hoặc thanh toán không đầy đủ thì bên A có quyền chấm dứt Hợp đồng và buộc bồi thường bất cứ một khoản chi phí nào.</p>
+  <p class="article-item">2.4 Chấm dứt hợp đồng theo quy định của pháp luật;</p>
+  <p class="numbered-item">1. Trường hợp bên A chấm dứt Hợp Đồng trước thời hạn, bên A phải:</p>
+  <p class="sub-item">+ Thông báo cho bên B biết trước 30 ngày bằng văn bản</p>
+  <p class="sub-item">+ Hoàn trả cho bên B số tiền thuê mà bên B đã trả trước cho khoảng thời gian bên B không sử dụng nhà (nếu có).</p>
+  <p class="numbered-item">2. Trường hợp bên B chấm dứt Hợp Đồng trước thời hạn, bên B phải:</p>
+  <p class="sub-item">+ Thông báo cho bên A biết trước 30 ngày bằng văn bản</p>
+  <p class="sub-item">+ Thanh toán các chi phí phát sinh đến ngày bàn giao trả lại nhà</p>
+  <p class="sub-item">+ Được bên A hoàn trả số tiền nhà đã trả trước mà chưa sử dụng trong trường hợp nhà/phòng ở giữ nguyên hiện trạng tại thời điểm bàn giao Mục 2.2 trên đây.</p>
+  <p class="article-item">2.6 Trường hợp một trong hai bên muốn chấm dứt Hợp Đồng trước thời hạn thì Bên A có toàn quyền lấy lại tài sản trước thời hạn.</p>
+  <p class="article-item">2.7 Việc một trong hai bên không thực hiện, thực hiện không đầy đủ hay thực hiện chậm các nghĩa vụ của mình theo Hợp Đồng này sẽ không có là vi phạm các nghĩa vụ đó hay là đối tượng để khiếu nại các nghĩa vụ đó nếu việc không thực hiện hay chậm trễ đó do thiên tai, động đất, chiến tranh và các trường hợp bất khả kháng theo quy định của pháp luật hiện hành.</p>
 
   <h2>ĐIỀU 3</h2>
   <p class="section-title">GIÁ THUÊ, ĐẶT CỌC VÀ PHƯƠNG THỨC THANH TOÁN</p>
-  <p>3.1 Giá cho thuê:</p>
-  <p>- Số tiền: <%= tien_thue %>đ (<%= tien_thue_bang_chu %>)/ tháng</p>
-  <p>3.2 Tiền đặt cọc:</p>
-  <p>Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là <%= tien_thue %> VNĐ (bằng chữ: <%= tien_thue_bang_chu %>) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp Đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
-  <p>Nếu Bên B đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho Bên A thì Bên A sẽ không phải hoàn trả lại Bên B số tiền đặt cọc này.</p>
-  <p>Nếu Bên A đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho bên B thì bên A sẽ phải hoàn trả lại Bên B số tiền đặt cọc</p>
-  <p>3.4 Phương thức thanh toán bằng: Chuyển khoản hoặc tiền mặt</p>
-  <p>3.5 Hợp đồng này chỉ bắt đầu có hiệu lực khi bên A xác nhận đã nhận được số tiền đặt cọc nêu trên và tiền thuê căn hộ tháng đầu tiên của bên B</p>
+  <p class="article-item">3.1 Giá cho thuê:</p>
+  <p class="sub-item">- Số tiền: <%= tien_thue %>đ (<%= tien_thue_bang_chu %>)/ tháng</p>
+  <p class="article-item">3.2 Tiền đặt cọc:</p>
+  <p class="sub-item">- Bên B sẽ giao cho Bên A một khoản tiền bằng 1 tháng tiền thuê là <%= tien_thue %> VNĐ (bằng chữ: <%= tien_thue_bang_chu %>) ngay sau khi ký hợp đồng này. Số tiền này là tiền đặt cọc để đảm bảo thực hiện Hợp Đồng cho thuê nhà kể từ ngày hợp đồng có hiệu lực. Trường hợp thời hạn hợp đồng là hiệu lực từ thời điểm không tròn tháng, Bên B cần thanh toán cho Bên A số tiền bằng 1 tháng tiền thuê phòng tháng đầu tiên.</p>
+  <p class="sub-item">- Nếu Bên B đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho Bên A thì Bên A sẽ không phải hoàn trả lại Bên B số tiền đặt cọc này.</p>
+  <p class="sub-item">- Nếu Bên A đơn phương chấm dứt hợp đồng mà không thực hiện nghĩa vụ báo trước cho bên B thì bên A sẽ phải hoàn trả lại Bên B số tiền đặt cọc</p>
+  <p class="article-item">3.4 Phương thức thanh toán bằng: Chuyển khoản hoặc tiền mặt</p>
+  <p class="article-item">3.5 Hợp đồng này chỉ bắt đầu có hiệu lực khi bên A xác nhận đã nhận được số tiền đặt cọc nêu trên và tiền thuê căn hộ tháng đầu tiên của bên B</p>
 
   <h2>ĐIỀU 4</h2>
   <p class="section-title">PHÍ DỊCH VỤ</p>
-  <p>4.1 Bên B phải thanh toán chi phí sử dụng hàng tháng với mức giá:</p>
-  <p>Điện: <%= electricity_price %>đ/kW</p>
-  <p>Nước: <%= water_price %>đ/m3</p>
-  <p>Dịch vụ: <%= service_fee %>đ/người</p>
+  <p class="article-item">4.1 Bên B phải thanh toán chi phí sử dụng hàng tháng với mức giá:</p>
+  <p class="sub-item">Điện: <%= electricity_price %>đ/kW</p>
+  <p class="sub-item">Nước: <%= water_price %>đ/m3</p>
+  <p class="sub-item">Dịch vụ: <%= service_fee %>đ/người</p>
 
   <h2>ĐIỀU 5</h2>
   <p class="section-title">QUYỀN VÀ NGHĨA VỤ CỦA BÊN A</p>
-  <p>5.1 Nghĩa vụ của Bên A:</p>
-  <p>- Bàn giao tài sản cho bên thuê trong tình trạng vệ sinh sạch sẽ theo đúng thỏa thuận trong hợp đồng.</p>
-  <p>- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuê.</p>
-  <p>- Cùng với Bên B giải quyết khi được thông báo.</p>
-  <p>- Trả lại số tiền cọc của bên B khi hai bên chấm dứt hợp đồng thuê căn hộ và bên B đã hoàn thành mọi nghĩa vụ thanh toán cũng như đã sửa chữa, bồi thường hư hại (nếu có) trong quá trình sử dụng căn hộ về tài sản căn hộ căn hộ. Bên A trả lại số tiền thuê căn hộ mà bên B đã trả trước trong trường hợp các bên thỏa thuận chấm dứt hợp đồng thuê căn hộ trước thời hạn.</p>
+  <p class="article-item">5.1 Nghĩa vụ của Bên A:</p>
+  <p class="sub-item">- Bàn giao tài sản cho bên thuê trong tình trạng vệ sinh sạch sẽ theo đúng thỏa thuận trong hợp đồng.</p>
+  <p class="sub-item">- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuê.</p>
+  <p class="sub-item">- Cùng với Bên B giải quyết khi được thông báo.</p>
+  <p class="sub-item">- Trả lại số tiền cọc của bên B khi hai bên chấm dứt hợp đồng thuê căn hộ và bên B đã hoàn thành mọi nghĩa vụ thanh toán cũng như đã sửa chữa, bồi thường hư hại (nếu có) trong quá trình sử dụng căn hộ về tài sản căn hộ căn hộ. Bên A trả lại số tiền thuê căn hộ mà bên B đã trả trước trong trường hợp các bên thỏa thuận chấm dứt hợp đồng thuê căn hộ trước thời hạn.</p>
 
-  <p>5.2 Quyền của Bên A:</p>
-  <p>- Nhận đủ tiền thuê tài sản theo đúng kỳ hạn đã thỏa thuận.</p>
-  <p>- Cải tạo, sửa chữa nâng cấp tài sản thuê trong trường hợp cần thiết.</p>
-  <p>- Đơn phương chấm dứt thực hiện hợp đồng thuê khi bên B có một trong các hành vi sau đây:</p>
-  <p>a. Không trả tiền thuê căn hộ theo đúng số tiền và thời gian đã thỏa thuận.</p>
-  <p>b. Sử dụng căn hộ không đúng mục đích như đã thỏa thuận.</p>
-  <p>c. Có hành vi vi phạm pháp luật tại căn hộ cho thuê.</p>
-  <p>d. Cố ý làm hư hỏng căn hộ cho thuê.</p>
-  <p>e. Sửa chữa, cải tạo, đổi căn hộ cho thuế hoặc cho người khác thuê lại căn hộ đang thuê mà không có sự đồng ý của bên A.</p>
-  <p>f. Làm mất trật tự an ninh và môi trường, ảnh hưởng nghiêm trọng đến sinh hoạt của những người xung quanh đã được bên A hoặc tổ trưởng tổ dân phố, lập biên bản đến lần thứ ba mà vẫn không khắc phục.</p>
+  <p class="article-item">5.2 Quyền của Bên A:</p>
+  <p class="sub-item">- Nhận đủ tiền thuê tài sản theo đúng kỳ hạn đã thỏa thuận.</p>
+  <p class="sub-item">- Cải tạo, sửa chữa nâng cấp tài sản thuê trong trường hợp cần thiết.</p>
+  <p class="sub-item">- Đơn phương chấm dứt thực hiện hợp đồng thuê khi bên B có một trong các hành vi sau đây:</p>
+  <p class="numbered-item">a. Không trả tiền thuê căn hộ theo đúng số tiền và thời gian đã thỏa thuận.</p>
+  <p class="numbered-item">b. Sử dụng căn hộ không đúng mục đích như đã thỏa thuận.</p>
+  <p class="numbered-item">c. Có hành vi vi phạm pháp luật tại căn hộ cho thuê.</p>
+  <p class="numbered-item">d. Cố ý làm hư hỏng căn hộ cho thuê.</p>
+  <p class="numbered-item">e. Sửa chữa, cải tạo, đổi căn hộ cho thuế hoặc cho người khác thuê lại căn hộ đang thuê mà không có sự đồng ý của bên A.</p>
+  <p class="numbered-item">f. Làm mất trật tự an ninh và môi trường, ảnh hưởng nghiêm trọng đến sinh hoạt của những người xung quanh đã được bên A hoặc tổ trưởng tổ dân phố, lập biên bản đến lần thứ ba mà vẫn không khắc phục.</p>
 
   <h2>ĐIỀU 6</h2>
   <p class="section-title">QUYỀN VÀ NGHĨA VỤ CỦA BÊN B</p>
-  <p>6.1 Nghĩa vụ của Bên B:</p>
-  <p>- Sử dụng tài sản đúng mục đích đã thỏa thuận.</p>
-  <p>- Trả đủ tiền thuê tài sản đúng kỳ hạn đã thỏa thuận.</p>
-  <p>- Giữ gìn, sửa chữa những hư hỏng do mình gây ra.</p>
-  <p>- Tôn trọng quy tắc sinh hoạt công cộng.</p>
-  <p>- Bàn giao lại tài sản cho bên A theo đúng thỏa thuận sau khi chấm dứt Hợp đồng.</p>
-  <p>- Phải tự bảo quản tài sản của mình, bảo vệ tài sản chung, giữ gìn vệ sinh chung, an ninh trật tự trong công tác phòng cháy chữa cháy.</p>
-  <p>- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
-  <p>- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
-  <p>- Nếu gây ra những hư hỏng do lỗi chủ quan của Bên B thì Bên B phải chịu trách nhiệm bồi thường thiệt hại theo giá thị trường.</p>
-  <p>- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
-  <p>- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
-  <p>6.2 Quyền của Bên B:</p>
-  <p>- Nhận tài sản thuê theo đúng thỏa thuận.</p>
-  <p>- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuế.</p>
-  <p>- Cùng với Bên A giải quyết khi được thông báo.</p>
+  <p class="article-item">6.1 Nghĩa vụ của Bên B:</p>
+  <p class="sub-item">- Sử dụng tài sản đúng mục đích đã thỏa thuận.</p>
+  <p class="sub-item">- Trả đủ tiền thuê tài sản đúng kỳ hạn đã thỏa thuận.</p>
+  <p class="sub-item">- Giữ gìn, sửa chữa những hư hỏng do mình gây ra.</p>
+  <p class="sub-item">- Tôn trọng quy tắc sinh hoạt công cộng.</p>
+  <p class="sub-item">- Bàn giao lại tài sản cho bên A theo đúng thỏa thuận sau khi chấm dứt Hợp đồng.</p>
+  <p class="sub-item">- Phải tự bảo quản tài sản của mình, bảo vệ tài sản chung, giữ gìn vệ sinh chung, an ninh trật tự trong công tác phòng cháy chữa cháy.</p>
+  <p class="sub-item">- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
+  <p class="sub-item">- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
+  <p class="sub-item">- Nếu gây ra những hư hỏng do lỗi chủ quan của Bên B thì Bên B phải chịu trách nhiệm bồi thường thiệt hại theo giá thị trường.</p>
+  <p class="sub-item">- Không được tự ý thay đổi, sửa chữa hiện trạng ban đầu của tài sản thuê nếu không được sự đồng ý của Bên A.</p>
+  <p class="sub-item">- Không được sử dụng tài sản thuê để kinh doanh trái phép, tàng trữ và sử dụng các mặt hàng cấm theo quy định của pháp luật hiện hành.</p>
+  <p class="article-item">6.2 Quyền của Bên B:</p>
+  <p class="sub-item">- Nhận tài sản thuê theo đúng thỏa thuận.</p>
+  <p class="sub-item">- Bảo đảm cho Bên thuê sử dụng ổn định tài sản trong thời hạn thuế.</p>
+  <p class="sub-item">- Cùng với Bên A giải quyết khi được thông báo.</p>
 
   <h2>ĐIỀU 7</h2>
   <p class="section-title">GIẢI QUYẾT TRANH CHẤP</p>
@@ -263,9 +295,9 @@
 
   <h2>ĐIỀU 8</h2>
   <p class="section-title">CÁC ĐIỀU KHOẢN CHUNG</p>
-  <p>8.1 Hợp đồng này thay thế cho toàn bộ các thỏa thuận miệng, hoặc bằng văn bản trước đó được ký kết giữa hai Bên liên quan đến nội dung Hợp đồng.</p>
-  <p>8.2 Mọi sửa đổi hoặc bổ sung Hợp đồng này phải được lập thành văn bản và được ký bởi đại diện của các Bên tham gia Hợp đồng.</p>
-  <p>8.3 Hiệu lực của từng điều khoản của Hợp đồng mang tính độc lập. Việc một vài điều khoản vô hiệu không làm ảnh hưởng đến hiệu lực của các điều khoản còn lại của Hợp đồng trong trường hợp pháp luật có quy định khác.</p>
+  <p class="article-item">8.1 Hợp đồng này thay thế cho toàn bộ các thỏa thuận miệng, hoặc bằng văn bản trước đó được ký kết giữa hai Bên liên quan đến nội dung Hợp đồng.</p>
+  <p class="article-item">8.2 Mọi sửa đổi hoặc bổ sung Hợp đồng này phải được lập thành văn bản và được ký bởi đại diện của các Bên tham gia Hợp đồng.</p>
+  <p class="article-item">8.3 Hiệu lực của từng điều khoản của Hợp đồng mang tính độc lập. Việc một vài điều khoản vô hiệu không làm ảnh hưởng đến hiệu lực của các điều khoản còn lại của Hợp đồng trong trường hợp pháp luật có quy định khác.</p>
   <p>Hợp Đồng được lập thành 02 (hai) bản có giá trị như nhau, mỗi Bên giữ 01 (một) bản để thực hiện.</p>
 
   <table class="signature-table">
