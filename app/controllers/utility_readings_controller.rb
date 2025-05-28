@@ -1,39 +1,39 @@
 class UtilityReadingsController < ApplicationController
   before_action :require_login
-  before_action :set_utility_reading, only: [:show, :edit, :update, :destroy]
+  before_action :set_utility_reading, only: [ :show, :edit, :update, :destroy ]
 
   def index
     # Start with base query
-    query = UtilityReading.includes(:room => :building)
-    
+    query = UtilityReading.includes(room: :building)
+
     # Apply building filter
     if params[:building_id].present?
       query = query.joins(:room).where(rooms: { building_id: params[:building_id] })
     end
-    
+
     # Apply room filter (takes precedence over building filter)
     if params[:room_id].present?
       query = query.where(room_id: params[:room_id])
     end
-    
+
     # Apply date range filters
     if params[:start_date].present?
       query = query.where("reading_date >= ?", params[:start_date])
     end
-    
+
     if params[:end_date].present?
       query = query.where("reading_date <= ?", params[:end_date])
     end
-    
+
     # Final ordering
     @utility_readings = query.order(reading_date: :desc)
-    
+
     # Return correct format
     service_charge = 0
     if params[:room_id].present?
       service_charge = UtilityPrice.current.service_charge * RoomAssignment.where(room_id: params[:room_id], active: true).count
     end
-    
+
     respond_to do |format|
       format.html # renders the default index.html.erb template
       format.json do
@@ -44,7 +44,7 @@ class UtilityReadingsController < ApplicationController
               reading_date: reading.reading_date,
               room_id: reading.room_id,
               room_number: reading.room.number,
-              utility_type: reading.previous_reading ? 'electricity' : 'water',
+              utility_type: reading.previous_reading ? "electricity" : "water",
               previous_reading: reading.previous_reading&.electricity_reading || 0,
               current_reading: reading.electricity_reading,
               rate: reading.electricity_unit_price,
@@ -61,7 +61,7 @@ class UtilityReadingsController < ApplicationController
             render json: [
               {
                 id: latest[:id],
-                utility_type: 'electricity',
+                utility_type: "electricity",
                 reading_date: latest[:reading_date],
                 previous_reading: latest[:previous_reading],
                 current_reading: latest[:current_reading],
@@ -70,7 +70,7 @@ class UtilityReadingsController < ApplicationController
               },
               {
                 id: latest[:id],
-                utility_type: 'water',
+                utility_type: "water",
                 reading_date: latest[:reading_date],
                 previous_reading: latest[:water_previous_reading],
                 current_reading: latest[:water_current_reading],
@@ -110,7 +110,7 @@ class UtilityReadingsController < ApplicationController
     @utility_reading = UtilityReading.new(utility_reading_params)
 
     if @utility_reading.save
-      flash[:success] = t('utility_readings.create_success')
+      flash[:success] = t("utility_readings.create_success")
       redirect_to @utility_reading
     else
       @rooms = Room.all
@@ -124,7 +124,7 @@ class UtilityReadingsController < ApplicationController
 
   def update
     if @utility_reading.update(utility_reading_params)
-      flash[:success] = t('utility_readings.update_success')
+      flash[:success] = t("utility_readings.update_success")
       redirect_to @utility_reading
     else
       @rooms = Room.all
@@ -134,7 +134,7 @@ class UtilityReadingsController < ApplicationController
 
   def destroy
     @utility_reading.destroy
-    flash[:success] = t('utility_readings.delete_success')
+    flash[:success] = t("utility_readings.delete_success")
     redirect_to utility_readings_url
   end
 
@@ -146,12 +146,12 @@ class UtilityReadingsController < ApplicationController
 
   def utility_reading_params
     params.require(:utility_reading).permit(:room_id, :reading_date, :electricity_reading,
-                                           :water_reading, :service_charge)
+                                           :water_reading)
   end
 
   def require_login
     unless session[:user_id]
-      flash[:danger] = t('auth.login_required')
+      flash[:danger] = t("auth.login_required")
       redirect_to login_path
     end
   end
