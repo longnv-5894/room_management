@@ -498,7 +498,7 @@ class ExcelImportService
     @column_indices[:trash_fee] = find_column(column_headers, "vệ sinh|rác|trash|garbage")
 
     # Find previous debt and overpayment columns
-    @column_indices[:prev_debt] = find_column(column_headers, "nợ cũ|prev.*debt|debt|previous")
+    @column_indices[:prev_debt] = find_column(column_headers, "nợ|prev.*debt|debt|previous")
     @column_indices[:overpayment] = find_column(column_headers, "thừa|overpayment|excess")
 
     # Find area column
@@ -1264,58 +1264,33 @@ class ExcelImportService
       bill.other_fees = 0
 
       # Calculate total if not provided
-      if total_amount > 0
+      if total_amount != 0
         bill.total_amount = total_amount
       else
         # Let the model calculate the total based on individual fees
         bill.calculate_total if bill.respond_to?(:calculate_total)
       end
 
-      # Set status based on payment status field (if exists)
-      if payment_status.present?
-        if payment_status.include?("đã thanh toán") || payment_status.include?("paid")
-          bill.status = "paid"
-        elsif payment_status.include?("thanh toán một phần") || payment_status.include?("partial")
-          bill.status = "partial"
-        else
+
+          # Set status based on payment status field (if exists)
+          if payment_status.present?
+          if payment_status.include?("đã thanh toán") || payment_status.include?("paid")
+            bill.status = "paid"
+          elsif payment_status.include?("thanh toán một phần") || payment_status.include?("partial")
+            bill.status = "partial"
+          else
+            bill.status = "unpaid"
+          end
+          else
           bill.status = "unpaid"
-        end
-      else
-        bill.status = "unpaid"
-      end
+          end
 
-      # Cập nhật thông tin thanh toán
-      if paid_amount <= 0
-        # Nếu trạng thái là paid, đặt paid_amount = total_amount
-        if bill.status == "paid"
-          paid_amount = bill.total_amount
-          remaining_amount = 0
-        # Nếu trạng thái là partial, tính paid_amount từ total_amount và previous_debt
-        elsif bill.status == "partial"
-          # Giả định: paid_amount = tổng cộng - nợ cũ
-          paid_amount = bill.total_amount - prev_debt
-          remaining_amount = prev_debt
-        # Nếu là unpaid nhưng có overpayment, dùng overpayment làm paid_amount
-        elsif bill.status == "unpaid" && overpayment > 0
-          paid_amount = overpayment
-          remaining_amount = bill.total_amount - paid_amount
-        end
-      end
 
-      bill.paid_amount = paid_amount > 0 ? paid_amount : 0
-      bill.remaining_amount = bill.total_amount - bill.paid_amount
 
-      # Đảm bảo trạng thái phản ánh đúng tình trạng thanh toán
-      if bill.paid_amount >= bill.total_amount
-        bill.status = "paid"
-      elsif bill.paid_amount > 0
-        bill.status = "partial"
-      else
-        bill.status = "unpaid"
-      end
+
 
       # Tạo lịch sử thanh toán nếu có paid_amount > 0
-      if bill.paid_amount > 0
+      if bill.paid_amount > 0 || bill.total_amount < 0
         if bill.payment_history.blank?
           payment_records = []
         else
@@ -1326,12 +1301,21 @@ class ExcelImportService
           end
         end
 
-        # Sử dụng payment_date nếu có, hoặc ngày billing_date làm mặc định
-        payment_records << {
-          date: (payment_date || billing_date).to_s,
-          amount: bill.paid_amount,
-          note: payment_notes.presence || "Imported from Excel"
-        }
+        # For negative total amount (overpayment), create a special payment record
+        if bill.total_amount < 0
+          payment_records << {
+            date: (payment_date || billing_date).to_s,
+            amount: 0,
+            note: "Overpayment credit applied. No payment needed this period."
+          }
+        else
+          # Sử dụng payment_date nếu có, hoặc ngày billing_date làm mặc định
+          payment_records << {
+            date: (payment_date || billing_date).to_s,
+            amount: bill.paid_amount,
+            note: payment_notes.presence || "Imported from Excel"
+          }
+        end
 
         bill.payment_history = payment_records.to_json
       end
@@ -1344,8 +1328,14 @@ class ExcelImportService
       notes << "Service Fee: #{service_fee}" if service_fee && service_fee > 0
       notes << "Previous Debt: #{prev_debt}" if prev_debt && prev_debt > 0
       notes << "Overpayment Credit: #{overpayment}" if overpayment && overpayment > 0
-      notes << "Paid Amount: #{paid_amount}" if paid_amount > 0
-      notes << "Payment Date: #{payment_date}" if payment_date.present?
+
+      if bill.total_amount < 0
+        notes << "NEGATIVE TOTAL AMOUNT: Large overpayment resulted in credit for future bills."
+      else
+        notes << "Paid Amount: #{paid_amount}" if paid_amount > 0
+        notes << "Payment Date: #{payment_date}" if payment_date.present?
+      end
+
       notes << payment_notes if payment_notes.present?
       bill.notes = notes.join(", ")
 

@@ -3,11 +3,15 @@ class Bill < ApplicationRecord
 
   validates :billing_date, presence: true
   validates :due_date, presence: true
-  validates :total_amount, numericality: { greater_than_or_equal_to: 0 }
+
+  # Modified validation to allow negative total_amount for overpayment cases
+  validates :total_amount, presence: true
 
   # Đảm bảo các giá trị thanh toán là hợp lệ
   validates :paid_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :remaining_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
+  # Modified validation for remaining_amount to allow negative values for overpayment cases
+  validates :remaining_amount, presence: true, allow_nil: true
 
   # Tự động cập nhật số tiền còn thiếu khi lưu
   before_save :update_remaining_amount

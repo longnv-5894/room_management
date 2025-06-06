@@ -35,13 +35,13 @@
 
     <div class="stat-card">
       <div class="stat-icon">
-        <i class="fas fa-money-bill-wave"></i>
+        <i class="fas fa-percentage"></i>
       </div>
       <div class="stat-content">
-        <span class="stat-value">
-          <%= number_to_currency(@monthly_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
+        <span class="stat-value <%= @profit_margin >= 0 ? 'text-success' : 'text-danger' %>">
+          <%= number_to_percentage(@profit_margin, precision: 2) %>
         </span>
-        <span class="stat-label"><%= t('revenues.monthly_profit') %></span>
+        <span class="stat-label"><%= t('revenues.profit_margin') %></span>
       </div>
     </div>
   </div>
@@ -157,22 +157,22 @@
               <i class="fas fa-money-bill-wave"></i>
             </div>
             <h5><%= t('revenues.revenue') %></h5>
-            <h3 class="text-success"><%= number_to_currency(@monthly_revenue, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
+            <h3 class="text-success"><%= number_to_currency(@all_time_revenue, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
           </div>
           <div class="financial-card expenses">
             <div class="stat-circle stat-negative mx-auto mb-3">
               <i class="fas fa-file-invoice-dollar"></i>
             </div>
             <h5><%= t('revenues.expenses') %></h5>
-            <h3 class="text-danger"><%= number_to_currency(@monthly_expenses, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
+            <h3 class="text-danger"><%= number_to_currency(@all_time_expenses, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
           </div>
           <div class="financial-card profit-loss">
-            <div class="stat-circle <%= @monthly_profit >= 0 ? 'stat-positive' : 'stat-negative' %> mx-auto mb-3">
+            <div class="stat-circle <%= @all_time_profit >= 0 ? 'stat-positive' : 'stat-negative' %> mx-auto mb-3">
               <i class="fas fa-chart-line"></i>
             </div>
             <h5><%= t('revenues.profit') %>/<%= t('revenues.loss') %></h5>
-            <h3 class="<%= @monthly_profit >= 0 ? 'text-success' : 'text-danger' %>">
-              <%= number_to_currency(@monthly_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
+            <h3 class="<%= @all_time_profit >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= number_to_currency(@all_time_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
             </h3>
           </div>
         </div>

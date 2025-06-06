@@ -52,10 +52,16 @@ vi:
     optional: "Tùy chọn"
     view_all: "Xem tất cả"
     danger_zone: "Khu vực nguy hiểm"
-    total: "Tổng cộng: %{count}"
+    total: "Tổng cộng:"
     confirm_delete: "Bạn có chắc muốn xóa mục này không?"
     all_items: "Tất cả %{items}"
     all: "Tất cả"
+    view_details: "Xem chi tiết"
+    month: "Tháng"
+    margin: "Biên lợi nhuận"
+    last_3_months: "3 tháng gần đây"
+    last_6_months: "6 tháng gần đây"
+    last_12_months: "12 tháng gần đây"
   
   # Navigation
   nav:
@@ -539,7 +545,10 @@ vi:
     amount: "Số tiền"
     no_bills: "Không có hóa đơn trong tháng này"
     no_expenses: "Không có chi phí trong tháng này"
-
+    profit_margin: "Tỷ suất lợi nhuận"
+    average_revenue: "Doanh thu trung bình"
+    average_expenses: "Chi phí trung bình"
+    average_profit: "Lợi nhuận trung bình"
   # Vehicles
   vehicles:
     title: "Phương tiện"
@@ -699,6 +708,7 @@ vi:
       will_import_tenants: "Người thuê và phân phối phòng của họ"
       will_import_utilities: "Chỉ số tiện ích (điện và nước) với giá trị trước và hiện tại"
       will_import_bills: "Hóa đơn với tất cả các khoản phí bao gồm dịch vụ bổ sung"
+    monthly_financial_report: "Báo cáo tài chính hàng tháng"
   # Contracts
   contracts:
     title: "Hợp đồng"
@@ -1018,10 +1028,15 @@ vi:
               blank: "không được để trống"
             service_charge:
               blank: "không được để trống"
+        bill:
+          attributes:
+            remaining_amount:
+              greater_than_or_equal_to: "phải lớn hơn hoặc bằng %{count}"
       messages:
         blank: "không được để trống"
         not_a_number: "phải là một số"
         greater_than: "phải lớn hơn %{count}"
+        greater_than_or_equal_to: "phải lớn hơn hoặc bằng %{count}"
   
   # Error messages
   errors:
@@ -1032,10 +1047,13 @@ vi:
         greater_than: "Tiền thuê hàng tháng phải lớn hơn %{count}"
       electricity_unit_price:
         blank: "Đơn giá điện không được để trống"
+      remaining_amount:
+        greater_than_or_equal_to: "phải lớn hơn hoặc bằng %{count}"
     messages:
       blank: "không được để trống"
       not_a_number: "phải là một số"
       greater_than: "phải lớn hơn %{count}"
+      greater_than_or_equal_to: "phải lớn hơn hoặc bằng %{count}"
   
   import_histories:
     statuses:
@@ -1145,6 +1163,7 @@ vi:
     processing: "Đang xử lý %{count} người dùng..."
     starting_sync: "Đang bắt đầu đồng bộ..."
     processing_progress: "Đang xử lý người dùng %{current}/%{total}: đã thêm %{synced}, đã cập nhật %{updated}"
+    progress_with_fetched: "Đang xử lý: đã lấy %{fetched}, đã thêm %{synced}, đã cập nhật %{updated}"
     finalizing: "Đang hoàn tất đồng bộ..."
     stopped: "Đã dừng: đã thêm %{synced}, đã cập nhật %{updated}. Tất cả thay đổi đã được hoàn tác."
     completed: "Hoàn thành: đã thêm %{synced}, đã cập nhật %{updated}."

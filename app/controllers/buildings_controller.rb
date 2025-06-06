@@ -23,10 +23,22 @@ class BuildingsController < ApplicationController
     @monthly_revenue = @building.actual_monthly_revenue
     @monthly_expenses = OperatingExpense.total_for_month_and_building(current_year, current_month, @building.id)
 
-    # Get monthly financial data for report (last 6 months by default)
+    # Calculate average revenue, expenses, and profit from months with revenue
     months_to_show = params[:months].present? ? params[:months].to_i : 6
     @monthly_financial_data = get_monthly_financial_data(@building, months_to_show)
     @total_financial_data = calculate_total_financial_data(@monthly_financial_data)
+
+    # Calculate averages only for months with revenue
+    months_with_revenue = @monthly_financial_data.select { |data| data[:revenue] > 0 }
+    if months_with_revenue.any?
+      @average_revenue = months_with_revenue.sum { |data| data[:revenue] } / months_with_revenue.size
+      @average_expenses = months_with_revenue.sum { |data| data[:expenses] } / months_with_revenue.size
+      @average_profit = @average_revenue - @average_expenses
+    else
+      @average_revenue = 0
+      @average_expenses = 0
+      @average_profit = 0
+    end
   end
 
   # Get monthly financial data for a building
@@ -43,6 +55,7 @@ class BuildingsController < ApplicationController
       revenue = Bill.joins(room_assignment: :room)
                     .where(rooms: { building_id: building.id })
                     .where(billing_date: month_date..month_end)
+                    .where(status: "paid")
                     .sum(:total_amount)
 
       # Calculate expenses for this building and month

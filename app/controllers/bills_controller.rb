@@ -218,8 +218,10 @@ class BillsController < ApplicationController
 
   def bill_params
     params.require(:bill).permit(:room_assignment_id, :billing_date, :due_date,
+                                 :billing_period_start, :billing_period_end,
                                  :room_fee, :electricity_fee, :water_fee, :service_fee,
-                                 :other_fees, :notes, :status)
+                                 :previous_debt, :overpayment, :other_fees,
+                                 :notes, :status, :payment_date, :paid_amount, :remaining_amount)
   end
 
   def require_login

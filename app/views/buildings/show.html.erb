@@ -102,26 +102,40 @@
       </div>
       
       <!-- Financial Stats -->
-      <div class="col-md-6 mb-4">
+      <div class="col-md-4 mb-4">
         <div class="card h-100">
           <div class="card-body text-center">
             <div class="stat-circle stat-positive mx-auto mb-3">
               <i class="fas fa-money-bill-wave"></i>
             </div>
-            <h5 class="card-title mb-1"><%= t('buildings.monthly_revenue') %></h5>
-            <h3><%= number_to_currency(@monthly_revenue) %></h3>
+            <h5 class="card-title mb-1"><%= t('revenues.average_revenue') %></h5>
+            <h3><%= number_to_currency(@average_revenue, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
           </div>
         </div>
       </div>
       
-      <div class="col-md-6 mb-4">
+      <div class="col-md-4 mb-4">
         <div class="card h-100">
           <div class="card-body text-center">
             <div class="stat-circle stat-negative mx-auto mb-3">
               <i class="fas fa-receipt"></i>
             </div>
-            <h5 class="card-title mb-1"><%= t('buildings.monthly_expenses') %></h5>
-            <h3><%= number_to_currency(@monthly_expenses) %></h3>
+            <h5 class="card-title mb-1"><%= t('revenues.average_expenses') %></h5>
+            <h3><%= number_to_currency(@average_expenses, precision: 0, delimiter: ',', unit: 'VND ') %></h3>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="stat-circle <%= @average_profit >= 0 ? 'stat-positive' : 'stat-negative' %> mx-auto mb-3">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h5 class="card-title mb-1"><%= t('revenues.average_profit') %></h5>
+            <h3 class="<%= @average_profit >= 0 ? 'text-success' : 'text-danger' %>">
+              <%= number_to_currency(@average_profit, precision: 0, delimiter: ',', unit: 'VND ') %>
+            </h3>
           </div>
         </div>
       </div>
@@ -304,7 +318,7 @@
 <div class="card mb-4">
   <div class="card-header d-flex justify-content-between align-items-center">
     <div>
-      <i class="fas fa-chart-line me-2"></i> <%= t('buildings.monthly_financial_report', default: 'Monthly Financial Report') %>
+      <i class="fas fa-chart-line me-2"></i> <%= t('buildings.monthly_financial_report') %>
     </div>
     <div class="d-flex align-items-center">
       <div class="dropdown me-2">
@@ -312,21 +326,21 @@
           <%= 
             months = params[:months].present? ? params[:months].to_i : 6
             case months
-            when 3 then t('common.last_3_months', default: 'Last 3 months')
-            when 6 then t('common.last_6_months', default: 'Last 6 months')
-            when 12 then t('common.last_12_months', default: 'Last 12 months')
-            else t('common.last_6_months', default: 'Last 6 months')
+            when 3 then t('common.last_3_months')
+            when 6 then t('common.last_6_months')
+            when 12 then t('common.last_12_months')
+            else t('common.last_6_months')
             end
           %>
         </button>
         <ul class="dropdown-menu" aria-labelledby="timeRangeDropdown">
-          <li><%= link_to t('common.last_3_months', default: 'Last 3 months'), building_path(@building, months: 3), class: "dropdown-item" %></li>
-          <li><%= link_to t('common.last_6_months', default: 'Last 6 months'), building_path(@building, months: 6), class: "dropdown-item" %></li>
-          <li><%= link_to t('common.last_12_months', default: 'Last 12 months'), building_path(@building, months: 12), class: "dropdown-item" %></li>
+          <li><%= link_to t('common.last_3_months'), building_path(@building, months: 3), class: "dropdown-item" %></li>
+          <li><%= link_to t('common.last_6_months'), building_path(@building, months: 6), class: "dropdown-item" %></li>
+          <li><%= link_to t('common.last_12_months'), building_path(@building, months: 12), class: "dropdown-item" %></li>
         </ul>
       </div>
       <%= link_to revenues_path(building_id: @building.id), class: "btn btn-sm btn-outline-secondary" do %>
-        <i class="fas fa-list"></i> <%= t('common.view_details', default: 'View Details') %>
+        <i class="fas fa-list"></i> <%= t('common.view_details') %>
       <% end %>
     </div>
   </div>
@@ -336,11 +350,11 @@
       <table class="data-table financial-report-table">
         <thead>
           <tr>
-            <th><%= t('common.month', default: 'Month') %></th>
-            <th class="text-end"><%= t('revenues.revenue', default: 'Revenue') %></th>
-            <th class="text-end"><%= t('revenues.expenses', default: 'Expenses') %></th>
-            <th class="text-end"><%= t('revenues.profit', default: 'Profit/Loss') %></th>
-            <th class="text-end"><%= t('common.margin', default: 'Margin') %></th>
+            <th><%= t('common.month') %></th>
+            <th class="text-end"><%= t('revenues.revenue') %></th>
+            <th class="text-end"><%= t('revenues.expenses') %></th>
+            <th class="text-end"><%= t('revenues.profit') %></th>
+            <th class="text-end"><%= t('common.margin') %></th>
           </tr>
         </thead>
         <tbody>
@@ -360,7 +374,7 @@
         </tbody>
         <tfoot>
           <tr class="table-summary">
-            <th><%= t('common.total', default: 'Total') %></th>
+            <th><%= t('common.total') %></th>
             <th class="text-end currency-amount"><%= number_to_currency(@total_financial_data[:revenue], precision: 0, delimiter: ',', unit: 'VND ') %></th>
             <th class="text-end currency-amount"><%= number_to_currency(@total_financial_data[:expenses], precision: 0, delimiter: ',', unit: 'VND ') %></th>
             <th class="text-end currency-amount <%= @total_financial_data[:profit] >= 0 ? 'text-success' : 'text-danger' %>">

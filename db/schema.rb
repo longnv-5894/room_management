@@ -125,6 +125,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_27_144722) do
     t.bigint "tenant_id"
     t.string "user_id", null: false
     t.string "name"
+    t.string "role"
     t.string "status"
     t.string "avatar_url"
     t.datetime "last_active_at"
@@ -240,13 +241,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_27_144722) do
   create_table "unlock_records", force: :cascade do |t|
     t.bigint "smart_device_id", null: false
     t.datetime "time", null: false
-    t.string "user_id"
     t.string "user_name"
     t.string "unlock_method"
     t.boolean "success", default: true
+    t.string "record_id"
     t.json "raw_data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "user_id"
+    t.index ["record_id"], name: "index_unlock_records_on_record_id", unique: true
     t.index ["smart_device_id"], name: "index_unlock_records_on_smart_device_id"
     t.index ["time"], name: "index_unlock_records_on_time"
   end

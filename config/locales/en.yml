@@ -76,6 +76,13 @@ en:
     confirm_delete: "Are you sure you want to delete this?"
     all_items: "All %{items}"
     search_by_name: "Search by name"
+    view_details: "View Details"
+    month: "Month"
+    margin: "Margin"
+    total: "Total"
+    last_3_months: "Last 3 Months"
+    last_6_months: "Last 6 Months"
+    last_12_months: "Last 12 Months"
   
   # Navigation
   nav:
@@ -521,7 +528,11 @@ en:
     amount: "Amount"
     no_bills: "No bills for this month"
     no_expenses: "No expenses for this month"
-
+    profit_margin: "Profit Margin"
+    average_revenue: "Average Revenue"
+    average_expenses: "Average Expenses"
+    average_profit: "Average Profit"
+  
   # Vehicles
   vehicles:
     title: "Vehicles"
@@ -609,6 +620,7 @@ en:
     monthly_revenue: "Monthly Revenue"
     monthly_expenses: "Monthly Expenses"
     recent_expenses: "Recent Expenses"
+    monthly_financial_report: "Monthly Financial Report"
     created: "Building was successfully created."
     updated: "Building was successfully updated."
     deleted: "Building was successfully deleted."

@@ -227,7 +227,7 @@
     
     <!-- Right Side - Summary -->
     <div class="col-lg-4">
-      <div class="card border-0 shadow-sm sticky-top mb-4" style="top: 20px;">
+      <div class="card border-0 shadow-sm sticky-top mb-4" style="top: 80px; z-index: 10;">
         <div class="card-header d-flex align-items-center bg-light py-3">
           <i class="fas fa-info-circle text-primary me-2"></i>
           <h2 class="h5 mb-0"><%= t('bills.summary') %></h2>
@@ -333,6 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const billStatusSelect = document.getElementById('bill_status');
   const paymentDateContainer = document.querySelector('.payment-date-container');
   const roomFeeInput = document.getElementById('room_fee');
+  const billForm = document.getElementById('bill-form');
   
   // Format number with Vietnamese currency format
   function formatNumber(num) {
@@ -349,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Parse input values consistently, handling both dot and comma separators
     const parseInputValue = (value) => {
       if (!value || value.trim() === '') return 0;
-      return parseFloat(value.replace(/[,\.]/g, '')) || 0;
+      return parseFloat(value.replace(/[,\.]/g, '').replace(/[^\d]/g, '')) || 0;
     };
     
     const roomFee = parseInputValue(roomFeeInput.value);
@@ -389,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     input.addEventListener('blur', function(e) {
       if (this.value.trim()) {
         // Get the raw value without separators
-        const rawValue = parseFloat(this.value.replace(/[,\.]/g, '')) || 0;
+        const rawValue = parseFloat(this.value.replace(/[,\.]/g, '').replace(/[^\d]/g, '')) || 0;
         // For display, show correctly formatted number with Vietnamese currency format
         this.value = formatNumber(rawValue);
       } else {
@@ -425,6 +426,24 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     periodStartField.addEventListener('change', updatePeriodSummary);
     periodEndField.addEventListener('change', updatePeriodSummary);
+  }
+  
+  // Add form submission handler to clean up number formats before submitting
+  if (billForm) {
+    billForm.addEventListener('submit', function(e) {
+      // Temporarily prevent form submission
+      e.preventDefault();
+      
+      // Clean all number format inputs
+      document.querySelectorAll('.number-format').forEach(input => {
+        // Remove all non-digit characters
+        const rawValue = parseFloat(input.value.replace(/[^\d]/g, '')) || 0;
+        input.value = rawValue;
+      });
+      
+      // Now submit the form
+      this.submit();
+    });
   }
 });
 </script>
